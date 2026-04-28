@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// HUD controller: HP bar, EXP bar, timer, and weapon icon bar.
+/// Uses event-driven refresh instead of polling every frame to reduce GC.
 /// </summary>
 public class HUDController : MonoBehaviour
 {
@@ -24,57 +25,116 @@ public class HUDController : MonoBehaviour
     private PlayerStats _stats;
     private PlayerWeaponManager _weaponManager;
 
+    // Cached values to detect changes and avoid redundant UI updates
+    private int _lastHPDisplay = -1;
+    private int _lastMaxHPDisplay = -1;
+    private int _lastLevel = -1;
+    private int _lastTimerSec = -1;
+
+    // Cached delegates to allow proper unsubscribe
+    private System.Action<int> _onDamagedHandler;
+    private System.Action<int> _onLevelUpHandler;
+
     private void Start()
     {
         _stats = FindObjectOfType<PlayerStats>();
         _weaponManager = FindObjectOfType<PlayerWeaponManager>();
 
-        GameEvents.OnPlayerDamaged += _ => RefreshHP();
-        GameEvents.OnPlayerLevelUp += _ => RefreshLevel();
-    }
+        // Create cached delegate instances so unsubscribe works correctly
+        _onDamagedHandler = _ => RefreshHP();
+        _onLevelUpHandler = _ => OnLevelUp();
 
-    private void OnDestroy()
-    {
-        GameEvents.OnPlayerDamaged -= _ => RefreshHP();
-        GameEvents.OnPlayerLevelUp -= _ => RefreshLevel();
-    }
+        GameEvents.OnPlayerDamaged += _onDamagedHandler;
+        GameEvents.OnPlayerLevelUp += _onLevelUpHandler;
 
-    private void Update()
-    {
+        // Initial refresh
         RefreshHP();
         RefreshEXP();
         RefreshTimer();
     }
 
+    private void OnDestroy()
+    {
+        GameEvents.OnPlayerDamaged -= _onDamagedHandler;
+        GameEvents.OnPlayerLevelUp -= _onLevelUpHandler;
+    }
+
+    private void Update()
+    {
+        // Only refresh timer every frame (cheap int compare)
+        RefreshTimer();
+
+        // Refresh HP/EXP only if values changed (avoids string allocation every frame)
+        RefreshHPIfNeeded();
+        RefreshEXPIfNeeded();
+    }
+
     private void RefreshHP()
     {
         if (_stats == null) return;
+
         if (_hpSlider != null)
         {
             _hpSlider.maxValue = _stats.MaxHP;
             _hpSlider.value = _stats.CurrentHP;
         }
+
         if (_hpText != null)
         {
-            _hpText.text = $"HP: {(int)_stats.CurrentHP}/{(int)_stats.MaxHP}";
+            int hp = (int)_stats.CurrentHP;
+            int maxHp = (int)_stats.MaxHP;
+            _hpText.text = $"HP: {hp}/{maxHp}";
+            _lastHPDisplay = hp;
+            _lastMaxHPDisplay = maxHp;
+        }
+    }
+
+    private void RefreshHPIfNeeded()
+    {
+        if (_stats == null || _hpText == null) return;
+
+        int hp = (int)_stats.CurrentHP;
+        int maxHp = (int)_stats.MaxHP;
+        if (hp != _lastHPDisplay || maxHp != _lastMaxHPDisplay)
+        {
+            _hpSlider.maxValue = _stats.MaxHP;
+            _hpSlider.value = _stats.CurrentHP;
+            _hpText.text = $"HP: {hp}/{maxHp}";
+            _lastHPDisplay = hp;
+            _lastMaxHPDisplay = maxHp;
         }
     }
 
     private void RefreshEXP()
     {
         if (_stats == null) return;
+
         if (_expSlider != null)
-        {
-            _expSlider.maxValue = 1f;
             _expSlider.value = _stats.EXPProgress;
-        }
+
         if (_levelText != null)
         {
             _levelText.text = $"Lv.{_stats.Level}";
+            _lastLevel = _stats.Level;
         }
     }
 
-    private void RefreshLevel()
+    private void RefreshEXPIfNeeded()
+    {
+        if (_stats == null) return;
+
+        if (_levelText != null && _stats.Level != _lastLevel)
+        {
+            _levelText.text = $"Lv.{_stats.Level}";
+            _lastLevel = _stats.Level;
+        }
+
+        // EXP progress changes frequently; slider.value is a cheap float set
+        if (_expSlider != null)
+            _expSlider.value = _stats.EXPProgress;
+    }
+
+    private void OnLevelUp()
     {
         RefreshEXP();
         RefreshWeaponBar();
@@ -87,11 +147,14 @@ public class HUDController : MonoBehaviour
         if (gm == null) return;
 
         float t = gm.ElapsedTime;
-        int min = (int)(t / 60f);
-        int sec = (int)(t % 60f);
+        int totalSec = (int)t;
+        if (totalSec == _lastTimerSec) return; // no change, skip string alloc
+
+        _lastTimerSec = totalSec;
+        int min = totalSec / 60;
+        int sec = totalSec % 60;
         _timerText.text = $"{min:D2}:{sec:D2}";
 
-        // Color shift
         if (min < 10) _timerText.color = Color.white;
         else if (min < 20) _timerText.color = Color.yellow;
         else _timerText.color = Color.red;
@@ -101,7 +164,6 @@ public class HUDController : MonoBehaviour
     {
         if (_weaponBarContainer == null || _weaponManager == null) return;
 
-        // Clear existing
         for (int i = _weaponBarContainer.childCount - 1; i >= 0; i--)
         {
             Destroy(_weaponBarContainer.GetChild(i).gameObject);

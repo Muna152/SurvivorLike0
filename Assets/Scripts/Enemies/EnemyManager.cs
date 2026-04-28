@@ -8,6 +8,7 @@ using UnityEngine;
 public class EnemyManager : Singleton<EnemyManager>
 {
     private readonly List<EnemyBase> _activeEnemies = new List<EnemyBase>();
+    private PlayerStats _playerStats;
 
     public int ActiveCount => _activeEnemies.Count;
 
@@ -15,6 +16,11 @@ public class EnemyManager : Singleton<EnemyManager>
     {
         base.Awake();
         GameEvents.OnEnemyDied += OnEnemyDiedHandler;
+    }
+
+    private void Start()
+    {
+        _playerStats = FindObjectOfType<PlayerStats>();
     }
 
     public EnemyBase SpawnEnemy(EnemyData data, Vector2 position)
@@ -32,8 +38,7 @@ public class EnemyManager : Singleton<EnemyManager>
     private void OnEnemyDiedHandler(EnemyBase enemy)
     {
         _activeEnemies.Remove(enemy);
-        var stats = FindObjectOfType<PlayerStats>();
-        if (stats != null) stats.AddKill();
+        if (_playerStats != null) _playerStats.AddKill();
     }
 
     protected override void OnDestroy()

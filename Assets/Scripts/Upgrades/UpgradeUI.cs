@@ -4,18 +4,26 @@ using UnityEngine.UI;
 
 /// <summary>
 /// UGUI upgrade selection UI: shows 3 cards on level-up, pauses game until selection.
+/// Uses CanvasGroup so the panel stays active (Start() always runs) while being invisible.
 /// </summary>
 public class UpgradeUI : MonoBehaviour
 {
-    [SerializeField] private GameObject _panel;
     [SerializeField] private Transform _cardContainer;
     [SerializeField] private GameObject _cardPrefab;
     [SerializeField] private Text _titleText;
     [SerializeField] private Button _skipButton;
 
+    private CanvasGroup _canvasGroup;
     private UpgradeManager _manager;
     private List<UpgradeOption> _options;
     private readonly List<GameObject> _cardInstances = new List<GameObject>();
+
+    private void Awake()
+    {
+        _canvasGroup = GetComponent<CanvasGroup>();
+        if (_canvasGroup == null)
+            _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+    }
 
     private void Start()
     {
@@ -44,7 +52,10 @@ public class UpgradeUI : MonoBehaviour
     private void Show(List<UpgradeOption> options)
     {
         _options = options;
-        _panel.SetActive(true);
+        _canvasGroup.alpha = 1f;
+        _canvasGroup.blocksRaycasts = true;
+        _canvasGroup.interactable = true;
+
         if (_titleText != null) _titleText.text = "LEVEL UP!";
 
         ClearCards();
@@ -65,7 +76,9 @@ public class UpgradeUI : MonoBehaviour
 
     private void Hide()
     {
-        _panel.SetActive(false);
+        _canvasGroup.alpha = 0f;
+        _canvasGroup.blocksRaycasts = false;
+        _canvasGroup.interactable = false;
         ClearCards();
     }
 

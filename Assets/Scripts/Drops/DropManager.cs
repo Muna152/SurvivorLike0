@@ -14,6 +14,37 @@ public class DropManager : Singleton<DropManager>
     [Range(0f, 1f)] [SerializeField] private float _expGemChance = 0.8f;
     [Range(0f, 1f)] [SerializeField] private float _healthChance = 0.05f;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        RegisterDropPools();
+    }
+
+    private void RegisterDropPools()
+    {
+        RegisterDropPool(_expGemPrefab, "ExpGem");
+        RegisterDropPool(_goldCoinPrefab, "Gold");
+        RegisterDropPool(_healthPrefab, "Health");
+    }
+
+    private void RegisterDropPool(GameObject prefab, string key)
+    {
+        if (prefab == null) return;
+
+        PoolManager.Instance.Register<DropBase>(
+            key,
+            () =>
+            {
+                var obj = Instantiate(prefab);
+                obj.SetActive(false);
+                return obj.GetComponent<DropBase>();
+            },
+            drop => drop.ResetForReuse(),
+            prewarmCount: 30,
+            maxSize: 200
+        );
+    }
+
     /// <summary>Spawn drops at the given position.</summary>
     public void SpawnDrops(Vector2 position, int expValue, int goldValue)
     {

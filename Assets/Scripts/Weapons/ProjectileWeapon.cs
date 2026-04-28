@@ -7,6 +7,37 @@ using UnityEngine;
 /// </summary>
 public class ProjectileWeapon : WeaponBase
 {
+    private bool _poolRegistered;
+
+    public override void Initialize(WeaponData data, PlayerStats stats)
+    {
+        base.Initialize(data, stats);
+        RegisterProjectilePool();
+    }
+
+    private void RegisterProjectilePool()
+    {
+        if (_poolRegistered || _data == null || _data.projectilePrefab == null) return;
+
+        var prefab = _data.projectilePrefab;
+        string key = prefab.name;
+
+        PoolManager.Instance.Register<Projectile>(
+            key,
+            () =>
+            {
+                var obj = Instantiate(prefab);
+                obj.SetActive(false);
+                return obj.GetComponent<Projectile>();
+            },
+            proj => proj.ResetForReuse(),
+            prewarmCount: 20,
+            maxSize: 100
+        );
+
+        _poolRegistered = true;
+    }
+
     protected override void Attack()
     {
         if (_data == null || _data.projectilePrefab == null) return;
@@ -16,14 +47,15 @@ public class ProjectileWeapon : WeaponBase
 
         int count = ld.projectileCount + _playerStats.ProjectileBonus;
 
-        // Find nearest enemy direction
-        var enemies = FindObjectsOfType<EnemyBase>();
-        if (enemies.Length == 0) return;
+        // Use cached active enemy set — iterate with enumerator for zero GC
+        var enemies = EnemyBase.ActiveEnemies;
+        if (enemies.Count == 0) return;
 
         EnemyBase nearest = null;
         float nearestDist = float.MaxValue;
         foreach (var e in enemies)
         {
+            if (e == null) continue;
             float dist = Vector2.Distance(_playerPosition, (Vector2)e.transform.position);
             if (dist < nearestDist)
             {

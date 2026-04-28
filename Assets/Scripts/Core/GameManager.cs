@@ -16,7 +16,7 @@ public class GameManager : Singleton<GameManager>
     }
 
     [Header("Current State")]
-    [SerializeField] private GameState _currentState = GameState.Menu;
+    [SerializeField] private GameState _currentState = GameState.Playing;
 
     /// <summary>Current game state (read-only for external consumers).</summary>
     public GameState CurrentState => _currentState;

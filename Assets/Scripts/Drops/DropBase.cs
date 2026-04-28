@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Base class for all drop items: attracted to the player and auto-collected.
+/// Caches PlayerStats reference to avoid GetComponent every frame.
 /// </summary>
 public class DropBase : MonoBehaviour
 {
@@ -13,16 +14,28 @@ public class DropBase : MonoBehaviour
     public DropType Type => _type;
     public int Value => _value;
 
+    private static PlayerController _cachedPlayer;
+    private static PlayerStats _cachedPlayerStats;
+
     private bool _collected;
     private SpriteRenderer _sr;
     private Rigidbody2D _rb;
     private float _attractSpeed = 15f;
     private float _collectRadius = 0.5f;
+    private string _poolKey;
+
+    public static void SetPlayerReference(PlayerController player)
+    {
+        _cachedPlayer = player;
+        _cachedPlayerStats = player != null ? player.GetComponent<PlayerStats>() : null;
+    }
 
     private void Awake()
     {
         _sr = GetComponent<SpriteRenderer>();
         _rb = GetComponent<Rigidbody2D>();
+        // Cache pool key once (DropType enum name is stable, no "(Clone)" issue)
+        _poolKey = _type.ToString();
     }
 
     public void SetValue(int value)
@@ -32,30 +45,26 @@ public class DropBase : MonoBehaviour
 
     private void Update()
     {
-        if (_collected) return;
+        if (_collected || _cachedPlayer == null || _cachedPlayerStats == null) return;
 
-        var player = FindObjectOfType<PlayerController>();
-        if (player == null) return;
-
-        var stats = player.GetComponent<PlayerStats>();
-        float pickupRange = stats != null ? stats.PickupRange : 1f;
-        Vector2 playerPos = (Vector2)player.transform.position;
+        float pickupRange = _cachedPlayerStats.PickupRange;
+        Vector2 playerPos = (Vector2)_cachedPlayer.transform.position;
         float dist = Vector2.Distance(transform.position, playerPos);
 
         if (dist <= pickupRange)
         {
-            // Accelerate towards player
             Vector2 dir = (playerPos - (Vector2)transform.position).normalized;
             transform.position += (Vector3)(dir * _attractSpeed * Time.deltaTime);
 
             if (dist <= _collectRadius)
             {
-                Collect(stats);
+                Collect();
+                return;
             }
         }
     }
 
-    private void Collect(PlayerStats stats)
+    private void Collect()
     {
         if (_collected) return;
         _collected = true;
@@ -63,13 +72,13 @@ public class DropBase : MonoBehaviour
         switch (_type)
         {
             case DropType.ExpGem:
-                stats.AddEXP(_value);
+                _cachedPlayerStats.AddEXP(_value);
                 break;
             case DropType.Health:
-                stats.Heal(_value);
+                _cachedPlayerStats.Heal(_value);
                 break;
             case DropType.Gold:
-                stats.AddGold(_value);
+                _cachedPlayerStats.AddGold(_value);
                 break;
         }
 
@@ -84,8 +93,7 @@ public class DropBase : MonoBehaviour
 
     private void ReturnToPool()
     {
-        ResetForReuse();
-        string key = _type.ToString();
-        PoolManager.Instance.Return<DropBase>(key, this);
+        // Pool's resetAction will call ResetForReuse — don't call it here
+        PoolManager.Instance.Return<DropBase>(_poolKey, this);
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Generic object pool for Component types.
-/// Replaces runtime Instantiate/Destroy with Get/Return to reduce GC and allocation overhead.
+/// Uses HashSet for O(1) add/remove instead of List O(n).
 /// </summary>
 public class ObjectPool<T> where T : Component
 {
@@ -12,7 +12,7 @@ public class ObjectPool<T> where T : Component
     private readonly Func<T> _createFunc;
     private readonly Action<T> _resetAction;
     private readonly int _maxSize;
-    private readonly List<T> _active;   // tracks all spawned (in-use) objects
+    private readonly HashSet<T> _active;  // O(1) add/remove
 
     /// <summary>Number of objects currently available in the pool.</summary>
     public int CountInactive => _pool.Count;
@@ -23,23 +23,17 @@ public class ObjectPool<T> where T : Component
     /// <summary>Total objects managed by this pool (active + inactive).</summary>
     public int CountAll => _active.Count + _pool.Count;
 
-    /// <summary>
-    /// Create a new object pool.
-    /// </summary>
-    /// <param name="createFunc">Factory function that creates a new instance of T.</param>
-    /// <param name="resetAction">Action invoked when an object is returned to the pool (reset state).</param>
-    /// <param name="maxSize">Maximum pool capacity. 0 = unlimited. When exceeded, returned objects are destroyed.</param>
     public ObjectPool(Func<T> createFunc, Action<T> resetAction = null, int maxSize = 0)
     {
         _createFunc = createFunc ?? throw new ArgumentNullException(nameof(createFunc));
         _resetAction = resetAction;
         _maxSize = maxSize > 0 ? maxSize : int.MaxValue;
         _pool = new Queue<T>();
-        _active = new List<T>();
+        _active = new HashSet<T>();
     }
 
     /// <summary>
-    /// Get an object from the pool. If the pool is empty, a new instance is created.
+    /// Get an object from the pool. Creates a new one if empty.
     /// </summary>
     public T Get()
     {
@@ -61,7 +55,7 @@ public class ObjectPool<T> where T : Component
 
     /// <summary>
     /// Return an object to the pool for reuse.
-    /// If the pool is at max capacity, the object is destroyed instead.
+    /// Note: caller should NOT call ResetForReuse — the pool's resetAction handles it.
     /// </summary>
     public void Return(T obj)
     {
@@ -71,7 +65,6 @@ public class ObjectPool<T> where T : Component
 
         if (_pool.Count >= _maxSize)
         {
-            // Pool full – destroy the object
             if (Application.isPlaying)
                 UnityEngine.Object.Destroy(obj.gameObject);
             else
@@ -85,7 +78,7 @@ public class ObjectPool<T> where T : Component
     }
 
     /// <summary>
-    /// Pre-warm the pool by creating <paramref name="count"/> instances and adding them to the pool.
+    /// Pre-warm the pool by creating instances upfront.
     /// </summary>
     public void Prewarm(int count)
     {
@@ -99,7 +92,7 @@ public class ObjectPool<T> where T : Component
     }
 
     /// <summary>
-    /// Clear the pool: destroy all inactive objects and release active ones.
+    /// Clear the pool: destroy all objects.
     /// </summary>
     public void Clear()
     {

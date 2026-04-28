@@ -5,7 +5,7 @@ using UnityEngine;
 /// </summary>
 public class CameraFollow : MonoBehaviour
 {
-    [SerializeField] private float _lerpFactor = 0.1f;
+    [SerializeField] private float _lerpFactor = 0.15f;
     [SerializeField] private float _zOffset = -10f;
 
     private Transform _target;

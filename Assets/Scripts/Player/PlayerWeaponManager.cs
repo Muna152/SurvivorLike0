@@ -10,7 +10,18 @@ public class PlayerWeaponManager : MonoBehaviour
     private const int MaxWeapons = 6;
     private readonly List<WeaponBase> _weapons = new List<WeaponBase>();
 
+    [Header("Starting Weapon")]
+    [SerializeField] private WeaponData _startingWeapon;
+
     public IReadOnlyList<WeaponBase> EquippedWeapons => _weapons;
+
+    private void Start()
+    {
+        if (_startingWeapon != null)
+        {
+            EquipWeapon(_startingWeapon);
+        }
+    }
 
     /// <summary>Equip a new weapon from data. Returns the created WeaponBase or null.</summary>
     public WeaponBase EquipWeapon(WeaponData data)
@@ -29,7 +40,27 @@ public class PlayerWeaponManager : MonoBehaviour
             case WeaponData.WeaponType.Projectile:
                 weapon = child.AddComponent<ProjectileWeapon>();
                 break;
-            // Other types will be added in later phases
+            case WeaponData.WeaponType.Orbital:
+                weapon = child.AddComponent<OrbitalWeapon>();
+                break;
+            case WeaponData.WeaponType.Area:
+                // Determine which area weapon to create based on weapon name
+                switch (data.weaponName)
+                {
+                    case "Holy Light":
+                        weapon = child.AddComponent<HolyLight>();
+                        break;
+                    case "Holy Water":
+                        weapon = child.AddComponent<HolyWater>();
+                        break;
+                    default:
+                        weapon = child.AddComponent<AreaWeapon>();
+                        break;
+                }
+                break;
+            case WeaponData.WeaponType.Auxiliary:
+                weapon = child.AddComponent<AuxiliaryWeapon>();
+                break;
             default:
                 weapon = child.AddComponent<ProjectileWeapon>();
                 break;

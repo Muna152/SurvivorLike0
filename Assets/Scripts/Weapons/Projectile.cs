@@ -16,11 +16,14 @@ public class Projectile : MonoBehaviour
     private float _damageMultiplier = 1f;
     private Rigidbody2D _rb;
     private SpriteRenderer _sr;
+    private string _poolKey; // cached to avoid string allocation on return
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
+        // Cache pool key once (strip "(Clone)" suffix added by Unity at runtime)
+        _poolKey = gameObject.name.Replace("(Clone)", "").Trim();
     }
 
     public void Launch(Vector2 origin, Vector2 direction, LevelData data, float damageMultiplier = 1f)
@@ -40,9 +43,10 @@ public class Projectile : MonoBehaviour
 
     private void FixedUpdate()
     {
-        _rb.velocity = _direction * _speed;
+        // Move via position (Dynamic RB with Continuous detection handles collision)
+        _rb.MovePosition(_rb.position + _direction * _speed * Time.fixedDeltaTime);
 
-        if (Vector2.Distance(_origin, _rb.position) > _maxRange)
+        if ((_rb.position - _origin).sqrMagnitude > _maxRange * _maxRange)
         {
             ReturnToPool();
         }
@@ -66,12 +70,11 @@ public class Projectile : MonoBehaviour
     {
         _hitCount = 0;
         _direction = Vector2.right;
-        _rb.velocity = Vector2.zero;
     }
 
     private void ReturnToPool()
     {
-        ResetForReuse();
-        PoolManager.Instance.Return<Projectile>(name, this);
+        // Pool's resetAction will call ResetForReuse — don't call it here
+        PoolManager.Instance.Return<Projectile>(_poolKey, this);
     }
 }

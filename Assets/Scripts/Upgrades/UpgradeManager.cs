@@ -13,6 +13,7 @@ public class UpgradeManager : MonoBehaviour
     [SerializeField] private PassiveData[] _availablePassives;
 
     private List<UpgradeOption> _currentOptions;
+    private readonly Queue<List<UpgradeOption>> _pendingUpgrades = new Queue<List<UpgradeOption>>();
     private PlayerStats _playerStats;
     private PlayerWeaponManager _weaponManager;
 
@@ -33,8 +34,22 @@ public class UpgradeManager : MonoBehaviour
 
     private void HandleLevelUp(int newLevel)
     {
+        var options = GenerateUpgradeOptions(3);
+
+        if (_currentOptions != null)
+        {
+            // Already showing an upgrade screen — queue this one
+            _pendingUpgrades.Enqueue(options);
+            return;
+        }
+
+        ShowUpgrade(options);
+    }
+
+    private void ShowUpgrade(List<UpgradeOption> options)
+    {
+        _currentOptions = options;
         Time.timeScale = 0f;
-        _currentOptions = GenerateUpgradeOptions(3);
         OnOptionsGenerated?.Invoke(_currentOptions);
     }
 
@@ -95,13 +110,26 @@ public class UpgradeManager : MonoBehaviour
     public void OnOptionSelected(UpgradeOption option)
     {
         option.Apply();
-        Time.timeScale = 1f;
-        OnUpgradeComplete?.Invoke();
+        CompleteUpgrade();
     }
 
     /// <summary>Skip the upgrade (optional).</summary>
     public void SkipUpgrade()
     {
+        CompleteUpgrade();
+    }
+
+    private void CompleteUpgrade()
+    {
+        _currentOptions = null;
+
+        if (_pendingUpgrades.Count > 0)
+        {
+            // Show next queued upgrade
+            ShowUpgrade(_pendingUpgrades.Dequeue());
+            return;
+        }
+
         Time.timeScale = 1f;
         OnUpgradeComplete?.Invoke();
     }

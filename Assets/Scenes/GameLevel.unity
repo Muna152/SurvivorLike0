@@ -424,7 +424,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _availableWeapons:
+  - {fileID: 11400000, guid: 9d7ebd716491c034f86934b623e475a1, type: 2}
   - {fileID: 11400000, guid: 7f0b0b60b37dfe24bb8a45d97b634c73, type: 2}
+  - {fileID: 11400000, guid: 15b77029b2915e3468f9a014bc1ef6c0, type: 2}
+  - {fileID: 11400000, guid: 7f83a14d0feb63448aeb51a0e2c4a80c, type: 2}
+  - {fileID: 11400000, guid: a5d5e6469809ca542a54f0555b9d64ed, type: 2}
+  - {fileID: 11400000, guid: dc98713c870b93d4dbbd5f691bda43ea, type: 2}
   _availablePassives:
   - {fileID: 11400000, guid: 67d3df9857d3b694aa574a211b7a3619, type: 2}
   - {fileID: 11400000, guid: 4feb83b4e9f399447bdfecfe117ebc2d, type: 2}
@@ -2277,10 +2282,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _enemyPool:
   - {fileID: 11400000, guid: f783dee1a03d2dc41b00ede549586799, type: 2}
+  - {fileID: 11400000, guid: 6efcfad4b2a9d4e4ebabeea4ce3e2895, type: 2}
+  - {fileID: 11400000, guid: f4ada86ab948f0041a5be6fb03b9f930, type: 2}
+  - {fileID: 11400000, guid: 4489bf2276faf7448969db60e3bef77a, type: 2}
+  - {fileID: 11400000, guid: dccb2eb1938f9b94a8eef01eaebaeae4, type: 2}
+  - {fileID: 11400000, guid: 8cb2be0ad78a5674db53701e839fef5a, type: 2}
   _baseSpawnInterval: 1.5
   _minSpawnDistance: 15
   _maxSpawnDistance: 25
   _maxEnemiesOnScreen: 500
+  _eliteWaveInterval: 300
 --- !u!4 &1408426986
 Transform:
   m_ObjectHideFlags: 0
@@ -2795,9 +2806,9 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1709721441}
   m_Enabled: 1
-  m_Alpha: 0
-  m_Interactable: 0
-  m_BlocksRaycasts: 0
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
 --- !u!1 &1783777740
 GameObject:
@@ -3468,11 +3479,11 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 948489313}
-    m_FontSize: 48
+    m_FontSize: 60
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 48
+    m_MaxSize: 60
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1

@@ -1,28 +1,47 @@
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Base class for all enemies: chase the player, take damage, die & drop loot.
+/// Uses HashSet for O(1) tracking and MovePosition for smooth Kinematic movement.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class EnemyBase : MonoBehaviour
 {
+    private static readonly HashSet<EnemyBase> _activeEnemies = new HashSet<EnemyBase>();
+    private static PlayerController _cachedPlayer;
+
+    public static HashSet<EnemyBase> ActiveEnemies => _activeEnemies;
+    public static int ActiveEnemyCount => _activeEnemies.Count;
+
     protected EnemyData _data;
     protected float _currentHP;
     protected float _moveSpeed;
     protected Rigidbody2D _rb;
     protected SpriteRenderer _sr;
 
+    // Hit flash state (timer instead of coroutine to avoid GC)
+    private float _flashTimer;
+    private Color _originalColor;
+    private bool _flashing;
+
+    // Elite enemy state
+    protected bool _isElite;
+    protected float _eliteDamageMultiplier;
+
     public EnemyData Data => _data;
     public float CurrentHP => _currentHP;
+    public bool IsElite => _isElite;
 
-    private static Vector2 PlayerPosition
+    /// <summary>Cache the player reference once. Called by EnemySpawner on Start.</summary>
+    public static void SetPlayerReference(PlayerController player)
     {
-        get
-        {
-            var pc = FindObjectOfType<PlayerController>();
-            return pc != null ? (Vector2)pc.transform.position : Vector2.zero;
-        }
+        _cachedPlayer = player;
+    }
+
+    public static PlayerController GetPlayer()
+    {
+        return _cachedPlayer;
     }
 
     protected virtual void Awake()
@@ -36,6 +55,27 @@ public class EnemyBase : MonoBehaviour
         _data = data;
         _currentHP = data.baseHP;
         _moveSpeed = data.moveSpeed;
+
+        _activeEnemies.Add(this);
+    }
+
+    /// <summary>
+    /// Set this enemy as an elite with enhanced stats.
+    /// </summary>
+    public virtual void SetElite()
+    {
+        _isElite = true;
+        _currentHP *= 5f;
+        _eliteDamageMultiplier = 2f;
+
+        // Scale up slightly (only 1.05x for elite enemies)
+        transform.localScale = transform.localScale * 1.05f;
+
+        // Change color
+        if (_sr != null)
+        {
+            _sr.color = new Color(1f, 0.5f, 0f); // Orange tint
+        }
     }
 
     public virtual void ResetForReuse()
@@ -45,18 +85,44 @@ public class EnemyBase : MonoBehaviour
             _currentHP = _data.baseHP;
             _moveSpeed = _data.moveSpeed;
         }
+
+        if (_flashing && _sr != null)
+            _sr.color = _originalColor;
+        _flashing = false;
+        _flashTimer = 0f;
     }
 
     protected virtual void FixedUpdate()
     {
-        Vector2 dir = (PlayerPosition - (Vector2)transform.position).normalized;
-        _rb.velocity = dir * _moveSpeed;
+        if (_cachedPlayer == null) return;
+        Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
+        _rb.MovePosition(_rb.position + dir * _moveSpeed * Time.fixedDeltaTime);
+    }
+
+    protected virtual void Update()
+    {
+        if (_flashing)
+        {
+            _flashTimer -= Time.deltaTime;
+            if (_flashTimer <= 0f)
+            {
+                if (_sr != null) _sr.color = _originalColor;
+                _flashing = false;
+            }
+        }
     }
 
     public virtual void TakeDamage(int damage)
     {
         _currentHP -= damage;
-        if (_sr != null) StartCoroutine(FlashCoroutine());
+
+        if (_sr != null)
+        {
+            if (!_flashing) _originalColor = _sr.color;
+            _sr.color = Color.red;
+            _flashTimer = 0.1f;
+            _flashing = true;
+        }
 
         if (_currentHP <= 0f)
         {
@@ -66,25 +132,24 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void Die()
     {
+        _activeEnemies.Remove(this);
+
         GameEvents.InvokeEnemyDied(this);
 
-        // Drop loot via DropManager
-        var dm = FindObjectOfType<DropManager>();
-        if (dm != null && _data != null)
+        if (DropManager.Instance != null && _data != null)
         {
-            dm.SpawnDrops(transform.position, _data.expValue, _data.goldValue);
+            // Elite enemies drop more experience and gold
+            int expMultiplier = _isElite ? 10 : 1;
+            int goldMultiplier = _isElite ? 5 : 1;
+            DropManager.Instance.SpawnDrops(transform.position, _data.expValue * expMultiplier, _data.goldValue * goldMultiplier);
         }
 
-        // Return to pool
+        // Pool's resetAction handles ResetForReuse — don't call it here
         PoolManager.Instance.Return<EnemyBase>(_data != null ? _data.enemyName : name, this);
     }
 
-    private IEnumerator FlashCoroutine()
+    private void OnDisable()
     {
-        if (_sr == null) yield break;
-        Color orig = _sr.color;
-        _sr.color = Color.red;
-        yield return new WaitForSeconds(0.1f);
-        _sr.color = orig;
+        _activeEnemies.Remove(this);
     }
 }

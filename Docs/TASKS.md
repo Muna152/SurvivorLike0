@@ -276,67 +276,67 @@
 ### T2.1 武器种类扩充
 
 #### T2.1.1 实现 OrbitalWeapon 轨道型武器基类
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.3.1
 - **产物**: `Scripts/Weapons/OrbitalWeapon.cs`
 - **验收**: 编译通过；轨道物体围绕角色旋转攻击
 
 #### T2.1.2 实现 OrbitalObject 轨道物体组件
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.5, T2.1.1
 - **产物**: `Scripts/Weapons/OrbitalObject.cs`
 - **验收**: 编译通过；旋转、碰撞敌人、可配置轨道半径/角速度/数量
 
 #### T2.1.3 实现 AreaWeapon 范围型武器基类
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.3.1
 - **产物**: `Scripts/Weapons/AreaWeapon.cs`
 - **验收**: 编译通过；在指定区域内持续造成伤害/治疗
 
 #### T2.1.4 实现 AuxiliaryWeapon 辅助型武器基类
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.3.1
 - **产物**: `Scripts/Weapons/AuxiliaryWeapon.cs`
 - **验收**: 编译通过；不直接伤害，提供增益效果
 
 #### T2.1.5 创建旋转盾 WeaponData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.1.1, T2.1.2, T2.A.1
 - **产物**: `Data/Weapons/SpinningShield.asset`, `Prefabs/Weapons/SpinningShield.prefab`
 - **验收**: 8级数据完整；旋转盾围绕玩家旋转
 
 #### T2.1.6 创建飞刀 WeaponData + 投射物 Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.3.2, T2.A.2
 - **产物**: `Data/Weapons/Knife.asset`, `Prefabs/Projectiles/KnifeProj.prefab`
 - **验收**: 8级数据完整；多弹数快速投射物
 
 #### T2.1.7 创建能量球 WeaponData + 投射物 Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.3.2, T2.A.3
 - **产物**: `Data/Weapons/EnergyBall.asset`, `Prefabs/Projectiles/EnergyBallProj.prefab`
 - **验收**: 8级数据完整；命中后爆炸范围伤害
 
 #### T2.1.8 创建圣光 WeaponData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.1.3, T2.A.4
 - **产物**: `Data/Weapons/HolyLight.asset`, `Prefabs/Weapons/HolyLightZone.prefab`
 - **验收**: 8级数据完整；持续治疗区域
 
 #### T2.1.9 创建圣水 WeaponData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.1.3, T2.A.4
 - **产物**: `Data/Weapons/HolyWater.asset`, `Prefabs/Weapons/HolyWaterZone.prefab`
 - **验收**: 8级数据完整；地面持续伤害区域
 
 #### T2.1.10 更新 PlayerWeaponManager 支持新武器类型
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.1.1, T2.1.3, T2.1.4, T1.2.4
 - **产物**: 更新 `Scripts/Player/PlayerWeaponManager.cs`
 - **验收**: 编译通过；可正确装备 Orbital/Area/Auxiliary 类型武器
 
 #### T2.1.11 更新 UpgradeManager 将新武器加入升级池
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.1.5, T2.1.6, T2.1.7, T2.1.8, T2.1.9, T1.6.2
 - **产物**: 更新 `Scripts/Upgrades/UpgradeManager.cs`
 - **验收**: 升级选项中可出现旋转盾/飞刀/能量球/圣光/圣水
@@ -344,27 +344,27 @@
 ### T2.A 美术资产生成（Phase 2）
 
 #### T2.A.1 生成旋转盾 Sprite
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Weapons/SpinningShield.png`
 - **验收**: Sprite 资产存在
 
 #### T2.A.2 生成飞刀 Sprite
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Weapons/Knife.png`
 - **验收**: Sprite 资产存在
 
 #### T2.A.3 生成能量球 Sprite
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Weapons/EnergyBall.png`
 - **验收**: Sprite 资产存在
 
 #### T2.A.4 生成圣光和圣水 Sprite
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Weapons/HolyLight.png`, `HolyWater.png`
 - **验收**: 2个 Sprite 资产存在
 
 #### T2.A.5 生成新敌人 Sprites
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Enemies/Bat.png`, `Zombie.png`, `Mage.png`, `Ghost.png`, `Gargoyle.png`
 - **验收**: 5个 Sprite 资产存在
 
@@ -381,49 +381,50 @@
 ### T2.2 敌人种类扩充
 
 #### T2.2.1 创建蝙蝠 EnemyData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1, T2.A.5
 - **产物**: `Data/Enemies/Bat.asset`, `Prefabs/Enemies/Bat.prefab`
 - **验收**: HP=5, 移速=3.0, 伤害=3, 快速低HP敌人
 
 #### T2.2.2 创建僵尸 EnemyData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1, T2.A.5
 - **产物**: `Data/Enemies/Zombie.asset`, `Prefabs/Enemies/Zombie.prefab`
 - **验收**: HP=25, 移速=1.0, 伤害=8, 高HP慢速敌人
 
 #### T2.2.3 创建法师 EnemyData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1, T2.2.4, T2.A.5
 - **产物**: `Data/Enemies/Mage.asset`, `Prefabs/Enemies/Mage.prefab`
 - **验收**: HP=15, 移速=1.2, 伤害=12, 远程投射攻击
 
 #### T2.2.4 实现法师投射物组件
-- **状态**: ⬜
+- **状态**: 🔧
+- **说明**: MageProjectile.cs 脚本已存在，但 MageProj.prefab 尚未创建；法师 Prefab 尚未挂载投射物组件
 - **依赖**: T1.1.5
 - **产物**: `Scripts/Enemies/MageProjectile.cs`, `Prefabs/Projectiles/MageProj.prefab`
 - **验收**: 编译通过；法师发射投射物攻击玩家
 
 #### T2.2.5 创建幽灵 EnemyData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1, T2.A.5
 - **产物**: `Data/Enemies/Ghost.asset`, `Prefabs/Enemies/Ghost.prefab`
 - **验收**: HP=8, 移速=2.5, 伤害=6, 可穿越障碍物
 
 #### T2.2.6 创建石像鬼 EnemyData + Prefab
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1, T2.A.5
 - **产物**: `Data/Enemies/Gargoyle.asset`, `Prefabs/Enemies/Gargoyle.prefab`
 - **验收**: HP=50, 移速=1.8, 伤害=15, 高HP冲锋敌人
 
 #### T2.2.7 实现精英敌人系统
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1
 - **产物**: 更新 `Scripts/Enemies/EnemyBase.cs`, 新增 `Scripts/Enemies/EliteEnemy.cs`
 - **验收**: 精英敌人放大1.5倍+变色+5倍HP+2倍伤害；死亡必掉大经验宝石
 
 #### T2.2.8 更新 EnemySpawner 支持多种敌人生成
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.2.1, T2.2.2, T2.2.3, T2.2.5, T2.2.6, T1.4.2
 - **产物**: 更新 `Scripts/Enemies/EnemySpawner.cs`
 - **验收**: 生成器根据时间和权重选择不同敌人类型
@@ -949,18 +950,18 @@
 
 ## 任务统计
 
-| Phase | 分类数 | 子任务数 | ✅完成 | ⬜待做 |
-|-------|--------|---------|--------|--------|
-| Phase 1 | 9 | 34 | 34 | 0 |
-| Phase 1.A | 1 | 6 | 6 | 0 |
-| Phase 2 | 6 | 26 | 0 | 26 |
-| Phase 2.A | 1 | 7 | 0 | 7 |
-| Phase 3 | 5 | 20 | 0 | 20 |
-| Phase 3.A | 1 | 4 | 0 | 4 |
-| Phase 4 | 6 | 25 | 0 | 25 |
-| Phase 4.A | 1 | 3 | 0 | 3 |
-| **合计** | **30** | **125** | **40** | **85** |
+| Phase | 分类数 | 子任务数 | ✅完成 | 🔧进行中 | ⬜待做 |
+|-------|--------|---------|--------|---------|--------|
+| Phase 1 | 9 | 34 | 34 | 0 | 0 |
+| Phase 1.A | 1 | 6 | 6 | 0 | 0 |
+| Phase 2 | 6 | 38 | 24 | 1 | 13 |
+| Phase 2.A | 1 | 7 | 5 | 0 | 2 |
+| Phase 3 | 5 | 20 | 0 | 0 | 20 |
+| Phase 3.A | 1 | 4 | 0 | 0 | 4 |
+| Phase 4 | 6 | 25 | 0 | 0 | 25 |
+| Phase 4.A | 1 | 3 | 0 | 0 | 3 |
+| **合计** | **30** | **137** | **69** | **1** | **67** |
 
 ---
 
-*文档版本: v1.1 | 最后更新: 2026-04-28*
+*文档版本: v1.2 | 最后更新: 2026-04-28*
