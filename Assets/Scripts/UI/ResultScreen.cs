@@ -4,16 +4,25 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Game over / victory result screen.
+/// Uses CanvasGroup so the panel stays active (Start() always runs) while being invisible.
 /// </summary>
 public class ResultScreen : MonoBehaviour
 {
-    [SerializeField] private GameObject _panel;
     [SerializeField] private Text _titleText;
     [SerializeField] private Text _timeText;
     [SerializeField] private Text _killsText;
     [SerializeField] private Text _goldText;
     [SerializeField] private Button _retryButton;
     [SerializeField] private Button _menuButton;
+
+    private CanvasGroup _canvasGroup;
+
+    private void Awake()
+    {
+        _canvasGroup = GetComponent<CanvasGroup>();
+        if (_canvasGroup == null)
+            _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+    }
 
     private void Start()
     {
@@ -24,7 +33,7 @@ public class ResultScreen : MonoBehaviour
         if (_menuButton != null)
             _menuButton.onClick.AddListener(ReturnToMenu);
 
-        if (_panel != null) _panel.SetActive(false);
+        Hide();
     }
 
     private void OnDestroy()
@@ -44,7 +53,9 @@ public class ResultScreen : MonoBehaviour
 
     private void Show(bool victory)
     {
-        if (_panel != null) _panel.SetActive(true);
+        _canvasGroup.alpha = 1f;
+        _canvasGroup.blocksRaycasts = true;
+        _canvasGroup.interactable = true;
         Time.timeScale = 0f;
 
         if (_titleText != null)
@@ -65,6 +76,13 @@ public class ResultScreen : MonoBehaviour
 
         if (_goldText != null && stats != null)
             _goldText.text = $"Gold: {stats.Gold}";
+    }
+
+    private void Hide()
+    {
+        _canvasGroup.alpha = 0f;
+        _canvasGroup.blocksRaycasts = false;
+        _canvasGroup.interactable = false;
     }
 
     private void Retry()
