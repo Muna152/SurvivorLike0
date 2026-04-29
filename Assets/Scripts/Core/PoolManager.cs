@@ -28,7 +28,7 @@ public class PoolManager : Singleton<PoolManager>
 
         if (_pools.ContainsKey(key))
         {
-            Debug.LogWarning($"[PoolManager] Pool with key '{key}' already registered. Skipping.");
+            // Pool already registered – not an error, just skip
             return;
         }
 
@@ -39,6 +39,14 @@ public class PoolManager : Singleton<PoolManager>
         }
 
         _pools[key] = pool;
+    }
+
+    /// <summary>
+    /// Check if a pool with the given key exists.
+    /// </summary>
+    public bool HasPool(string key)
+    {
+        return _pools.ContainsKey(key);
     }
 
     /// <summary>

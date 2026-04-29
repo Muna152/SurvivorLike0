@@ -44,10 +44,23 @@ public class EnemyBase : MonoBehaviour
         return _cachedPlayer;
     }
 
+    /// <summary>
+    /// Clear all static state. Call before scene reload to prevent stale references.
+    /// </summary>
+    public static void ResetStatics()
+    {
+        _activeEnemies.Clear();
+        _cachedPlayer = null;
+    }
+
     protected virtual void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
+
+        // Enable trigger detection with other Kinematic bodies (e.g. projectiles)
+        if (_rb != null && _rb.bodyType == RigidbodyType2D.Kinematic)
+            _rb.useFullKinematicContacts = true;
     }
 
     public virtual void Initialize(EnemyData data)

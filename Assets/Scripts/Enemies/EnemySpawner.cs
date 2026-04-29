@@ -16,6 +16,7 @@ public class EnemySpawner : MonoBehaviour
     private float _spawnTimer;
     private float _eliteWaveTimer;
     private PlayerController _player;
+    private bool _poolsRegistered;
     private readonly List<WeightedRandom.WeightedItem<EnemyData>> _availableBuffer
         = new List<WeightedRandom.WeightedItem<EnemyData>>();
 
@@ -26,6 +27,10 @@ public class EnemySpawner : MonoBehaviour
 
     private void Start()
     {
+        // Ensure pools are registered (safety net for domain reload issues)
+        if (!_poolsRegistered)
+            RegisterEnemyPools();
+
         _player = FindObjectOfType<PlayerController>();
         EnemyBase.SetPlayerReference(_player);
         DropBase.SetPlayerReference(_player);
@@ -55,14 +60,29 @@ public class EnemySpawner : MonoBehaviour
 
     private void RegisterEnemyPools()
     {
-        if (_enemyPool == null) return;
+        if (_poolsRegistered) return;
+        if (_enemyPool == null)
+        {
+            Debug.LogError("[EnemySpawner] _enemyPool is null! Cannot register pools.");
+            return;
+        }
+
+        Debug.Log($"[EnemySpawner] Registering {_enemyPool.Length} enemy pools...");
 
         foreach (var ed in _enemyPool)
         {
-            if (ed == null || ed.prefab == null) continue;
+            if (ed == null || ed.prefab == null)
+            {
+                Debug.LogWarning($"[EnemySpawner] Skipping null entry in _enemyPool.");
+                continue;
+            }
 
             var prefab = ed.prefab;
             string key = ed.enemyName;
+
+            // Use GetOrRegister pattern: if pool already exists (from a previous session), skip
+            if (PoolManager.HasInstance && PoolManager.Instance.HasPool(key))
+                continue;
 
             PoolManager.Instance.Register<EnemyBase>(
                 key,
@@ -76,7 +96,11 @@ public class EnemySpawner : MonoBehaviour
                 prewarmCount: 30,
                 maxSize: 200
             );
+
+            Debug.Log($"[EnemySpawner] Registered pool: {key}");
         }
+
+        _poolsRegistered = true;
     }
 
     private void SpawnWave()

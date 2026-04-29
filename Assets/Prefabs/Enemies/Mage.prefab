@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 839967411253463237}
   - component: {fileID: 5601193538352095583}
-  - component: {fileID: 692779879969927863}
   - component: {fileID: 5473654086296058140}
   - component: {fileID: 7893384267454924967}
+  - component: {fileID: 1574358606216316575}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: Mage
@@ -63,18 +63,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &692779879969927863
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8095204050528813794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5df10de85b17777459dbb8a1516a2dd8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!212 &5473654086296058140
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -165,4 +153,20 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeLayer: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_Radius: 6.25
+--- !u!114 &1574358606216316575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8095204050528813794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff2922f4e28ded4458e5a01138606c5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _projectilePrefab: {fileID: 6018386521469657733, guid: f0ef4cb13cd79464ab0014b00686d0f6, type: 3}
+  _attackRange: 6
+  _fireRate: 2
+  _projectileSpeed: 4

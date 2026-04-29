@@ -89,6 +89,13 @@ public class ResultScreen : MonoBehaviour
     {
         Time.timeScale = 1f;
         GameEvents.ClearAll();
+        EnemyBase.ResetStatics();
+
+        // Reset object pools – PoolManager persists across scene loads
+        // and would otherwise hold stale references to destroyed objects.
+        if (PoolManager.HasInstance)
+            PoolManager.Instance.ClearAll();
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

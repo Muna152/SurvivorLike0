@@ -34,20 +34,24 @@ public class ObjectPool<T> where T : Component
 
     /// <summary>
     /// Get an object from the pool. Creates a new one if empty.
+    /// Skips destroyed (null) objects still lingering in the queue.
     /// </summary>
     public T Get()
     {
         T obj;
 
-        if (_pool.Count > 0)
+        while (_pool.Count > 0)
         {
             obj = _pool.Dequeue();
-        }
-        else
-        {
-            obj = _createFunc();
+            if (obj != null) // Unity null-check also catches destroyed objects
+            {
+                obj.gameObject.SetActive(true);
+                _active.Add(obj);
+                return obj;
+            }
         }
 
+        obj = _createFunc();
         obj.gameObject.SetActive(true);
         _active.Add(obj);
         return obj;

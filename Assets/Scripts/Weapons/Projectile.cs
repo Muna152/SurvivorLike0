@@ -22,6 +22,7 @@ public class Projectile : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
+
         // Cache pool key once (strip "(Clone)" suffix added by Unity at runtime)
         _poolKey = gameObject.name.Replace("(Clone)", "").Trim();
     }
@@ -38,6 +39,11 @@ public class Projectile : MonoBehaviour
 
         transform.position = origin;
         transform.right = _direction;
+
+        // Reset velocity for Dynamic RB (pooled objects may carry stale forces)
+        if (_rb != null)
+            _rb.velocity = Vector2.zero;
+
         gameObject.SetActive(true);
     }
 
