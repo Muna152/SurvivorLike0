@@ -15,7 +15,7 @@ MonoBehaviour:
   weaponName: Spinning Shield
   description: Orbiting shields that damage enemies on contact. Continuous area damage.
   weaponType: 1
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 945728e853f6fee4fa271b3b1452025f, type: 3}
   projectilePrefab: {fileID: 7535913578508487029, guid: 9cdc7a451cf74f04fb20aeecc1e8dedf, type: 3}
   maxLevel: 8
   levelData:
@@ -77,4 +77,5 @@ MonoBehaviour:
     duration: 0
   canEvolve: 1
   requiredPassiveId: shell
-  evolvedWeapon: {fileID: 0}
+  evolvedWeapon: {fileID: 11400000, guid: ee8c2276c9256e54cb4abaf988c60934, type: 2}
+  isEvolutionOnly: 0

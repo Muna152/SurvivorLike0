@@ -8,6 +8,7 @@ using UnityEngine;
 public class PassiveData : ScriptableObject
 {
     [Header("Basic Info")]
+    public string id;
     public string passiveName;
     [TextArea] public string description;
     public Sprite icon;

@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a930de94173e6ec47adcb76b736b11a1, type: 3}
+  m_Name: AngelsSong
+  m_EditorClassIdentifier: 
+  weaponName: AngelsSong
+  description: "\u5929\u4F7F\u4E4B\u6B4C\uFF0C\u8D85\u5927\u8303\u56F4\u6CBB\u7597\u4E0E\u4F24\u5BB3\u5149\u73AF\uFF0C\u8FDB\u5316\u81EA\u5723\u5149"
+  weaponType: 2
+  icon: {fileID: 21300000, guid: ed660fa2dfe7f1f4d803f82a8b393967, type: 3}
+  projectilePrefab: {fileID: 8126264249177536959, guid: c443abcfaa525d6409180b826e394b14, type: 3}
+  maxLevel: 8
+  levelData:
+  - damage: 6
+    cooldown: 0.5
+    area: 5
+    projectileCount: 0
+    pierce: 0
+    speed: 0
+    duration: 6
+  - damage: 9
+    cooldown: 0.47
+    area: 5.3
+    projectileCount: 0
+    pierce: 1
+    speed: 0.5
+    duration: 6.5
+  - damage: 12
+    cooldown: 0.44
+    area: 5.6
+    projectileCount: 0
+    pierce: 2
+    speed: 1
+    duration: 7
+  - damage: 15
+    cooldown: 0.41
+    area: 5.9
+    projectileCount: 1
+    pierce: 3
+    speed: 1.5
+    duration: 7.5
+  - damage: 18
+    cooldown: 0.38
+    area: 6.2
+    projectileCount: 1
+    pierce: 4
+    speed: 2
+    duration: 8
+  - damage: 21
+    cooldown: 0.35
+    area: 6.5
+    projectileCount: 1
+    pierce: 5
+    speed: 2.5
+    duration: 8.5
+  - damage: 24
+    cooldown: 0.32
+    area: 6.8
+    projectileCount: 2
+    pierce: 6
+    speed: 3
+    duration: 9
+  - damage: 27
+    cooldown: 0.29
+    area: 7.1
+    projectileCount: 2
+    pierce: 7
+    speed: 3.5
+    duration: 9.5
+  canEvolve: 0
+  requiredPassiveId: 
+  evolvedWeapon: {fileID: 0}
+  isEvolutionOnly: 1

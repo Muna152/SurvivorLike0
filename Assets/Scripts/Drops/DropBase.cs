@@ -110,6 +110,13 @@ public class DropBase : MonoBehaviour
             case DropType.Gold:
                 _cachedPlayerStats.AddGold(_value);
                 break;
+            case DropType.Chest:
+                var pwm = _cachedPlayer.GetComponent<PlayerWeaponManager>();
+                if (pwm != null)
+                {
+                    pwm.CheckAndEvolveWeapons();
+                }
+                break;
         }
 
         GameEvents.InvokeDropCollected(this);

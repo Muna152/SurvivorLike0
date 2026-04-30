@@ -15,7 +15,7 @@ MonoBehaviour:
   weaponName: Knife
   description: Throws multiple knives in a spread pattern. Fast attack speed.
   weaponType: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8d0f8a1d9916a9048b5c1979108603ce, type: 3}
   projectilePrefab: {fileID: 1113768890781713028, guid: 8c428d0bcc41a5249911aef9c7784975, type: 3}
   maxLevel: 8
   levelData:
@@ -77,4 +77,5 @@ MonoBehaviour:
     duration: 0
   canEvolve: 1
   requiredPassiveId: feather
-  evolvedWeapon: {fileID: 0}
+  evolvedWeapon: {fileID: 11400000, guid: 3180711e656d14f428b7c4c67c732024, type: 2}
+  isEvolutionOnly: 0

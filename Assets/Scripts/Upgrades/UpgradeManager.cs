@@ -57,6 +57,16 @@ public class UpgradeManager : MonoBehaviour
     {
         var pool = new List<UpgradeOption>();
 
+        // Evolution options (highest priority - always show if available)
+        if (_weaponManager != null)
+        {
+            var evolutionReady = _weaponManager.GetEvolutionReadyWeapons();
+            foreach (var w in evolutionReady)
+            {
+                pool.Add(new WeaponEvolutionOption(w, _weaponManager));
+            }
+        }
+
         // Existing weapon upgrades
         if (_weaponManager != null)
         {
@@ -69,11 +79,12 @@ public class UpgradeManager : MonoBehaviour
             }
         }
 
-        // New weapons
+        // New weapons (exclude evolution-only weapons)
         if (_weaponManager != null)
         {
             foreach (var wd in _availableWeapons)
             {
+                if (wd.isEvolutionOnly) continue;
                 if (!_weaponManager.HasWeapon(wd) && _weaponManager.EquippedWeapons.Count < 6)
                 {
                     pool.Add(new NewWeaponOption(wd, _weaponManager));
@@ -95,8 +106,26 @@ public class UpgradeManager : MonoBehaviour
         }
 
         // Pick N random non-duplicate options
+        // Prioritize evolution options: if any exist, always include at least one
         var result = new List<UpgradeOption>();
         var indices = new HashSet<int>();
+
+        // First, ensure at least one evolution option is included
+        var evolutionIndices = new List<int>();
+        for (int i = 0; i < pool.Count; i++)
+        {
+            if (pool[i] is WeaponEvolutionOption)
+                evolutionIndices.Add(i);
+        }
+
+        if (evolutionIndices.Count > 0)
+        {
+            int pick = evolutionIndices[Random.Range(0, evolutionIndices.Count)];
+            result.Add(pool[pick]);
+            indices.Add(pick);
+        }
+
+        // Fill remaining slots randomly
         int attempts = 0;
         while (result.Count < count && attempts < pool.Count * 2)
         {

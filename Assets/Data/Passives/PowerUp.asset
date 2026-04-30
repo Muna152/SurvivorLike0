@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dd14b5c05cf8b849a068ae30332e58f, type: 3}
   m_Name: PowerUp
   m_EditorClassIdentifier: 
+  id: 
   passiveName: Power Up
   description: Increases damage multiplier.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7063d7b6a0bddcb4c856416ddf7723cb, type: 3}
   maxLevel: 5
   effectPerLevel: 0.1
   affectedStat: 5

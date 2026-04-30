@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a930de94173e6ec47adcb76b736b11a1, type: 3}
+  m_Name: JudgementWheel
+  m_EditorClassIdentifier: 
+  weaponName: JudgementWheel
+  description: "\u5BA1\u5224\u4E4B\u8F6E\uFF0C\u5927\u8303\u56F4\u9AD8\u901F\u65CB\u8F6C\u653B\u51FB\uFF0C\u8FDB\u5316\u81EA\u65CB\u8F6C\u76FE"
+  weaponType: 1
+  icon: {fileID: 21300000, guid: ae442babf32ad8748807e4d4f074ac72, type: 3}
+  projectilePrefab: {fileID: 3108513691253847640, guid: 0c5e0834777923d45b330bc5fa473f8e, type: 3}
+  maxLevel: 8
+  levelData:
+  - damage: 18
+    cooldown: 0.3
+    area: 4
+    projectileCount: 2
+    pierce: 0
+    speed: 0
+    duration: 0
+  - damage: 21
+    cooldown: 0.27
+    area: 4.3
+    projectileCount: 2
+    pierce: 1
+    speed: 0.5
+    duration: 0.5
+  - damage: 24
+    cooldown: 0.24000001
+    area: 4.6
+    projectileCount: 2
+    pierce: 2
+    speed: 1
+    duration: 1
+  - damage: 27
+    cooldown: 0.21000001
+    area: 4.9
+    projectileCount: 3
+    pierce: 3
+    speed: 1.5
+    duration: 1.5
+  - damage: 30
+    cooldown: 0.18
+    area: 5.2
+    projectileCount: 3
+    pierce: 4
+    speed: 2
+    duration: 2
+  - damage: 33
+    cooldown: 0.15000002
+    area: 5.5
+    projectileCount: 3
+    pierce: 5
+    speed: 2.5
+    duration: 2.5
+  - damage: 36
+    cooldown: 0.12000002
+    area: 5.8
+    projectileCount: 4
+    pierce: 6
+    speed: 3
+    duration: 3
+  - damage: 39
+    cooldown: 0.1
+    area: 6.1
+    projectileCount: 4
+    pierce: 7
+    speed: 3.5
+    duration: 3.5
+  canEvolve: 0
+  requiredPassiveId: 
+  evolvedWeapon: {fileID: 0}
+  isEvolutionOnly: 1

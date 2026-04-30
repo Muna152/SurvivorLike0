@@ -8,6 +8,7 @@ public class HolyLight : AreaWeapon
     private void Awake()
     {
         _isHealing = true;
+        _followsPlayer = true;
     }
 
     protected override void SetupAreaEffect()
@@ -17,11 +18,8 @@ public class HolyLight : AreaWeapon
             var sr = _currentArea.GetComponent<SpriteRenderer>();
             if (sr != null)
             {
-                var ld = CurrentLevelData;
-                if (ld != null)
-                {
-                    sr.size = new Vector2(_areaRadius * 2f, _areaRadius * 2f);
-                }
+                sr.size = new Vector2(_areaRadius * 2f, _areaRadius * 2f);
+                sr.sortingOrder = 1;
             }
         }
     }

@@ -33,21 +33,41 @@ public class WeaponUpgradeOption : UpgradeOption
 
     private string GetLevelDescription(WeaponBase w)
     {
-        if (w.Data == null || w.Data.levelData == null) return "Upgrade weapon";
+        if (w.Data == null || w.Data.levelData == null || w.Data.levelData.Length == 0)
+            return "Upgrade weapon";
+
+        int curIdx = Mathf.Clamp(w.CurrentLevel - 1, 0, w.Data.levelData.Length - 1);
         int nextIdx = Mathf.Clamp(w.CurrentLevel, 0, w.Data.levelData.Length - 1);
-        var ld = w.Data.levelData[nextIdx];
+        var cur = w.Data.levelData[curIdx];
+        var next = w.Data.levelData[nextIdx];
 
         var parts = new System.Collections.Generic.List<string>();
-        parts.Add($"DMG {ld.damage}");
-        parts.Add($"CD {ld.cooldown:F1}s");
-        if (ld.projectileCount > 1) parts.Add($"×{ld.projectileCount}");
-        if (ld.pierce > 0) parts.Add($"Pierce {ld.pierce}");
-        if (ld.area > 0) parts.Add($"Area {ld.area:F1}");
 
-        string baseDesc = w.Data.description ?? "";
-        if (!string.IsNullOrEmpty(baseDesc) && baseDesc.Length > 30)
-            baseDesc = baseDesc.Substring(0, 30) + "…";
-        return string.Join(" | ", parts) + "\n" + baseDesc;
+        int dmgDelta = next.damage - cur.damage;
+        if (dmgDelta != 0) parts.Add($"DMG {cur.damage}→{next.damage}");
+
+        float cdDelta = next.cooldown - cur.cooldown;
+        if (Mathf.Abs(cdDelta) > 0.001f) parts.Add($"CD {cur.cooldown:F1}s→{next.cooldown:F1}s");
+
+        int projDelta = next.projectileCount - cur.projectileCount;
+        if (projDelta > 0) parts.Add($"+{projDelta} Projectile");
+
+        int pierceDelta = next.pierce - cur.pierce;
+        if (pierceDelta > 0) parts.Add($"+{pierceDelta} Pierce");
+
+        float areaDelta = next.area - cur.area;
+        if (Mathf.Abs(areaDelta) > 0.01f) parts.Add($"Area {cur.area:F1}→{next.area:F1}");
+
+        float durDelta = next.duration - cur.duration;
+        if (Mathf.Abs(durDelta) > 0.01f) parts.Add($"Dur {cur.duration:F1}s→{next.duration:F1}s");
+
+        if (parts.Count == 0) parts.Add("Stats improved");
+
+        // Special effect for max level
+        if (nextIdx == w.Data.levelData.Length - 1 && !string.IsNullOrEmpty(w.Data.description))
+            parts.Add($"★ {w.Data.description}");
+
+        return string.Join(" | ", parts);
     }
 }
 
@@ -68,13 +88,32 @@ public class NewWeaponOption : UpgradeOption
 
     private string BuildNewWeaponDesc(WeaponData data)
     {
-        string desc = data.description ?? "";
+        var parts = new System.Collections.Generic.List<string>();
+
+        // Type label
+        string typeLabel = data.weaponType switch
+        {
+            WeaponData.WeaponType.Projectile => "Projectile",
+            WeaponData.WeaponType.Orbital => "Orbital",
+            WeaponData.WeaponType.Area => "Area",
+            WeaponData.WeaponType.Auxiliary => "Support",
+            _ => data.weaponType.ToString()
+        };
+        parts.Add($"[{typeLabel}]");
+
         if (data.levelData != null && data.levelData.Length > 0)
         {
             var ld = data.levelData[0];
-            desc += $"\nDMG {ld.damage} | CD {ld.cooldown:F1}s";
-            if (ld.projectileCount > 1) desc += $" | ×{ld.projectileCount}";
+            parts.Add($"DMG {ld.damage}");
+            parts.Add($"CD {ld.cooldown:F1}s");
+            if (ld.projectileCount > 1) parts.Add($"×{ld.projectileCount}");
+            if (ld.pierce > 0) parts.Add($"Pierce {ld.pierce}");
+            if (ld.area > 0) parts.Add($"Area {ld.area:F1}");
         }
+
+        string desc = string.Join(" | ", parts);
+        if (!string.IsNullOrEmpty(data.description))
+            desc += $"\n{data.description}";
         return desc;
     }
 
@@ -142,5 +181,27 @@ public class PassiveUpgradeOption : UpgradeOption
             default:
                 return $"{statLabel} {sign}{bonus:F1}";
         }
+    }
+}
+
+/// <summary>Evolve a weapon (requires max level + required passive).</summary>
+public class WeaponEvolutionOption : UpgradeOption
+{
+    private readonly WeaponBase _baseWeapon;
+    private readonly PlayerWeaponManager _manager;
+
+    public WeaponEvolutionOption(WeaponBase weapon, PlayerWeaponManager manager)
+    {
+        _baseWeapon = weapon;
+        _manager = manager;
+        var evolvedData = weapon.Data.evolvedWeapon;
+        Name = $"进化: {weapon.Data.weaponName} → {evolvedData.weaponName}";
+        Icon = weapon.Data.icon;
+        Description = $"{weapon.Data.weaponName} 达到最大等级，进化为 {evolvedData.weaponName}！\n{evolvedData.description}";
+    }
+
+    public override void Apply()
+    {
+        _manager.CheckAndEvolveWeapons();
     }
 }

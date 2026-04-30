@@ -13,6 +13,19 @@ public abstract class AreaWeapon : WeaponBase
     protected float _tickInterval = 0.5f;
     protected float _tickTimer;
     protected bool _isHealing;
+    protected bool _followsPlayer = true;
+    protected Vector2 _areaOrigin;
+
+    public override void Initialize(WeaponData data, PlayerStats stats)
+    {
+        base.Initialize(data, stats);
+
+        // Fallback: read zone prefab from WeaponData.projectilePrefab (same pattern as OrbitalWeapon)
+        if (_areaPrefab == null && data != null && data.projectilePrefab != null)
+        {
+            _areaPrefab = data.projectilePrefab;
+        }
+    }
 
     protected override void Attack()
     {
@@ -29,34 +42,45 @@ public abstract class AreaWeapon : WeaponBase
 
     protected virtual void CreateAreaEffect()
     {
-        if (_areaPrefab == null) return;
+        _areaOrigin = _playerPosition;
 
-        _currentArea = Instantiate(_areaPrefab, _playerPosition, Quaternion.identity);
-        
+        if (_areaPrefab != null)
+        {
+            _currentArea = Instantiate(_areaPrefab, _areaOrigin, Quaternion.identity);
+        }
+        else
+        {
+            // Programmatic fallback: create a simple visual zone when no prefab is assigned
+            _currentArea = CreateDefaultAreaVisual();
+        }
+
+        if (_currentArea == null) return;
+
         var ld = CurrentLevelData;
         if (ld != null)
         {
-            _areaRadius = 3f;
-            _duration = 5f;
+            _areaRadius = ld.area;
+            _duration = ld.duration;
         }
-        
+
         SetupAreaEffect();
         _tickTimer = _tickInterval;
     }
 
     protected virtual void RefreshAreaEffect()
     {
-        if (_currentArea != null)
+        if (_currentArea != null && _followsPlayer)
         {
             _currentArea.transform.position = _playerPosition;
+            _areaOrigin = _playerPosition;
         }
-        
+
         var ld = CurrentLevelData;
         if (ld != null)
         {
-            _duration = 5f;
+            _duration = ld.duration;
         }
-        
+
         SetupAreaEffect();
     }
 
@@ -65,15 +89,35 @@ public abstract class AreaWeapon : WeaponBase
         // Override in derived classes to setup specific area effect
     }
 
+    /// <summary>
+    /// Creates a default visual for the area zone when no prefab is available.
+    /// </summary>
+    protected virtual GameObject CreateDefaultAreaVisual()
+    {
+        var obj = new GameObject("AreaZone");
+        obj.transform.position = _areaOrigin;
+
+        var sr = obj.AddComponent<SpriteRenderer>();
+        sr.sprite = CreateCircleSprite(_isHealing ? new Color(1f, 1f, 0.5f, 0.4f) : new Color(0.3f, 0.6f, 1f, 0.4f));
+        sr.drawMode = SpriteDrawMode.Tiled;
+        sr.sortingOrder = 1;
+
+        return obj;
+    }
+
     protected override void Update()
     {
         base.Update();
-        
+
         if (_currentArea != null)
         {
-            // Update area position to follow player
-            _currentArea.transform.position = _playerPosition;
-            
+            // Move area with player only if it follows the player
+            if (_followsPlayer)
+            {
+                _currentArea.transform.position = _playerPosition;
+                _areaOrigin = _playerPosition;
+            }
+
             // Tick damage/healing
             _tickTimer -= Time.deltaTime;
             if (_tickTimer <= 0f)
@@ -81,7 +125,7 @@ public abstract class AreaWeapon : WeaponBase
                 ApplyAreaEffect();
                 _tickTimer = _tickInterval;
             }
-            
+
             // Check duration
             _duration -= Time.deltaTime;
             if (_duration <= 0f)
@@ -108,7 +152,8 @@ public abstract class AreaWeapon : WeaponBase
         var ld = CurrentLevelData;
         if (ld == null || _playerStats == null) return;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(_playerPosition, _areaRadius);
+        Vector2 center = _followsPlayer ? _playerPosition : _areaOrigin;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, _areaRadius);
         foreach (var hit in hits)
         {
             var enemy = hit.GetComponent<EnemyBase>();
@@ -124,7 +169,6 @@ public abstract class AreaWeapon : WeaponBase
         var ld = CurrentLevelData;
         if (ld == null || _playerStats == null) return;
 
-        // Heal player
         int healAmount = Mathf.RoundToInt(ld.damage * _playerStats.DamageMultiplier);
         _playerStats.Heal(healAmount);
     }
@@ -142,15 +186,36 @@ public abstract class AreaWeapon : WeaponBase
     {
         base.OnPlayerMoved(position, direction);
 
-        // Area effect follows player
-        if (_currentArea != null)
+        if (_currentArea != null && _followsPlayer)
         {
             _currentArea.transform.position = position;
+            _areaOrigin = position;
         }
     }
 
     private void OnDestroy()
     {
         DestroyAreaEffect();
+    }
+
+    private static Sprite CreateCircleSprite(Color color)
+    {
+        int size = 64;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] pixels = new Color[size * size];
+        float half = size / 2f;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dx = x - half + 0.5f;
+                float dy = y - half + 0.5f;
+                pixels[y * size + x] = (dx * dx + dy * dy < half * half) ? color : Color.clear;
+            }
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.filterMode = FilterMode.Bilinear;
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
     }
 }

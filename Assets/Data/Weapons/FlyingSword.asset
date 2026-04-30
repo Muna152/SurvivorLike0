@@ -75,6 +75,6 @@ MonoBehaviour:
     pierce: 5
     speed: 12
     duration: 2
-  canEvolve: 0
-  requiredPassiveId: 
-  evolvedWeapon: {fileID: 0}
+  canEvolve: 1
+  requiredPassiveId: wing
+  evolvedWeapon: {fileID: 11400000, guid: 2f487b1b46a88d6448ace2346df3050e, type: 2}

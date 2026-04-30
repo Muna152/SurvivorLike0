@@ -19,7 +19,7 @@
 
 ```
 阶段1: 基础框架 (MVP)     ████░░░░░░░░░░░░  ~2周  ✅ 已完成
-阶段2: 核心玩法完善          ████████░░░░░░░  ~3周  🔧 进行中
+阶段2: 核心玩法完善          ████████████░░░  ~3周  🔧 进行中
 阶段3: 内容扩充              ░░░░░░░░░░░░░░░  ~3周
 阶段4: 元进度与打磨          ░░░░░░░░░░░░░░░  ~2周
 ─────────────────────────────────────────────
@@ -114,16 +114,18 @@
 
 - [x] 实现 `PassiveData` ScriptableObject (含 StatType 枚举、effectPerLevel、affectedStat、maxLevel)
 - [ ] 实现 `PassiveEffect` 系统（修改 PlayerStats 属性）
-- [ ] 实现8种被动道具的数据和效果（已有 PowerUp、SpeedBoost）
-- [ ] PlayerStats 被动道具管理（HasPassive/GetPassiveLevel/ApplyPassive）
-- [ ] 道具在升级选项中出现
+- [x] 实现8种被动道具的数据和效果（已有 PowerUp、SpeedBoost）
+- [x] PlayerStats 被动道具管理（HasPassive/GetPassiveLevel/ApplyPassive）
+- [x] 道具在升级选项中出现
+- [x] 所有被动道具图标已生成并分配
 
 ### 2.3 武器进化
 
-- [ ] 实现6组武器进化路线
-- [ ] 宝箱掉落触发进化
-- [ ] 进化动画/特效
-- [ ] 进化武器数据和 Prefab
+- [x] 实现6组武器进化路线
+- [x] 宝箱掉落触发进化
+- [x] 进化动画/特效
+- [x] 进化武器数据和 Prefab
+- [x] 进化武器不在普通升级池中出现（isEvolutionOnly 标记）
 
 ### 2.4 更多敌人
 

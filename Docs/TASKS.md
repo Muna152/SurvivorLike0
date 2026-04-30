@@ -301,6 +301,27 @@
 - **说明**: 原公式 `10 + (level-1)*5`（线性）改为 `5 + 5*level²`（二次），前期升级快后期慢
 - **验收**: 升级经验随等级二次增长
 
+#### T1.8.8 进化武器不出现在普通升级池
+- **状态**: ✅
+- **依赖**: T2.4.1, T1.6.2
+- **产物**: 更新 `Scripts/Data/WeaponData.cs`（新增 isEvolutionOnly 字段）, 更新 `Scripts/Upgrades/UpgradeManager.cs`（过滤进化武器）
+- **说明**: 进化武器（Excalibur 等）仅在满足进化条件时通过 WeaponEvolutionOption 出现，不再作为 NewWeaponOption 刷出
+- **验收**: 普通升级选项中不会出现进化武器
+
+#### T1.8.9 升级卡片图标补全
+- **状态**: ✅
+- **依赖**: T1.6.3
+- **产物**: 生成并分配12个武器图标 + 10个被动道具图标
+- **说明**: 所有 WeaponData 和 PassiveData 的 icon 字段均已分配 Sprite
+- **验收**: 升级选择界面所有卡片都有图标显示
+
+#### T1.8.10 武器升级描述增强
+- **状态**: ✅
+- **依赖**: T1.6.1
+- **产物**: 更新 `Scripts/Upgrades/UpgradeOption.cs`
+- **说明**: 武器升级描述从显示绝对数值改为对比格式（DMG 10→12, +1 Projectile, +1 Pierce 等）；新武器描述增加类型标签；满级显示 ★ 特殊效果
+- **验收**: 升级卡片清晰展示每项属性变化
+
 ---
 
 ## Phase 2: 核心玩法完善 (Week 4-6)
@@ -496,31 +517,31 @@
 ### T2.4 武器进化系统
 
 #### T2.4.1 定义6组进化路线数据
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.8, T2.3.1
-- **产物**: 更新 `Scripts/Data/WeaponData.cs`（进化字段）+ 更新6个现有 WeaponData 的进化关联
-- **验收**: 每把武器可配置 canEvolve, requiredPassive, evolvedWeapon
+- **产物**: 更新 `Scripts/Data/WeaponData.cs`（进化字段 + isEvolutionOnly 标记）+ 更新6个现有 WeaponData 的进化关联
+- **验收**: 每把武器可配置 canEvolve, requiredPassive, evolvedWeapon; 进化武器标记 isEvolutionOnly 不出现在普通升级池
 
 #### T2.4.2 实现宝箱掉落触发进化逻辑
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.4.1, T1.5.1, T1.2.4
 - **产物**: 更新 `Scripts/Drops/DropBase.cs`（宝箱收集逻辑）, 更新 `Scripts/Player/PlayerWeaponManager.cs`（进化方法）
 - **验收**: 拾取宝箱时检查进化条件；满足则替换为进化武器
 
 #### T2.4.3 创建6把进化武器数据
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.4.1
 - **产物**: `Data/Weapons/Excalibur.asset` (圣剑), `InfiniteKnife.asset` (无限飞刀), `JudgementWheel.asset` (审判之轮), `VoidBlackHole.asset` (虚空黑洞), `AngelsSong.asset` (天使之歌), `UndeadFlood.asset` (亡灵洪流)
-- **验收**: 6个进化武器 SO 存在，包含完整等级数据
+- **验收**: 6个进化武器 SO 存在，包含完整等级数据，isEvolutionOnly=true
 
 #### T2.4.4 创建进化武器 Prefab 和投射物
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.4.3
 - **产物**: 对应进化武器的 Prefab 和投射物 Prefab
 - **验收**: 所有进化武器 Prefab 可正确实例化和攻击
 
 #### T2.4.5 实现进化动画和特效
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.4.2
 - **产物**: `Scripts/Weapons/WeaponEvolutionVFX.cs`
 - **验收**: 武器进化时播放闪光/变身特效
@@ -986,18 +1007,18 @@
 |-------|--------|---------|--------|---------|--------|
 | Phase 1 | 9 | 34 | 34 | 0 | 0 |
 | Phase 1.A | 1 | 6 | 6 | 0 | 0 |
-| Phase 1.8 (补充) | 1 | 5 | 5 | 0 | 0 |
-| Phase 2 | 6 | 38 | 25 | 0 | 13 |
+| Phase 1.8 (补充) | 1 | 8 | 8 | 0 | 0 |
+| Phase 2 | 6 | 38 | 30 | 0 | 8 |
 | Phase 2.A | 1 | 7 | 7 | 0 | 0 |
 | Phase 3 | 5 | 20 | 0 | 0 | 20 |
 | Phase 3.A | 1 | 4 | 0 | 0 | 4 |
 | Phase 4 | 6 | 25 | 0 | 0 | 25 |
 | Phase 4.A | 1 | 3 | 0 | 0 | 3 |
-| **合计** | **31** | **142** | **76** | **0** | **66** |
+| **合计** | **31** | **145** | **85** | **0** | **60** |
 
 ---
 
-*文档版本: v1.5 | 最后更新: 2026-04-30*
+*文档版本: v1.6 | 最后更新: 2026-04-30*
 
 ## 游戏体验优化日志
 
@@ -1014,3 +1035,22 @@
 - `Scripts/Player/PlayerStats.cs` (PickupRange, EXPToNextLevel)
 - `Scripts/Drops/DropBase.cs` (vacuum delay/range/acceleration)
 - `Data/Passives/Magnet.asset` (effectPerLevel 0.5→1)
+
+### 2026-04-30 武器进化系统完善 + 升级UI增强
+
+**问题1**: 进化武器在普通升级池中出现，无需满足进化条件即可获取
+**解决**: WeaponData 新增 `isEvolutionOnly` 标记；UpgradeManager 生成新武器选项时过滤标记为 true 的武器；6个进化武器资产已设置标记
+
+**问题2**: 升级卡片缺少图标，武器升级描述看不出具体变化
+**解决**:
+1. 生成并分配全部12个武器图标（5基础+6进化+飞剑已有）和10个被动道具图标
+2. 武器升级描述改为对比格式：`DMG 10→12 | CD 1.5s→1.4s | +1 Projectile | +1 Pierce`
+3. 新武器描述增加类型标签：`[Projectile]` `[Orbital]` `[Area]` `[Support]`
+4. 满级时额外显示 `★ 特殊效果`
+
+**涉及文件**:
+- `Scripts/Data/WeaponData.cs` (新增 isEvolutionOnly 字段)
+- `Scripts/Upgrades/UpgradeManager.cs` (过滤进化武器)
+- `Scripts/Upgrades/UpgradeOption.cs` (GetLevelDescription/BuildNewWeaponDesc 重写)
+- `Data/Weapons/*.asset` (12个武器图标 + isEvolutionOnly标记)
+- `Data/Passives/*.asset` (10个被动道具图标)

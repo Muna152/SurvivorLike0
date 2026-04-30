@@ -23,6 +23,9 @@ public class WeaponData : ScriptableObject
     public string requiredPassiveId;
     public WeaponData evolvedWeapon;
 
+    [Tooltip("If true, this weapon can only be obtained through evolution, not from the upgrade pool.")]
+    public bool isEvolutionOnly;
+
     /// <summary>
     /// Weapon type classification.
     /// </summary>
