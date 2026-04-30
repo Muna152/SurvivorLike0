@@ -33,8 +33,8 @@ public class PlayerStats : MonoBehaviour
     public int KillCount => _killCount;
     public int Gold => _gold;
 
-    /// <summary>EXP needed to reach the next level (simple curve).</summary>
-    public float EXPToNextLevel => 10 + (_level - 1) * 5;
+    /// <summary>EXP needed to reach the next level (quadratic curve).</summary>
+    public float EXPToNextLevel => 5 + 5 * _level * _level;
 
     private void Awake()
     {

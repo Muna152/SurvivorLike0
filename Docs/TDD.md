@@ -193,7 +193,7 @@ public class PlayerStats : MonoBehaviour
     public int Level;
     public float CurrentHP;
     public float CurrentEXP;
-    public float RequiredEXP;  // => baseExp * (1 + 0.1 * Level)
+    public float RequiredEXP;  // => 5 + 5 * Level * Level (quadratic curve)
 }
 ```
 
@@ -270,6 +270,8 @@ public abstract class WeaponBase : MonoBehaviour
 ```
 
 **ProjectileWeapon 实现（飞剑示例）：**
+
+> **注意**：`OrbitalWeapon` 在 `_orbitalPrefab` 为空时会自动从 `WeaponData.projectilePrefab` 获取 Prefab，确保运行时创建时不会丢失引用。
 
 ```csharp
 public class ProjectileWeapon : WeaponBase
@@ -475,6 +477,8 @@ public class EnemySpawner : MonoBehaviour
 
 ### 3.8 升级系统
 
+**UpgradeUI 使用 CanvasGroup 控制显隐**（而非 SetActive），确保 Start() 始终执行以绑定事件。选择/跳过后通过 `OnUpgradeComplete` 事件驱动 Hide()，而非选择后立即隐藏（避免时序问题）。
+
 ```csharp
 public class UpgradeManager : MonoBehaviour
 {
@@ -603,7 +607,8 @@ Assets/
 │   │   ├── PlayerController.cs        # 移动控制
 │   │   ├── PlayerStats.cs             # 属性管理
 │   │   ├── PlayerWeaponManager.cs     # 武器装备管理
-│   │   └── PlayerHitbox.cs            # 受击检测
+│   │   ├── PlayerHitbox.cs            # 受击检测
+│   │   └── CameraFollow.cs            # 正交相机跟随
 │   │
 │   ├── Weapons/                       # 武器系统
 │   │   ├── WeaponBase.cs              # 武器抽象基类
@@ -612,12 +617,17 @@ Assets/
 │   │   ├── AreaWeapon.cs              # 范围型武器
 │   │   ├── AuxiliaryWeapon.cs         # 辅助型武器
 │   │   ├── Projectile.cs              # 投射物
-│   │   └── OrbitalObject.cs           # 轨道物体
+│   │   ├── OrbitalObject.cs           # 轨道物体
+│   │   ├── HolyLight.cs              # 圣光武器
+│   │   └── HolyWater.cs              # 圣水武器
 │   │
 │   ├── Enemies/                       # 敌人系统
 │   │   ├── EnemyBase.cs               # 敌人基类
 │   │   ├── EnemySpawner.cs            # 敌人生成器
-│   │   └── EnemyManager.cs            # 敌人管理器
+│   │   ├── EnemyManager.cs            # 敌人管理器
+│   │   ├── EliteEnemy.cs              # 精英敌人组件
+│   │   ├── MageEnemy.cs               # 法师敌人组件
+│   │   └── MageProjectile.cs          # 法师投射物
 │   │
 │   ├── Drops/                         # 掉落物系统
 │   │   ├── DropBase.cs                # 掉落物基类
@@ -626,21 +636,18 @@ Assets/
 │   ├── Upgrades/                      # 升级系统
 │   │   ├── UpgradeManager.cs          # 升级管理器
 │   │   ├── UpgradeOption.cs           # 升级选项基类
-│   │   └── UpgradeUI.cs              # 升级选择UI
+│   │   ├── UpgradeUI.cs              # 升级选择UI (CanvasGroup驱动显隐)
+│   │   └── UpgradeCard.cs            # 升级卡片组件
 │   │
 │   ├── UI/                            # UI系统
-│   │   ├── HUDController.cs          # 战斗HUD
-│   │   ├── ResultScreen.cs           # 结算界面
-│   │   ├── MainMenu.cs               # 主菜单/大厅
-│   │   └── CharacterSelectUI.cs      # 角色选择
+│   │   ├── HUDController.cs          # 战斗HUD (含EXP文字显示)
+│   │   └── ResultScreen.cs           # 结算界面
 │   │
 │   └── Data/                          # 数据定义
 │       ├── WeaponData.cs              # 武器数据SO
 │       ├── EnemyData.cs               # 敌人数据SO
 │       ├── CharacterData.cs           # 角色数据SO
-│       ├── PassiveData.cs             # 被动道具数据SO
-│       ├── WaveData.cs                # 波次数据SO
-│       └── UpgradePoolData.cs         # 升级池数据SO
+│       └── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
 │
 ├── Data/                              # ScriptableObject 资产
 │   ├── Weapons/
@@ -776,7 +783,7 @@ PassiveData (被动道具)
 
 | 配置项 | 公式/值 |
 |--------|---------|
-| 升级经验 | `baseExp × (1 + 0.1 × level)` |
+| 升级经验 | `5 + 5 × level²` |
 | 生成间隔 | `baseInterval / (1 + 0.15 × minutes)` |
 | 单次生成数 | `floor(3 + 0.8 × minutes)`，上限15 |
 | 敌人HP缩放 | `baseHP × (1 + 0.1 × minutes)` |
@@ -832,4 +839,4 @@ public class SaveManager
 
 ---
 
-*文档版本: v1.0 | 最后更新: 2026-04-27*
+*文档版本: v1.1 | 最后更新: 2026-04-30*

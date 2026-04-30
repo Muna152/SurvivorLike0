@@ -14,6 +14,7 @@ public class HUDController : MonoBehaviour
     [Header("EXP Bar")]
     [SerializeField] private Slider _expSlider;
     [SerializeField] private Text _levelText;
+    [SerializeField] private Text _expText;
 
     [Header("Timer")]
     [SerializeField] private Text _timerText;
@@ -117,6 +118,8 @@ public class HUDController : MonoBehaviour
             _levelText.text = $"Lv.{_stats.Level}";
             _lastLevel = _stats.Level;
         }
+
+        UpdateExpText();
     }
 
     private void RefreshEXPIfNeeded()
@@ -129,9 +132,16 @@ public class HUDController : MonoBehaviour
             _lastLevel = _stats.Level;
         }
 
-        // EXP progress changes frequently; slider.value is a cheap float set
         if (_expSlider != null)
             _expSlider.value = _stats.EXPProgress;
+
+        UpdateExpText();
+    }
+
+    private void UpdateExpText()
+    {
+        if (_expText == null) return;
+        _expText.text = $"{(int)_stats.CurrentEXP}/{(int)_stats.EXPToNextLevel}";
     }
 
     private void OnLevelUp()

@@ -31,6 +31,7 @@ public class UpgradeUI : MonoBehaviour
         if (_manager != null)
         {
             _manager.OnOptionsGenerated += Show;
+            _manager.OnUpgradeComplete += Hide;
         }
 
         if (_skipButton != null)
@@ -46,6 +47,7 @@ public class UpgradeUI : MonoBehaviour
         if (_manager != null)
         {
             _manager.OnOptionsGenerated -= Show;
+            _manager.OnUpgradeComplete -= Hide;
         }
     }
 
@@ -97,7 +99,6 @@ public class UpgradeUI : MonoBehaviour
         {
             _manager.OnOptionSelected(_options[index]);
         }
-        Hide();
     }
 
     private void OnSkipClicked()
@@ -106,6 +107,5 @@ public class UpgradeUI : MonoBehaviour
         {
             _manager.SkipUpgrade();
         }
-        Hide();
     }
 }

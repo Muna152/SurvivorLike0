@@ -26,6 +26,12 @@ public class OrbitalWeapon : WeaponBase
     {
         base.Initialize(data, stats);
 
+        // Use projectilePrefab from WeaponData when created at runtime
+        if (_orbitalPrefab == null && data != null && data.projectilePrefab != null)
+        {
+            _orbitalPrefab = data.projectilePrefab;
+        }
+
         // Cache pool key
         if (_orbitalPrefab != null)
         {

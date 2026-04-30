@@ -269,6 +269,38 @@
 - **产物**: `Scripts/UI/ResultScreen.cs`
 - **验收**: 编译通过；HP归零显示GameOver，30分钟显示Victory
 
+#### T1.8.3 HUD EXP文字显示
+- **状态**: ✅
+- **依赖**: T1.7.1
+- **产物**: 更新 `Scripts/UI/HUDController.cs`（新增 `_expText` 字段 + `UpdateExpText()` 方法）
+- **验收**: 经验条旁显示 "当前EXP/升级所需EXP" 文字
+
+#### T1.8.4 HP/EXP条背景条 Sprite
+- **状态**: ✅
+- **产物**: `Art/Sprites/UI/HpBarBg.png`, `ExpBarBg.png`
+- **验收**: HP和经验条均有背景底条
+
+#### T1.8.5 UpgradeUI 事件驱动修复
+- **状态**: ✅
+- **依赖**: T1.6.3
+- **产物**: 更新 `Scripts/Upgrades/UpgradeUI.cs`
+- **说明**: 修复时序问题 — 改为 CanvasGroup 控制显隐；选择/跳过后通过 OnUpgradeComplete 事件驱动 Hide()，而非选择后立即 Hide()
+- **验收**: 升级选择后UI正确隐藏，无闪烁或过早关闭
+
+#### T1.8.6 OrbitalWeapon Prefab回退修复
+- **状态**: ✅
+- **依赖**: T2.1.1
+- **产物**: 更新 `Scripts/Weapons/OrbitalWeapon.cs`
+- **说明**: 运行时创建轨道武器时 `_orbitalPrefab` 为空，新增从 `WeaponData.projectilePrefab` 自动获取的逻辑
+- **验收**: 运行时装备旋转盾不再丢失轨道物体引用
+
+#### T1.8.7 经验值公式改为二次曲线
+- **状态**: ✅
+- **依赖**: T1.2.1
+- **产物**: 更新 `Scripts/Player/PlayerStats.cs`
+- **说明**: 原公式 `10 + (level-1)*5`（线性）改为 `5 + 5*level²`（二次），前期升级快后期慢
+- **验收**: 升级经验随等级二次增长
+
 ---
 
 ## Phase 2: 核心玩法完善 (Week 4-6)
@@ -432,10 +464,10 @@
 ### T2.3 被动道具系统完善
 
 #### T2.3.1 完善 PassiveData ScriptableObject
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.8
 - **产物**: 更新 `Scripts/Data/PassiveData.cs`
-- **验收**: 包含 effectPerLevel, affectedStat (StatType枚举), maxLevel, icon, description
+- **验收**: 包含 effectPerLevel, affectedStat (StatType枚举), maxLevel, icon, description, requiredForEvolutionWeaponId
 
 #### T2.3.2 实现 PassiveEffect 系统
 - **状态**: ⬜
@@ -954,14 +986,15 @@
 |-------|--------|---------|--------|---------|--------|
 | Phase 1 | 9 | 34 | 34 | 0 | 0 |
 | Phase 1.A | 1 | 6 | 6 | 0 | 0 |
-| Phase 2 | 6 | 38 | 19 | 0 | 19 |
+| Phase 1.8 (补充) | 1 | 5 | 5 | 0 | 0 |
+| Phase 2 | 6 | 38 | 20 | 0 | 18 |
 | Phase 2.A | 1 | 7 | 5 | 0 | 2 |
 | Phase 3 | 5 | 20 | 0 | 0 | 20 |
 | Phase 3.A | 1 | 4 | 0 | 0 | 4 |
 | Phase 4 | 6 | 25 | 0 | 0 | 25 |
 | Phase 4.A | 1 | 3 | 0 | 0 | 3 |
-| **合计** | **30** | **137** | **64** | **0** | **73** |
+| **合计** | **31** | **142** | **70** | **0** | **72** |
 
 ---
 
-*文档版本: v1.3 | 最后更新: 2026-04-29*
+*文档版本: v1.4 | 最后更新: 2026-04-30*

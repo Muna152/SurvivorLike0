@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: WnlM4Cv5BXMKo0eHewkNhYXA3m9570OTrJoQUmKL/u9bNP9DSSpRR6s=
+guid: WnMdtSv5ASmd0UDz+dOFEcOqqDa5nhXGa9VGb4XP8thDp39IPWwFCDw=
 labels:
 - TJGeneratorsAIGenerated
 TextureImporter:
@@ -23,7 +23,7 @@ TextureImporter:
     heightScale: 0.25
     normalMapFilter: 0
     flipGreenChannel: 0
-  isReadable: 1
+  isReadable: 0
   webStreaming: 0
   priorityLevel: 0
   uploadedMode: 2
@@ -205,7 +205,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 0
+    internalID: 1537655665
     vertices: []
     indices: 
     edges: []

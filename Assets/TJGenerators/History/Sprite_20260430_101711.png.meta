@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: WnlM4Cv5BXMKo0eHewkNhYXA3m9570OTrJoQUmKL/u9bNP9DSSpRR6s=
+guid: CXMasXj8Ai574055AgYrw25fh0/3Hpug9j8ZQJ6F4UJ2URUZtm/YGGM=
 labels:
 - TJGeneratorsAIGenerated
 TextureImporter:
@@ -23,7 +23,7 @@ TextureImporter:
     heightScale: 0.25
     normalMapFilter: 0
     flipGreenChannel: 0
-  isReadable: 1
+  isReadable: 0
   webStreaming: 0
   priorityLevel: 0
   uploadedMode: 2
@@ -39,7 +39,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -78,7 +78,7 @@ TextureImporter:
     maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
