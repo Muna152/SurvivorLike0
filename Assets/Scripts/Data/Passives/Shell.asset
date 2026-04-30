@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dd14b5c05cf8b849a068ae30332e58f, type: 3}
   m_Name: Shell
   m_EditorClassIdentifier: 
+  id: shell
   passiveName: "\u7532\u58F3"
   description: "\u575A\u56FA\u7532\u58F3\uFF0C\u589E\u52A0\u62A4\u7532\u503C"
   icon: {fileID: 21300000, guid: fad931a90d01b394583a55ffde3daa96, type: 3}

@@ -84,6 +84,7 @@ public class UpgradeManager : MonoBehaviour
         {
             foreach (var wd in _availableWeapons)
             {
+                if (wd == null) continue;
                 if (wd.isEvolutionOnly) continue;
                 if (!_weaponManager.HasWeapon(wd) && _weaponManager.EquippedWeapons.Count < 6)
                 {
@@ -97,6 +98,7 @@ public class UpgradeManager : MonoBehaviour
         {
             foreach (var pd in _availablePassives)
             {
+                if (pd == null) continue;
                 int currentLevel = _playerStats.GetPassiveLevel(pd);
                 if (currentLevel < pd.maxLevel)
                 {

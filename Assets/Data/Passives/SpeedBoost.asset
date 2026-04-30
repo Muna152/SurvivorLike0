@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dd14b5c05cf8b849a068ae30332e58f, type: 3}
   m_Name: SpeedBoost
   m_EditorClassIdentifier: 
-  id: 
+  id: speedboost
   passiveName: Speed Boost
   description: Increases movement speed.
   icon: {fileID: 21300000, guid: 55bf1dc72f29e5640a9c3f96be667ac6, type: 3}

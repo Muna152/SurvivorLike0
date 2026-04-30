@@ -29,14 +29,22 @@ public abstract class AreaWeapon : WeaponBase
 
     protected override void Attack()
     {
-        // Create or refresh the area effect
-        if (_currentArea == null)
+        if (_followsPlayer)
         {
-            CreateAreaEffect();
+            // Auras persist — create once, then refresh stats/position each attack
+            if (_currentArea == null)
+                CreateAreaEffect();
+            else
+                RefreshAreaEffect();
         }
         else
         {
-            RefreshAreaEffect();
+            // Non-following zones (e.g. Holy Water puddle) are placed at the player's
+            // current position. If an old zone still exists, destroy it first so the
+            // new one spawns at the updated position.
+            if (_currentArea != null)
+                DestroyAreaEffect();
+            CreateAreaEffect();
         }
     }
 
@@ -69,16 +77,32 @@ public abstract class AreaWeapon : WeaponBase
 
     protected virtual void RefreshAreaEffect()
     {
-        if (_currentArea != null && _followsPlayer)
+        if (_currentArea == null) return;
+
+        if (_followsPlayer)
         {
+            // Auras (e.g. Holy Light) persist as long as the weapon is active:
+            // reset duration so the aura never expires, and keep it on the player.
             _currentArea.transform.position = _playerPosition;
             _areaOrigin = _playerPosition;
-        }
 
-        var ld = CurrentLevelData;
-        if (ld != null)
+            var ld = CurrentLevelData;
+            if (ld != null)
+            {
+                _duration = ld.duration;
+                _areaRadius = ld.area;
+            }
+        }
+        else
         {
-            _duration = ld.duration;
+            // Non-following zones (e.g. Holy Water puddle) have a fixed lifespan.
+            // Do NOT reset duration — let the zone expire naturally so it can be
+            // recreated at the player's current position on the next attack.
+            var ld = CurrentLevelData;
+            if (ld != null)
+            {
+                _areaRadius = ld.area;
+            }
         }
 
         SetupAreaEffect();
@@ -99,7 +123,6 @@ public abstract class AreaWeapon : WeaponBase
 
         var sr = obj.AddComponent<SpriteRenderer>();
         sr.sprite = CreateCircleSprite(_isHealing ? new Color(1f, 1f, 0.5f, 0.4f) : new Color(0.3f, 0.6f, 1f, 0.4f));
-        sr.drawMode = SpriteDrawMode.Tiled;
         sr.sortingOrder = 1;
 
         return obj;

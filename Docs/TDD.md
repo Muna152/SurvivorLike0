@@ -339,6 +339,65 @@ public class Projectile : MonoBehaviour
 }
 ```
 
+**AreaWeapon 实现（圣水/圣光）：**
+
+> **设计要点**：AreaWeapon 区分两种行为模式——**光环(Aura)**和**水潭(Puddle)**。
+> - 光环（`_followsPlayer = true`，如圣光 Holy Light）：持续跟随玩家的永久区域，每次攻击刷新 duration 和范围。
+> - 水潭（`_followsPlayer = false`，如圣水 Holy Water）：在玩家当前位置放置一个固定水潭，自然过期后在下次攻击时于新位置重新创建。
+
+```csharp
+public class AreaWeapon : WeaponBase
+{
+    protected GameObject _currentArea;
+    protected GameObject _areaPrefab;
+    protected float _areaRadius;
+    protected float _duration;
+    protected Vector2 _areaOrigin;
+    protected bool _followsPlayer;
+    protected bool _isHealing;
+
+    protected override void Attack()
+    {
+        if (_followsPlayer)
+        {
+            // 光环：首次创建，后续刷新位置/duration
+            if (_currentArea == null) CreateAreaEffect();
+            else RefreshAreaEffect();
+        }
+        else
+        {
+            // 水潭：每次攻击在玩家新位置重建
+            if (_currentArea != null) DestroyAreaEffect();
+            CreateAreaEffect();
+        }
+    }
+
+    protected virtual void RefreshAreaEffect()
+    {
+        if (_currentArea == null) return;
+        if (_followsPlayer)
+        {
+            // 光环：重置 duration（保持永久），跟随玩家
+            _currentArea.transform.position = _playerPosition;
+            _areaOrigin = _playerPosition;
+            var ld = CurrentLevelData;
+            if (ld != null) { _duration = ld.duration; _areaRadius = ld.area; }
+        }
+        else
+        {
+            // 水潭：只更新范围（处理升级），不重置 duration
+            var ld = CurrentLevelData;
+            if (ld != null) _areaRadius = ld.area;
+        }
+        SetupAreaEffect();
+    }
+}
+```
+
+> **注意**：早期版本中 `RefreshAreaEffect()` 对所有区域武器无条件重置 `_duration`，导致圣水水潭永不过期、位置无法更新。已修复为仅对 `_followsPlayer = true` 的光环重置 duration。
+>
+> **视觉缩放**：Zone 预制体使用 `SpriteRenderer.drawMode = Simple` + `transform.localScale` 控制尺寸，不使用 `Sliced` 模式（因精灵资源未设置 9-slice border）。
+
 ### 3.6 敌人系统
 
 **敌人数据定义：**

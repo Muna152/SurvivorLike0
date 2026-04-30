@@ -1018,7 +1018,7 @@
 
 ---
 
-*文档版本: v1.6 | 最后更新: 2026-04-30*
+*文档版本: v1.7 | 最后更新: 2026-04-30*
 
 ## 游戏体验优化日志
 
@@ -1054,3 +1054,31 @@
 - `Scripts/Upgrades/UpgradeOption.cs` (GetLevelDescription/BuildNewWeaponDesc 重写)
 - `Data/Weapons/*.asset` (12个武器图标 + isEvolutionOnly标记)
 - `Data/Passives/*.asset` (10个被动道具图标)
+
+### 2026-04-30 圣水(HolyWater) Bug修复 + 升级系统断裂引用修复
+
+**问题1**: 圣水水潭永不过期、不跟随玩家重新生成
+**根因**: `AreaWeapon.RefreshAreaEffect()` 对所有区域武器无条件重置 `_duration`，导致水潭(非跟随型)永不过期；`Attack()` 始终走 `RefreshAreaEffect()` 分支，水潭永远停留在首次创建位置
+**解决**:
+1. `Attack()` 分策略处理：光环类首次创建后刷新；水潭类每次攻击先销毁旧水潭再在新位置创建
+2. `RefreshAreaEffect()` 仅对 `_followsPlayer=true` 重置 duration，水潭类只更新范围（处理升级）
+
+**问题2**: Zone 预制体使用 `Sliced` drawMode 但精灵无 9-slice border
+**解决**: 所有 5 个 Zone 预制体改为 `Simple` 模式；`HolyWater/HolyLight.SetupAreaEffect()` 改用 `transform.localScale` 控制尺寸
+
+**问题3**: 升级系统完全失效（升级UI不弹出）
+**根因**: 早期 PassiveData 资产存放在两个目录（`Assets/Data/Passives/` 和 `Assets/Scripts/Data/Passives/`），删除重复资产时因 Windows 大小写不敏感误删了带正确 ID 的文件，导致 `UpgradeManager._availablePassives` 和 `PlayerWeaponManager._allPassives` 中 8 个引用断裂为 null；`GenerateUpgradeOptions()` 遍历时对 null 调用方法抛出 NullReferenceException，整个升级流程崩溃
+**解决**:
+1. 为 `Assets/Scripts/Data/Passives/` 下 8 个 PassiveData 补全 id 字段（bone/bracer/codex/feather/heart/magnet/shell/wing）
+2. 为 PowerUp 和 SpeedBoost 补全 id（`powerup`/`speedboost`）
+3. 恢复 `UpgradeManager._availablePassives` 和 `PlayerWeaponManager._allPassives` 的断裂引用
+4. `UpgradeManager.GenerateUpgradeOptions()` 增加 `if (pd == null) continue` / `if (wd == null) continue` null 防护
+
+**涉及文件**:
+- `Scripts/Weapons/AreaWeapon.cs` (Attack/RefreshAreaEffect 分策略重写)
+- `Scripts/Weapons/HolyWater.cs` (SetupAreaEffect 改用 localScale)
+- `Scripts/Weapons/HolyLight.cs` (SetupAreaEffect 改用 localScale)
+- `Scripts/Upgrades/UpgradeManager.cs` (null 防护)
+- `Prefabs/Weapons/*Zone.prefab` (drawMode: Sliced → Simple)
+- `Scripts/Data/Passives/*.asset` (补全 8 个 id + PowerUp/SpeedBoost id)
+- `Data/Passives/PowerUp.asset`, `SpeedBoost.asset` (补全 id)
