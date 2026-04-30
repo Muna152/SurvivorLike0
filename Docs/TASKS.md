@@ -997,4 +997,20 @@
 
 ---
 
-*文档版本: v1.4 | 最后更新: 2026-04-30*
+*文档版本: v1.5 | 最后更新: 2026-04-30*
+
+## 游戏体验优化日志
+
+### 2026-04-30 中期成长优化
+
+**问题**: 5-10级成长缓慢，拾取经验掉落困难
+
+**解决方案**:
+1. **增大基础拾取范围**: PickupRange 1 → 2.5，磁铁被动 +0.5/级 → +1.0/级
+2. **延时真空吸附**: 经验宝石落地2.5秒后自动从8距离吸引向玩家，带二次缓入加速效果 (t²)
+3. **调整经验曲线**: `5+5×Lv²` → `5+3×Lv²`，5→6级 130→80，10→11级 505→305
+
+**涉及文件**:
+- `Scripts/Player/PlayerStats.cs` (PickupRange, EXPToNextLevel)
+- `Scripts/Drops/DropBase.cs` (vacuum delay/range/acceleration)
+- `Data/Passives/Magnet.asset` (effectPerLevel 0.5→1)

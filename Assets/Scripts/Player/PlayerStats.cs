@@ -10,7 +10,7 @@ public class PlayerStats : MonoBehaviour
     [Header("Base Stats")]
     public float MaxHP = 100f;
     public float MoveSpeed = 3f;
-    public float PickupRange = 1f;
+    public float PickupRange = 2.5f;
     public int Armor;
     public float Luck;
     public float Regen;
@@ -38,7 +38,7 @@ public class PlayerStats : MonoBehaviour
     public int Gold => _gold;
 
     /// <summary>EXP needed to reach the next level (quadratic curve).</summary>
-    public float EXPToNextLevel => 5 + 5 * _level * _level;
+    public float EXPToNextLevel => 5 + 3 * _level * _level;
 
     private void Awake()
     {
