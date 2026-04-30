@@ -511,8 +511,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a5d5e6469809ca542a54f0555b9d64ed, type: 2}
   - {fileID: 11400000, guid: dc98713c870b93d4dbbd5f691bda43ea, type: 2}
   _availablePassives:
-  - {fileID: 11400000, guid: 67d3df9857d3b694aa574a211b7a3619, type: 2}
-  - {fileID: 11400000, guid: 4feb83b4e9f399447bdfecfe117ebc2d, type: 2}
+  - {fileID: 11400000, guid: f5f1445806ff9a844a021cc4aaf362df, type: 2}
+  - {fileID: 11400000, guid: 281d322f36aabd04493658948d275933, type: 2}
+  - {fileID: 11400000, guid: 2bc143b8bdeddab4da126da96824cd85, type: 2}
+  - {fileID: 11400000, guid: 3c8166ba2068c254c9af9e83998313a7, type: 2}
+  - {fileID: 11400000, guid: 848cd45e2b1ea254b8a5b25a77dcad1e, type: 2}
+  - {fileID: 11400000, guid: f5581ab667cf135489092118095f5833, type: 2}
+  - {fileID: 11400000, guid: 1c063f6d95cd0af4bbe4ca0f668894a1, type: 2}
+  - {fileID: 11400000, guid: 4a53a007626ead6409605bdbbc1d5076, type: 2}
 --- !u!4 &159261300
 Transform:
   m_ObjectHideFlags: 0

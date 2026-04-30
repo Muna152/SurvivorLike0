@@ -81,12 +81,16 @@ public class UpgradeManager : MonoBehaviour
             }
         }
 
-        // Passives (simplified: each can be picked up to 5 times)
+        // Passives: only offer if not yet max level
         if (_playerStats != null)
         {
             foreach (var pd in _availablePassives)
             {
-                pool.Add(new PassiveUpgradeOption(pd, _playerStats, 0));
+                int currentLevel = _playerStats.GetPassiveLevel(pd);
+                if (currentLevel < pd.maxLevel)
+                {
+                    pool.Add(new PassiveUpgradeOption(pd, _playerStats, currentLevel));
+                }
             }
         }
 

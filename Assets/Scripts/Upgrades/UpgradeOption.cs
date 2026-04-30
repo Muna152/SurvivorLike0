@@ -98,24 +98,49 @@ public class PassiveUpgradeOption : UpgradeOption
         _currentCount = currentCount;
         Name = $"{data.passiveName} Lv.{currentCount + 1}";
         Icon = data.icon;
-        Description = $"+{data.effectPerLevel:F1} {data.affectedStat}";
+        Description = FormatDescription(data, currentCount);
     }
 
     public override void Apply()
     {
-        float bonus = _data.effectPerLevel;
-        switch (_data.affectedStat)
+        _stats.ApplyPassive(_data);
+    }
+
+    private static string FormatDescription(PassiveData data, int currentLevel)
+    {
+        float bonus = data.effectPerLevel;
+        string sign = data.affectedStat == PassiveData.StatType.CooldownMultiplier ? "-" : "+";
+        string statLabel = data.affectedStat.ToString();
+
+        // Show next-level value
+        float nextValue = bonus * (currentLevel + 1);
+        float currentValue = bonus * currentLevel;
+
+        // For special stats, show absolute value
+        switch (data.affectedStat)
         {
-            case PassiveData.StatType.MoveSpeed: _stats.MoveSpeed += bonus; break;
-            case PassiveData.StatType.PickupRange: _stats.PickupRange += bonus; break;
-            case PassiveData.StatType.Armor: _stats.Armor += Mathf.RoundToInt(bonus); break;
-            case PassiveData.StatType.Luck: _stats.Luck += bonus; break;
-            case PassiveData.StatType.Regen: _stats.Regen += bonus; break;
-            case PassiveData.StatType.DamageMultiplier: _stats.DamageMultiplier += bonus; break;
-            case PassiveData.StatType.CooldownMultiplier: _stats.CooldownMultiplier -= bonus; break;
-            case PassiveData.StatType.AreaMultiplier: _stats.AreaMultiplier += bonus; break;
-            case PassiveData.StatType.ProjectileBonus: _stats.ProjectileBonus += Mathf.RoundToInt(bonus); break;
-            case PassiveData.StatType.MaxHP: _stats.MaxHP += bonus; break;
+            case PassiveData.StatType.MoveSpeed:
+                return $"Move Speed {sign}{bonus:F1} (→{3f + nextValue:F1})";
+            case PassiveData.StatType.PickupRange:
+                return $"Pickup Range {sign}{bonus:F1} (→{1f + nextValue:F1})";
+            case PassiveData.StatType.Armor:
+                return $"Armor {sign}{Mathf.RoundToInt(bonus)} (→{Mathf.RoundToInt(nextValue)})";
+            case PassiveData.StatType.Luck:
+                return $"Luck {sign}{bonus:F0} (→{nextValue:F0})";
+            case PassiveData.StatType.Regen:
+                return $"HP Regen {sign}{bonus:F1}/s (→{nextValue:F1}/s)";
+            case PassiveData.StatType.DamageMultiplier:
+                return $"Damage {sign}{bonus * 100:F0}% (→{1f + nextValue:P0})";
+            case PassiveData.StatType.CooldownMultiplier:
+                return $"Cooldown {sign}{bonus * 100:F0}% (→{1f - nextValue:P0})";
+            case PassiveData.StatType.AreaMultiplier:
+                return $"Area {sign}{bonus * 100:F0}% (→{1f + nextValue:P0})";
+            case PassiveData.StatType.ProjectileBonus:
+                return $"Projectiles {sign}{Mathf.RoundToInt(bonus)} (→+{Mathf.RoundToInt(nextValue)})";
+            case PassiveData.StatType.MaxHP:
+                return $"Max HP {sign}{bonus:F0} (→{100f + nextValue:F0})";
+            default:
+                return $"{statLabel} {sign}{bonus:F1}";
         }
     }
 }

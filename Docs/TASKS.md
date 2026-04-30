@@ -401,12 +401,12 @@
 - **验收**: 5个 Sprite 资产存在
 
 #### T2.A.6 生成被动道具图标 Sprites
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/UI/Wing.png` (空翼), `Bracer.png` (护腕), `Magnet.png` (磁铁), `Codex.png` (法典), `Heart.png` (心), `Bone.png` (骨头), `Shell.png` (甲壳), `Feather.png` (翅膀)
 - **验收**: 8个 Sprite 资产存在
 
 #### T2.A.7 生成宝箱 Sprite
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Drops/Chest.png`
 - **验收**: Sprite 资产存在
 
@@ -470,25 +470,25 @@
 - **验收**: 包含 effectPerLevel, affectedStat (StatType枚举), maxLevel, icon, description, requiredForEvolutionWeaponId
 
 #### T2.3.2 实现 PassiveEffect 系统
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.3.1, T1.2.1
 - **产物**: `Scripts/Upgrades/PassiveEffect.cs`
 - **验收**: 编译通过；ApplyEffect 可修改 PlayerStats 对应属性
 
 #### T2.3.3 创建8种被动道具数据
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.3.1, T2.A.6
 - **产物**: `Data/Passives/Wing.asset` (空翼:移速+8%), `Bracer.asset` (护腕:伤害+10%), `Magnet.asset` (磁铁:拾取+25%), `Codex.asset` (法典:冷却-8%), `Heart.asset` (心:HP+10%), `Bone.asset` (骨头:幸运+10), `Shell.asset` (甲壳:护甲+1), `Feather.asset` (翅膀:弹数+1/2级)
 - **验收**: 8个 SO 资产存在，各5级数据完整
 
 #### T2.3.4 实现 PlayerStats 被动道具管理
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.3.2, T1.2.1
 - **产物**: 更新 `Scripts/Player/PlayerStats.cs`
 - **验收**: HasPassive(), GetPassiveLevel(), ApplyPassive() 可用；属性实时更新
 
 #### T2.3.5 更新 UpgradeManager 将被动道具加入升级选项
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.3.3, T2.3.4, T1.6.2
 - **产物**: 更新 `Scripts/Upgrades/UpgradeManager.cs`, `Scripts/Upgrades/UpgradeOption.cs`
 - **验收**: 升级选项中可出现被动道具；已持有道具可升级
@@ -987,13 +987,13 @@
 | Phase 1 | 9 | 34 | 34 | 0 | 0 |
 | Phase 1.A | 1 | 6 | 6 | 0 | 0 |
 | Phase 1.8 (补充) | 1 | 5 | 5 | 0 | 0 |
-| Phase 2 | 6 | 38 | 20 | 0 | 18 |
-| Phase 2.A | 1 | 7 | 5 | 0 | 2 |
+| Phase 2 | 6 | 38 | 25 | 0 | 13 |
+| Phase 2.A | 1 | 7 | 7 | 0 | 0 |
 | Phase 3 | 5 | 20 | 0 | 0 | 20 |
 | Phase 3.A | 1 | 4 | 0 | 0 | 4 |
 | Phase 4 | 6 | 25 | 0 | 0 | 25 |
 | Phase 4.A | 1 | 3 | 0 | 0 | 3 |
-| **合计** | **31** | **142** | **70** | **0** | **72** |
+| **合计** | **31** | **142** | **76** | **0** | **66** |
 
 ---
 

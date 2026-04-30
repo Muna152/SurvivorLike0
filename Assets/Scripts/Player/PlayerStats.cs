@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -24,6 +25,9 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private float _currentEXP;
     [SerializeField] private int _killCount;
     [SerializeField] private int _gold;
+
+    // Passive tracking: PassiveData → current level (1-based, 0 = not owned)
+    private readonly Dictionary<PassiveData, int> _passiveLevels = new Dictionary<PassiveData, int>();
 
     private float _nextRegenTick;
 
@@ -82,6 +86,32 @@ public class PlayerStats : MonoBehaviour
 
     public void AddKill() => _killCount++;
     public void AddGold(int amount) => _gold += amount;
+
+    // ── Passive Items ────────────────────────────────────────
+
+    /// <summary>Does the player own this passive?</summary>
+    public bool HasPassive(PassiveData passive)
+    {
+        return _passiveLevels.ContainsKey(passive) && _passiveLevels[passive] > 0;
+    }
+
+    /// <summary>Current level of the passive (0 = not owned).</summary>
+    public int GetPassiveLevel(PassiveData passive)
+    {
+        return _passiveLevels.TryGetValue(passive, out int lv) ? lv : 0;
+    }
+
+    /// <summary>Apply one level of a passive and increment its tracked level.</summary>
+    public void ApplyPassive(PassiveData passive)
+    {
+        if (passive == null) return;
+
+        int current = GetPassiveLevel(passive);
+        if (current >= passive.maxLevel) return;
+
+        PassiveEffect.Apply(this, passive);
+        _passiveLevels[passive] = current + 1;
+    }
 
     // ── Regen ─────────────────────────────────────────────────
 
