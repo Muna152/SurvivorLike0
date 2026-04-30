@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HolyLight
   m_EditorClassIdentifier: 
   weaponName: Holy Light
-  description: Creates a healing aura that restores player HP.
+  description: Creates a healing aura that restores player HP over time.
   weaponType: 2
   icon: {fileID: 0}
   projectilePrefab: {fileID: 0}

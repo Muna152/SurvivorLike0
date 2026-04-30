@@ -95,24 +95,44 @@ public class OrbitalWeapon : WeaponBase
             {
                 if (orbital != null)
                 {
-                    PoolManager.Instance?.Return(_poolKey, orbital);
+                    if (PoolManager.Instance != null && PoolManager.Instance.HasPool(_poolKey))
+                        PoolManager.Instance.Return(_poolKey, orbital);
+                    else
+                        Destroy(orbital.gameObject);
                 }
             }
+        }
+
+        // Register pool if not already registered
+        if (PoolManager.Instance != null && !PoolManager.Instance.HasPool(_poolKey) && _orbitalPrefab != null)
+        {
+            PoolManager.Instance.Register<OrbitalObject>(
+                _poolKey,
+                () =>
+                {
+                    GameObject obj = Instantiate(_orbitalPrefab, transform);
+                    var orb = obj.GetComponent<OrbitalObject>();
+                    if (orb == null) orb = obj.AddComponent<OrbitalObject>();
+                    return orb;
+                },
+                orb => orb.gameObject.SetActive(false)
+            );
         }
 
         _orbitals = new OrbitalObject[_orbitalCount];
 
         for (int i = 0; i < _orbitalCount; i++)
         {
-            OrbitalObject orbital = PoolManager.Instance?.Get<OrbitalObject>(_poolKey);
+            OrbitalObject orbital = null;
+            if (PoolManager.Instance != null && PoolManager.Instance.HasPool(_poolKey))
+                orbital = PoolManager.Instance.Get<OrbitalObject>(_poolKey);
+
             if (orbital == null)
             {
                 GameObject orbitalObj = Instantiate(_orbitalPrefab, transform);
                 orbital = orbitalObj.GetComponent<OrbitalObject>();
                 if (orbital == null)
-                {
                     orbital = orbitalObj.AddComponent<OrbitalObject>();
-                }
             }
 
             _orbitals[i] = orbital;

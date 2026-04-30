@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SpinningShield
   m_EditorClassIdentifier: 
   weaponName: Spinning Shield
-  description: Orbiting shields that damage enemies on contact.
+  description: Orbiting shields that damage enemies on contact. Continuous area damage.
   weaponType: 1
   icon: {fileID: 0}
   projectilePrefab: {fileID: 7535913578508487029, guid: 9cdc7a451cf74f04fb20aeecc1e8dedf, type: 3}

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Knife
   m_EditorClassIdentifier: 
   weaponName: Knife
-  description: Throws multiple knives in rapid succession.
+  description: Throws multiple knives in a spread pattern. Fast attack speed.
   weaponType: 0
   icon: {fileID: 0}
   projectilePrefab: {fileID: 1113768890781713028, guid: 8c428d0bcc41a5249911aef9c7784975, type: 3}

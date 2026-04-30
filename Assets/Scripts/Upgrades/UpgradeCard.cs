@@ -20,7 +20,19 @@ public class UpgradeCard : MonoBehaviour
 
         if (_nameText != null) _nameText.text = option.Name;
         if (_descText != null) _descText.text = option.Description;
-        if (_iconImage != null && option.Icon != null) _iconImage.sprite = option.Icon;
+
+        if (_iconImage != null)
+        {
+            if (option.Icon != null)
+            {
+                _iconImage.sprite = option.Icon;
+                _iconImage.enabled = true;
+            }
+            else
+            {
+                _iconImage.enabled = false;
+            }
+        }
 
         if (_button != null)
         {

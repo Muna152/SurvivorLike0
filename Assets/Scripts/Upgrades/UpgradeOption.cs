@@ -36,7 +36,18 @@ public class WeaponUpgradeOption : UpgradeOption
         if (w.Data == null || w.Data.levelData == null) return "Upgrade weapon";
         int nextIdx = Mathf.Clamp(w.CurrentLevel, 0, w.Data.levelData.Length - 1);
         var ld = w.Data.levelData[nextIdx];
-        return $"DMG {ld.damage} | CD {ld.cooldown:F1}s | Bullets {ld.projectileCount}";
+
+        var parts = new System.Collections.Generic.List<string>();
+        parts.Add($"DMG {ld.damage}");
+        parts.Add($"CD {ld.cooldown:F1}s");
+        if (ld.projectileCount > 1) parts.Add($"×{ld.projectileCount}");
+        if (ld.pierce > 0) parts.Add($"Pierce {ld.pierce}");
+        if (ld.area > 0) parts.Add($"Area {ld.area:F1}");
+
+        string baseDesc = w.Data.description ?? "";
+        if (!string.IsNullOrEmpty(baseDesc) && baseDesc.Length > 30)
+            baseDesc = baseDesc.Substring(0, 30) + "…";
+        return string.Join(" | ", parts) + "\n" + baseDesc;
     }
 }
 
@@ -52,7 +63,19 @@ public class NewWeaponOption : UpgradeOption
         _manager = manager;
         Name = $"New: {data.weaponName}";
         Icon = data.icon;
-        Description = data.description;
+        Description = BuildNewWeaponDesc(data);
+    }
+
+    private string BuildNewWeaponDesc(WeaponData data)
+    {
+        string desc = data.description ?? "";
+        if (data.levelData != null && data.levelData.Length > 0)
+        {
+            var ld = data.levelData[0];
+            desc += $"\nDMG {ld.damage} | CD {ld.cooldown:F1}s";
+            if (ld.projectileCount > 1) desc += $" | ×{ld.projectileCount}";
+        }
+        return desc;
     }
 
     public override void Apply()
