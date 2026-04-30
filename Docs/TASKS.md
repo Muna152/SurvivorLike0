@@ -1018,7 +1018,7 @@
 
 ---
 
-*文档版本: v1.7 | 最后更新: 2026-04-30*
+*文档版本: v1.8 | 最后更新: 2026-04-30*
 
 ## 游戏体验优化日志
 
@@ -1082,3 +1082,16 @@
 - `Prefabs/Weapons/*Zone.prefab` (drawMode: Sliced → Simple)
 - `Scripts/Data/Passives/*.asset` (补全 8 个 id + PowerUp/SpeedBoost id)
 - `Data/Passives/PowerUp.asset`, `SpeedBoost.asset` (补全 id)
+
+### 2026-04-30 圣水(HolyWater) 生成间隔与伤害间隔混淆修复
+
+**问题**: 圣水水潭频繁在玩家脚下刷新（每0.5s销毁重建），伤害生成间隔与水潭生成间隔混用同一cooldown值
+**根因**: `HolyWater.asset` 的 `cooldown=0.5` 被当作生成间隔，而0.5s实际是伤害tick间隔；`AreaWeapon.Attack()` 对非跟随型每次销毁旧水潭重建新水潭
+**解决**:
+1. `AreaWeapon.Attack()` 非跟随型：仅当 `_currentArea == null` 时创建水潭，已有则跳过（让水潭自然过期后下次CD再生成）
+2. `HolyWater.asset` cooldown 调整为合理的生成间隔：Lv1-4 → 6s, Lv5-7 → 5s, Lv8 → 4s
+3. 伤害tick间隔 `_tickInterval = 0.5f` 保持不变，与生成CD独立
+
+**涉及文件**:
+- `Scripts/Weapons/AreaWeapon.cs` (Attack 非跟随型逻辑：销毁重建→仅当无水潭时创建)
+- `Data/Weapons/HolyWater.asset` (cooldown: 0.5→6/6/6/6/5/5/5/4)

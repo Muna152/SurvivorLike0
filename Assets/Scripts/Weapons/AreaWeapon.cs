@@ -39,12 +39,12 @@ public abstract class AreaWeapon : WeaponBase
         }
         else
         {
-            // Non-following zones (e.g. Holy Water puddle) are placed at the player's
-            // current position. If an old zone still exists, destroy it first so the
-            // new one spawns at the updated position.
-            if (_currentArea != null)
-                DestroyAreaEffect();
-            CreateAreaEffect();
+            // Non-following zones (e.g. Holy Water puddle): create only if no zone
+            // currently exists. The zone lives for its duration and ticks damage at
+            // _tickInterval independently. Once it expires, the next Attack() cycle
+            // will spawn a fresh zone at the player's current position.
+            if (_currentArea == null)
+                CreateAreaEffect();
         }
     }
 

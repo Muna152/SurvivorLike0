@@ -343,7 +343,7 @@ public class Projectile : MonoBehaviour
 
 > **设计要点**：AreaWeapon 区分两种行为模式——**光环(Aura)**和**水潭(Puddle)**。
 > - 光环（`_followsPlayer = true`，如圣光 Holy Light）：持续跟随玩家的永久区域，每次攻击刷新 duration 和范围。
-> - 水潭（`_followsPlayer = false`，如圣水 Holy Water）：在玩家当前位置放置一个固定水潭，自然过期后在下次攻击时于新位置重新创建。
+> - 水潭（`_followsPlayer = false`，如圣水 Holy Water）：在玩家当前位置放置一个固定水潭，持续 duration 秒后自然过期消失；下次 CD 完成且无水潭时，在新位置重新创建。生成间隔（cooldown）与伤害 tick 间隔（_tickInterval）独立。
 
 ```csharp
 public class AreaWeapon : WeaponBase
@@ -366,9 +366,9 @@ public class AreaWeapon : WeaponBase
         }
         else
         {
-            // 水潭：每次攻击在玩家新位置重建
-            if (_currentArea != null) DestroyAreaEffect();
-            CreateAreaEffect();
+            // 水潭：仅当无水潭时创建，已有则跳过（让水潭自然过期）
+            if (_currentArea == null)
+                CreateAreaEffect();
         }
     }
 

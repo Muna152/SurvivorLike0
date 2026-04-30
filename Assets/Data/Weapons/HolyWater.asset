@@ -20,56 +20,56 @@ MonoBehaviour:
   maxLevel: 8
   levelData:
   - damage: 3
-    cooldown: 0.5
+    cooldown: 6
     area: 2.5
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 4
   - damage: 4
-    cooldown: 0.5
+    cooldown: 6
     area: 2.9
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 5
   - damage: 5
-    cooldown: 0.5
+    cooldown: 6
     area: 3.3
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 6
   - damage: 6
-    cooldown: 0.5
+    cooldown: 6
     area: 3.7
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 7
   - damage: 7
-    cooldown: 0.5
+    cooldown: 5
     area: 4.1
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 8
   - damage: 8
-    cooldown: 0.5
+    cooldown: 5
     area: 4.5
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 9
   - damage: 9
-    cooldown: 0.5
+    cooldown: 5
     area: 4.9
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 10
   - damage: 10
-    cooldown: 0.5
+    cooldown: 4
     area: 5.3
     projectileCount: 0
     pierce: 0
