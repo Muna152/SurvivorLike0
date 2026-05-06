@@ -52,7 +52,7 @@ public class GameManager : Singleton<GameManager>
         ElapsedTime = 0f;
         _currentState = GameState.Playing;
         Time.timeScale = 1f;
-        GameEvents.ClearAll();
+
         if (DifficultyManager.HasInstance)
             DifficultyManager.Instance.ResetDifficulty();
 
