@@ -44,7 +44,7 @@ public class OrbitalWeapon : WeaponBase
             if (ld != null)
             {
                 _orbitalCount = (int)ld.projectileCount;
-                _orbitalRadius = 2.5f;
+                _orbitalRadius = ld.area > 0 ? ld.area : 2.5f;
                 _rotationSpeed = 120f; // degrees per second
                 _damage = ld.damage * stats.DamageMultiplier;
             }
@@ -63,6 +63,11 @@ public class OrbitalWeapon : WeaponBase
         {
             _orbitalCount = (int)ld.projectileCount;
             _damage = ld.damage * _playerStats.DamageMultiplier;
+            float newRadius = ld.area > 0 ? ld.area : 2.5f;
+            if (!Mathf.Approximately(newRadius, _orbitalRadius))
+            {
+                _orbitalRadius = newRadius;
+            }
         }
 
         RecreateOrbitals();

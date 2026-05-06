@@ -67,6 +67,18 @@ public class PlayerWeaponManager : MonoBehaviour
 
     public bool HasWeapon(WeaponData data) => FindWeaponIndex(data) >= 0;
 
+    /// <summary>Remove a weapon by its data. Returns true if removed.</summary>
+    public bool RemoveWeapon(WeaponData data)
+    {
+        int idx = FindWeaponIndex(data);
+        if (idx < 0) return false;
+
+        var weapon = _weapons[idx];
+        _weapons.RemoveAt(idx);
+        Destroy(weapon.gameObject);
+        return true;
+    }
+
     /// <summary>Check all equipped weapons for evolution conditions and evolve those that qualify.
     /// Returns list of newly evolved weapons.</summary>
     public List<WeaponBase> CheckAndEvolveWeapons()
@@ -178,14 +190,12 @@ public class PlayerWeaponManager : MonoBehaviour
                 weapon = child.AddComponent<OrbitalWeapon>();
                 break;
             case WeaponData.WeaponType.Area:
-                switch (data.weaponName)
+                switch (data.areaSubType)
                 {
-                    case "Holy Light":
-                    case "AngelsSong":
+                    case WeaponData.AreaSubType.HealingAura:
                         weapon = child.AddComponent<HolyLight>();
                         break;
-                    case "Holy Water":
-                    case "UndeadFlood":
+                    case WeaponData.AreaSubType.DamagePuddle:
                         weapon = child.AddComponent<HolyWater>();
                         break;
                     default:

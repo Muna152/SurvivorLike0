@@ -13,8 +13,8 @@ public class DropBase : MonoBehaviour
     [SerializeField] private int _value = 1;
 
     [Header("Vacuum Settings")]
-    [SerializeField] private float _vacuumDelay = 2.5f;
-    [SerializeField] private float _vacuumRange = 8f;
+    [SerializeField] private float _vacuumDelay = 0.5f;
+    [SerializeField] private float _vacuumRange = 6f;
 
     public DropType Type => _type;
     public int Value => _value;

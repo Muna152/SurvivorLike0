@@ -11,6 +11,8 @@ public class WeaponData : ScriptableObject
     public string weaponName;
     [TextArea] public string description;
     public WeaponType weaponType;
+    [Tooltip("Only used when weaponType is Area. Determines the AreaWeapon subclass.")]
+    public AreaSubType areaSubType = AreaSubType.None;
     public Sprite icon;
     public GameObject projectilePrefab;
 
@@ -35,6 +37,16 @@ public class WeaponData : ScriptableObject
         Orbital,
         Area,
         Auxiliary
+    }
+
+    /// <summary>
+    /// Sub-type for Area weapons. Determines which component is created.
+    /// </summary>
+    public enum AreaSubType
+    {
+        None,
+        HealingAura,
+        DamagePuddle
     }
 }
 

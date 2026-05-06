@@ -15,6 +15,7 @@ MonoBehaviour:
   weaponName: Holy Light
   description: Creates a healing aura that restores player HP over time.
   weaponType: 2
+  areaSubType: 1
   icon: {fileID: 21300000, guid: ec2a33148c30dbc47881a2c05db17f36, type: 3}
   projectilePrefab: {fileID: 4452602187788959203, guid: f500f7d824e23ad4b819ef715afdc6c8, type: 3}
   maxLevel: 8

@@ -47,22 +47,9 @@ public class ProjectileWeapon : WeaponBase
 
         int count = ld.projectileCount + _playerStats.ProjectileBonus;
 
-        // Use cached active enemy set — iterate with enumerator for zero GC
-        var enemies = EnemyBase.ActiveEnemies;
-        if (enemies.Count == 0) return;
-
-        EnemyBase nearest = null;
-        float nearestDist = float.MaxValue;
-        foreach (var e in enemies)
-        {
-            if (e == null) continue;
-            float dist = Vector2.Distance(_playerPosition, (Vector2)e.transform.position);
-            if (dist < nearestDist)
-            {
-                nearestDist = dist;
-                nearest = e;
-            }
-        }
+        // Spatial grid lookup — O(k) where k = enemies in nearby cells instead of O(n)
+        const float queryRadius = 50f;
+        EnemyBase nearest = SpatialGrid.QueryNearest(_playerPosition, queryRadius);
 
         if (nearest == null) return;
 

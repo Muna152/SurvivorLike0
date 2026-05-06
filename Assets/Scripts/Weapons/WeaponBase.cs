@@ -33,6 +33,13 @@ public abstract class WeaponBase : MonoBehaviour
         }
     }
 
+    /// <summary>Set weapon level directly (for debug). Clamps to [1, maxLevel].</summary>
+    public void SetLevel(int level)
+    {
+        if (_data == null) return;
+        _currentLevel = Mathf.Clamp(level, 1, _data.maxLevel);
+    }
+
     /// <summary>Called by PlayerWeaponManager every physics frame.</summary>
     public virtual void OnPlayerMoved(Vector2 position, Vector2 direction)
     {
