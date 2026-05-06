@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Pause menu with debug panel.
@@ -62,6 +63,44 @@ public class PauseMenuController : MonoBehaviour
     {
         GameManager.Instance.ResumeGame();
         Hide();
+    }
+
+    private void Restart()
+    {
+        Time.timeScale = 1f;
+        GameEvents.ClearAll();
+        EnemyBase.ResetStatics();
+
+        if (PoolManager.HasInstance)
+            PoolManager.Instance.ClearAll();
+
+        // Save selected character for auto-start after scene reload
+        var selectedChar = GameManager.HasInstance ? GameManager.Instance.SelectedCharacter : null;
+
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.PendingAutoStart = selectedChar;
+            GameManager.Instance.ReturnToMenu();
+        }
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void ReturnToMenu()
+    {
+        Time.timeScale = 1f;
+        GameEvents.ClearAll();
+
+        if (PoolManager.HasInstance)
+            PoolManager.Instance.ClearAll();
+
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.PendingAutoStart = null;
+            GameManager.Instance.ReturnToMenu();
+        }
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     // ── Data Loading ────────────────────────────────────────────
@@ -138,6 +177,28 @@ public class PauseMenuController : MonoBehaviour
         var resumeBtn = CreateButton(panelObj.transform, "ResumeBtn", "继续游戏",
             new Vector2(0.3f, 0.92f), new Vector2(0.7f, 0.97f));
         resumeBtn.onClick.AddListener(Resume);
+
+        // Restart button
+        var restartBtn = CreateButton(panelObj.transform, "RestartBtn", "重新开始",
+            new Vector2(0.05f, 0.86f), new Vector2(0.45f, 0.91f));
+        var restartImg = restartBtn.GetComponent<Image>();
+        if (restartImg != null) restartImg.color = new Color(0.6f, 0.4f, 0.1f, 0.9f);
+        var restartColors = restartBtn.colors;
+        restartColors.highlightedColor = new Color(0.8f, 0.55f, 0.15f);
+        restartColors.pressedColor = new Color(0.5f, 0.3f, 0.05f);
+        restartBtn.colors = restartColors;
+        restartBtn.onClick.AddListener(Restart);
+
+        // Return to menu button
+        var menuBtn = CreateButton(panelObj.transform, "MenuBtn", "回到菜单",
+            new Vector2(0.55f, 0.86f), new Vector2(0.95f, 0.91f));
+        var menuImg = menuBtn.GetComponent<Image>();
+        if (menuImg != null) menuImg.color = new Color(0.5f, 0.15f, 0.15f, 0.9f);
+        var menuColors = menuBtn.colors;
+        menuColors.highlightedColor = new Color(0.7f, 0.25f, 0.25f);
+        menuColors.pressedColor = new Color(0.4f, 0.1f, 0.1f);
+        menuBtn.colors = menuColors;
+        menuBtn.onClick.AddListener(ReturnToMenu);
 
         // Weapon section header + count
         CreateLabel(panelObj.transform, "WeaponHeader", "── 武器 ──", 24, new Color(1f, 0.85f, 0.3f),
