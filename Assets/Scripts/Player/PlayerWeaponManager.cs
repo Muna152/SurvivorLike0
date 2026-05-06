@@ -18,10 +18,19 @@ public class PlayerWeaponManager : MonoBehaviour
 
     private void Start()
     {
+        // Starting weapon is now equipped by GameManager.StartGame() after
+        // the player selects a character. This is a safety fallback only.
+        if (GameManager.HasInstance && GameManager.Instance.SelectedCharacter != null)
+            EquipStartingWeapon();
+    }
+
+    /// <summary>Equip the starting weapon defined in the selected CharacterData.</summary>
+    public void EquipStartingWeapon()
+    {
         var character = GameManager.HasInstance ? GameManager.Instance.SelectedCharacter : null;
         var startingWeapon = character != null ? character.startingWeapon : null;
 
-        if (startingWeapon != null)
+        if (startingWeapon != null && !HasWeapon(startingWeapon))
         {
             EquipWeapon(startingWeapon);
         }

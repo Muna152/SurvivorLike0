@@ -61,6 +61,16 @@ public class GameManager : Singleton<GameManager>
         if (player != null && !player.gameObject.activeSelf)
             player.gameObject.SetActive(true);
 
+        // Initialize player stats and starting weapon from the selected character
+        if (SelectedCharacter != null)
+        {
+            var stats = FindObjectOfType<PlayerStats>();
+            if (stats != null) stats.InitializeFromCharacterData();
+
+            var weaponMgr = FindObjectOfType<PlayerWeaponManager>();
+            if (weaponMgr != null) weaponMgr.EquipStartingWeapon();
+        }
+
         Debug.Log($"[GameManager] Game started with character: {(SelectedCharacter != null ? SelectedCharacter.characterName : "none")}");
     }
 
