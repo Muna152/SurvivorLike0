@@ -3,12 +3,11 @@ using UnityEngine;
 
 /// <summary>
 /// Manages character unlock state at runtime.
-/// Persists unlocks via PlayerPrefs. Checks conditions at game end.
+/// Persists unlocks via PlayerPrefs with per-slot key prefixes.
 /// Unlock state is NOT stored on CharacterData assets (those are build-time).
 /// </summary>
 public class UnlockManager : Singleton<UnlockManager>
 {
-    private const string PlayerPrefsKeyPrefix = "Unlock_";
     private readonly HashSet<string> _unlockedIds = new HashSet<string>();
 
     /// <summary>All character data assets available in the game.</summary>
@@ -69,6 +68,14 @@ public class UnlockManager : Singleton<UnlockManager>
     public void SetUnlocked(string characterId)
     {
         if (string.IsNullOrEmpty(characterId)) return;
+
+        // Can only unlock to an active slot
+        if (!SaveSlotManager.HasActiveSlot)
+        {
+            Debug.LogWarning("[UnlockManager] Cannot unlock: no active save slot.");
+            return;
+        }
+
         if (_unlockedIds.Add(characterId))
         {
             SaveUnlockState(characterId, true);
@@ -113,12 +120,44 @@ public class UnlockManager : Singleton<UnlockManager>
         return null;
     }
 
-    /// <summary>Reset all unlocks (for debugging).</summary>
+    /// <summary>Reload unlock state from PlayerPrefs (called when active save slot changes).</summary>
+    public void ReloadUnlockState()
+    {
+        LoadUnlockState();
+    }
+
+    /// <summary>Reset all unlocks for the current active slot (for debugging).</summary>
     public void ResetAll()
     {
         _unlockedIds.Clear();
-        PlayerPrefs.DeleteAll(); // Only deletes unlock keys in production use
-        Debug.Log("[UnlockManager] All unlocks reset.");
+
+        // Clear unlock data for the active slot only
+        if (SaveSlotManager.HasActiveSlot)
+        {
+            ClearSlotData(SaveSlotManager.ActiveSlotIndex);
+        }
+
+        Debug.Log("[UnlockManager] Unlocks reset for current slot.");
+    }
+
+    /// <summary>
+    /// Clear all unlock PlayerPrefs keys for a given slot index.
+    /// Called by SaveSlotManager when deleting a slot.
+    /// </summary>
+    public static void ClearSlotData(int slotIndex)
+    {
+        if (!HasInstance) return;
+
+        string prefix = SaveSlotManager.GetUnlockKeyPrefix(slotIndex);
+        if (Instance._allCharacters == null) return;
+
+        foreach (var character in Instance._allCharacters)
+        {
+            if (character == null || character.isDefaultUnlocked) continue;
+            string key = prefix + character.id;
+            PlayerPrefs.DeleteKey(key);
+        }
+        PlayerPrefs.Save();
     }
 
     // ── Persistence ─────────────────────────────────────────────
@@ -127,7 +166,11 @@ public class UnlockManager : Singleton<UnlockManager>
     {
         _unlockedIds.Clear();
 
-        // Load saved unlocks from PlayerPrefs
+        // If no active slot, only default-unlocked characters are available
+        if (!SaveSlotManager.HasActiveSlot) return;
+
+        string prefix = SaveSlotManager.GetActiveUnlockKeyPrefix();
+
         if (_allCharacters != null)
         {
             foreach (var character in _allCharacters)
@@ -135,7 +178,7 @@ public class UnlockManager : Singleton<UnlockManager>
                 if (character == null) continue;
                 if (character.isDefaultUnlocked) continue;
 
-                string key = GetPrefsKey(character.id);
+                string key = prefix + character.id;
                 if (PlayerPrefs.GetInt(key, 0) == 1)
                 {
                     _unlockedIds.Add(character.id);
@@ -153,6 +196,6 @@ public class UnlockManager : Singleton<UnlockManager>
 
     private static string GetPrefsKey(string characterId)
     {
-        return $"{PlayerPrefsKeyPrefix}{characterId}";
+        return SaveSlotManager.GetActiveUnlockKeyPrefix() + characterId;
     }
 }

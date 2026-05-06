@@ -43,7 +43,9 @@ GameManager (单局生命周期)
 ├── UpgradeManager (升级选择管理)
 ├── PoolManager (对象池总管)
 ├── EventManager (事件总线)
-└── TimeManager (游戏时间与难度曲线)
+├── TimeManager (游戏时间与难度曲线)
+└── UnlockManager (角色解锁管理, slot-aware)
+SaveSlotManager (静态工具类, 非MonoBehaviour, PlayerPrefs-based)
 ```
 
 ### 2.3 设计模式
@@ -700,13 +702,18 @@ Assets/
 │   │
 │   ├── UI/                            # UI系统
 │   │   ├── HUDController.cs          # 战斗HUD (含EXP文字显示)
+│   │   ├── MainMenuUI.cs             # 主菜单 + 存档管理面板
+│   │   ├── CharacterSelectUI.cs       # 角色选择界面
+│   │   ├── PauseMenuController.cs     # 暂停菜单
 │   │   └── ResultScreen.cs           # 结算界面
 │   │
 │   └── Data/                          # 数据定义
 │       ├── WeaponData.cs              # 武器数据SO
 │       ├── EnemyData.cs               # 敌人数据SO
 │       ├── CharacterData.cs           # 角色数据SO
-│       └── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
+│       ├── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
+│       ├── SaveSlotManager.cs         # 存档栏位管理 (静态工具类)
+│       └── UnlockManager.cs          # 角色解锁管理 (Singleton, slot-aware)
 │
 ├── Data/                              # ScriptableObject 资产
 │   ├── Weapons/
@@ -865,7 +872,75 @@ PassiveData (被动道具)
 
 ## 8. 存档系统设计
 
+### 8.1 存档栏位管理 (SaveSlotManager)
+
+**纯静态工具类（非 MonoBehaviour），基于 PlayerPrefs 管理3个存档栏位。**
+
 ```csharp
+public static class SaveSlotManager
+{
+    public const int MAX_SLOTS = 3;
+    
+    // 当前激活存档 (0-2, -1=无)
+    public static int ActiveSlotIndex { get; }
+    public static bool HasActiveSlot { get; }
+    
+    // 存档信息
+    public static string GetSlotName(int index);
+    public static bool HasSlot(int index);
+    public static bool IsDuplicateName(string name);
+    public static int UsedSlotCount { get; }
+    
+    // 存档 CRUD
+    public static int CreateSlot(string name);     // 返回栏位索引, -1=失败
+    public static void DeleteSlot(int index);      // 清除该存档所有数据
+    public static void SwitchSlot(int index);       // 切换激活存档, 触发 UnlockManager 重载
+    public static void ClearActiveSlot();           // 取消当前选择
+    
+    // PlayerPrefs 键格式
+    // 存档名: SaveSlot_{i}_Name
+    // 激活槽: SaveSlot_Active
+    // 解锁键: Save_{slotIndex}_Unlock_{characterId}
+}
+```
+
+**数据隔离机制**：每个存档的解锁数据通过 `Save_{slotIndex}_Unlock_{charId}` 前缀隔离，切换存档时 `UnlockManager.ReloadUnlockState()` 自动重载。
+
+### 8.2 角色解锁管理 (UnlockManager, slot-aware)
+
+```csharp
+public class UnlockManager : Singleton<UnlockManager>
+{
+    // 解锁键使用存档前缀: Save_{activeSlot}_Unlock_{charId}
+    // 无激活存档时，仅 isDefaultUnlocked 角色可用
+    
+    public bool IsUnlocked(string characterId);
+    public void SetUnlocked(string characterId);  // 仅在有激活存档时生效
+    public List<CharacterData> CheckUnlocks(PlayerStats stats, float elapsedTime);
+    public void ReloadUnlockState();               // 切换存档时调用
+    
+    // 清除指定存档的解锁数据 (SaveSlotManager.DeleteSlot 调用)
+    public static void ClearSlotData(int slotIndex);
+}
+```
+
+### 8.3 主菜单 (MainMenuUI)
+
+**编程式构建UI，挂在 HUD Canvas 上。控制游戏流程入口。**
+
+```csharp
+public class MainMenuUI : MonoBehaviour
+{
+    // 流程: MainMenuUI.Show() → 创建/选择存档 → 开始游戏 → CharacterSelectUI.Show()
+    // MainMenuUI 显示时隐藏 HUD 元素 (SetHUDEnabled)
+    // "开始游戏" 需要 HasActiveSlot 才可点击
+    // "存档管理" 弹出面板: 3栏位 CRUD + InputField 创建
+}
+```
+
+### 8.4 未来扩展（JSON存档）
+
+当前实现基于 PlayerPrefs，适合小数据量。未来可扩展为 JSON 序列化：
 [Serializable]
 public class SaveData
 {
@@ -898,4 +973,4 @@ public class SaveManager
 
 ---
 
-*文档版本: v1.1 | 最后更新: 2026-04-30*
+*文档版本: v1.2 | 最后更新: 2026-05-06*

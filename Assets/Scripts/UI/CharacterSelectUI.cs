@@ -43,15 +43,8 @@ public class CharacterSelectUI : MonoBehaviour
             return;
         }
 
-        // Show the character select if the game is in Menu state
-        if (GameManager.HasInstance && GameManager.Instance.CurrentState == GameManager.GameState.Menu)
-        {
-            Show();
-        }
-        else
-        {
-            Hide();
-        }
+        // Start hidden — MainMenuUI controls visibility
+        Hide();
     }
 
     // ── Public API ──────────────────────────────────────────────
@@ -96,6 +89,15 @@ public class CharacterSelectUI : MonoBehaviour
 
         GameManager.Instance.StartGame(character);
         Hide();
+    }
+
+    private void OnBackToMenu()
+    {
+        Hide();
+
+        var mainMenu = FindObjectOfType<MainMenuUI>();
+        if (mainMenu != null)
+            mainMenu.Show();
     }
 
     // ── Refresh ─────────────────────────────────────────────────
@@ -339,6 +341,17 @@ public class CharacterSelectUI : MonoBehaviour
         _startButton = CreateButton(rootObj.transform, "StartBtn", "开始战斗",
             new Vector2(0.35f, 0.02f), new Vector2(0.65f, 0.07f));
         _startButton.onClick.AddListener(OnStartGame);
+
+        // Back to menu button
+        var backBtn = CreateButton(rootObj.transform, "BackBtn", "返回主菜单",
+            new Vector2(0.02f, 0.02f), new Vector2(0.22f, 0.07f));
+        var backImg = backBtn.GetComponent<Image>();
+        if (backImg != null) backImg.color = new Color(0.35f, 0.35f, 0.4f, 0.9f);
+        var backColors = backBtn.colors;
+        backColors.highlightedColor = new Color(0.5f, 0.5f, 0.55f);
+        backColors.pressedColor = new Color(0.25f, 0.25f, 0.3f);
+        backBtn.colors = backColors;
+        backBtn.onClick.AddListener(OnBackToMenu);
     }
 
     private void CreateCard(int index)

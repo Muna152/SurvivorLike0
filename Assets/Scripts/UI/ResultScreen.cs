@@ -136,7 +136,7 @@ public class ResultScreen : MonoBehaviour
         if (PoolManager.HasInstance)
             PoolManager.Instance.ClearAll();
 
-        // Reset GameManager to Menu state so CharacterSelectUI shows after reload
+        // Reset GameManager to Menu state so MainMenuUI shows after reload
         if (GameManager.HasInstance)
         {
             GameManager.Instance.PendingAutoStart = null;

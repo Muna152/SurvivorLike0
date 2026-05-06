@@ -21,6 +21,7 @@
 
 ## Patterns
 - Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager, UnlockManager
+- Static utility: SaveSlotManager (no MonoBehaviour, pure PlayerPrefs)
 - ObjectPool<T> w/ prewarm & HashSet tracking
 - GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, etc.)
 - WeaponBase abstract → Projectile|Orbital|Area|Auxiliary
@@ -42,8 +43,10 @@
 - ✅ Drops: EXP/Gold/Health, vacuum mechanic, DropManager
 - ✅ UI: HUD (HP/EXP/timer/weapon bar), result screen, UpgradeUI
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
-- ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check
-- ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ PlayerPrefs
+- ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
+- ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ per-slot PlayerPrefs
+- ✅ Main Menu: MainMenuUI w/ Start/Quit buttons, save slot management panel (3 slots, create/delete/switch)
+- ✅ Save System: SaveSlotManager (static, PlayerPrefs-based), slot-isolated unlock data
 
 ## Perf Budget
 - Max 500 enemies on-screen | 6 weapon limit | Weapon max level 8
@@ -52,19 +55,29 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 5/52 (T3.1 done)
-- Game flow: Menu → CharacterSelectUI → StartGame(character) → Playing → GameOver → Unlock check → Retry/Menu
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 8/52 (T3.1 done, T3.4.1/T4.1.1 partial)
+- Game flow: MainMenuUI → 创建/选择存档 → CharacterSelectUI → StartGame(character) → Playing → GameOver → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
 ## Phase 3-4 Progress
 - T3.1 多角色系统: 5/5 ✅
   - CharacterData: id, description, isDefaultUnlocked, portrait, stats差异化
-  - UnlockManager: PlayerPrefs, CheckUnlocks at game end, OnCharacterUnlocked event
-  - CharacterSelectUI: 5 cards, portrait/stats/description, lock/unlock, detail panel
+  - UnlockManager: PlayerPrefs per-slot, CheckUnlocks at game end, OnCharacterUnlocked event
+  - CharacterSelectUI: 5 cards, portrait/stats/description, lock/unlock, detail panel, "返回主菜单" button
   - PlayerStats.InitializeFromCharacterData(), PlayerWeaponManager reads startingWeapon from CharacterData
   - GameManager.StartGame() 显式初始化 PlayerStats + PlayerWeaponManager (修复 Awake/Start 时序)
   - GameManager.PendingAutoStart: 重试时保存角色, 场景重载后自动开始
   - 暂停菜单新增 重新开始/回到菜单 按钮, 逻辑同 ResultScreen
+- T3.4.1 主菜单界面: ✅ (partial)
+  - MainMenuUI: 编程式构建，"开始游戏"/"退出游戏"按钮，左上角"存档管理"按钮
+  - MainMenuUI 显示时隐藏 HUD 元素，切换到角色选择时恢复
+  - CharacterSelectUI 由 MainMenuUI 控制显隐（不再自动显示）
+- T4.1.1 存档系统: ✅ (partial)
+  - SaveSlotManager: 静态工具类，管理3个存档栏位（PlayerPrefs）
+  - 每个存档有字符串名称，不允许重名
+  - 创建/删除/切换存档，切换时自动重载 UnlockManager
+  - PlayerPrefs 键格式: SaveSlot_{i}_Name, Save_{i}_Unlock_{charId}
+  - UnlockManager 改为 slot-aware：解锁数据按存档隔离
 
 ## Phase 2 Complete ✅
 - T2.5 SpatialGrid: O(1) queries, Reconcile() sync, perf verified at 500 enemies
