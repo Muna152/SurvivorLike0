@@ -18,8 +18,8 @@
 ## 阶段概览
 
 ```
-阶段1: 基础框架 (MVP)     ████░░░░░░░░░░░░  ~2周  ✅ 已完成
-阶段2: 核心玩法完善          ████████████░░░  ~3周  🔧 进行中
+阶段1: 基础框架 (MVP)     ████████████████  ~2周  ✅ 已完成
+阶段2: 核心玩法完善          ████████████████  ~3周  ✅ 已完成
 阶段3: 内容扩充              ░░░░░░░░░░░░░░░  ~3周
 阶段4: 元进度与打磨          ░░░░░░░░░░░░░░░  ~2周
 ─────────────────────────────────────────────
@@ -34,50 +34,50 @@
 
 ### 1.1 项目搭建
 
-- [ ] 创建项目目录结构（Scripts/Core, Player, Weapons, Enemies, Drops, UI, Data）
-- [ ] 创建核心管理器框架（GameManager, PoolManager, EventManager）
-- [ ] 实现泛型对象池系统 `ObjectPool<T>`
-- [ ] 实现事件总线 `GameEvents`
-- [ ] 实现单例基类 `Singleton<T>`
-- [ ] 创建基础 ScriptableObject 数据类（WeaponData, EnemyData）
+- [x] 创建项目目录结构（Scripts/Core, Player, Weapons, Enemies, Drops, UI, Data）
+- [x] 创建核心管理器框架（GameManager, PoolManager, EventManager）
+- [x] 实现泛型对象池系统 `ObjectPool<T>`
+- [x] 实现事件总线 `GameEvents`
+- [x] 实现单例基类 `Singleton<T>`
+- [x] 创建基础 ScriptableObject 数据类（WeaponData, EnemyData）
 
 ### 1.2 玩家系统
 
-- [ ] 实现 `PlayerController`（WASD/方向键移动）
-- [ ] 实现 `PlayerStats`（HP、移速、等级、经验值）
-- [ ] 创建玩家 Prefab（Sprite + Rigidbody2D + Collider）
-- [ ] 正交相机跟随玩家
+- [x] 实现 `PlayerController`（WASD/方向键移动）
+- [x] 实现 `PlayerStats`（HP、移速、等级、经验值）
+- [x] 创建玩家 Prefab（Sprite + Rigidbody2D + Collider）
+- [x] 正交相机跟随玩家
 
 ### 1.3 武器系统（1把武器）
 
-- [ ] 实现 `WeaponBase` 抽象基类
-- [ ] 实现 `ProjectileWeapon`（飞剑）
-- [ ] 实现 `Projectile` 投射物（飞向最近敌人）
-- [ ] 实现自动攻击逻辑（Timer + FindNearestEnemy）
-- [ ] 创建飞剑 WeaponData ScriptableObject
-- [ ] 创建飞剑投射物 Prefab
+- [x] 实现 `WeaponBase` 抽象基类
+- [x] 实现 `ProjectileWeapon`（飞剑）
+- [x] 实现 `Projectile` 投射物（飞向最近敌人）
+- [x] 实现自动攻击逻辑（Timer + FindNearestEnemy）
+- [x] 创建飞剑 WeaponData ScriptableObject
+- [x] 创建飞剑投射物 Prefab
 
 ### 1.4 敌人系统
 
-- [ ] 实现 `EnemyBase`（追踪玩家、受击、死亡）
-- [ ] 实现 `EnemySpawner`（环形区域生成）
-- [ ] 实现 `EnemyManager`（计数、管理活跃敌人）
-- [ ] 创建骷髅兵 EnemyData ScriptableObject
-- [ ] 创建骷髅兵 Prefab
+- [x] 实现 `EnemyBase`（追踪玩家、受击、死亡）
+- [x] 实现 `EnemySpawner`（环形区域生成）
+- [x] 实现 `EnemyManager`（计数、管理活跃敌人）
+- [x] 创建骷髅兵 EnemyData ScriptableObject
+- [x] 创建骷髅兵 Prefab
 
 ### 1.5 掉落物系统
 
-- [ ] 实现 `DropBase`（经验宝石）
-- [ ] 实现 `DropManager`
-- [ ] 磁铁吸引逻辑（拾取范围内加速飞向玩家）
-- [ ] 创建经验宝石 Prefab
+- [x] 实现 `DropBase`（经验宝石）
+- [x] 实现 `DropManager`
+- [x] 磁铁吸引逻辑（拾取范围内加速飞向玩家）
+- [x] 创建经验宝石 Prefab
 
 ### 1.6 升级系统（简化版）
 
-- [ ] 实现 `UpgradeManager`（升级时生成3个选项）
-- [ ] 选项类型：新武器（飞剑）、武器升级、移速提升
-- [ ] 升级时暂停游戏
-- [ ] 实现基础 `UpgradeUI`（3选1卡片）
+- [x] 实现 `UpgradeManager`（升级时生成3个选项）
+- [x] 选项类型：新武器（飞剑）、武器升级、移速提升
+- [x] 升级时暂停游戏
+- [x] 实现基础 `UpgradeUI`（3选1卡片）
 
 ### 1.7 HUD
 
@@ -88,9 +88,9 @@
 
 ### 1.8 游戏流程
 
-- [ ] 游戏开始 → 自动生成敌人
-- [ ] HP归零 → 游戏结束界面
-- [ ] 存活30分钟 → 胜利界面
+- [x] 游戏开始 → 自动生成敌人
+- [x] HP归零 → 游戏结束界面
+- [x] 存活30分钟 → 胜利界面
 
 **交付标准：可玩的核心循环 —— 移动 → 自动攻击 → 升级选择 → 死亡/存活**
 
@@ -256,4 +256,4 @@
 
 ---
 
-*文档版本: v1.2 | 最后更新: 2026-04-30*
+*文档版本: v1.3 | 最后更新: 2026-05-06*
