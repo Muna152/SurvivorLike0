@@ -682,24 +682,24 @@
 ### T3.A 美术资产生成（Phase 3）
 
 #### T3.A.1 生成 BOSS Sprites
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Enemies/SkeletonKing.png`, `DarkLord.png`, `Death.png`
 - **验收**: 3个 BOSS Sprite 资产存在
 
 #### T3.A.2 生成地图环境 Sprites
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Environment/Tree.png`, `Rock.png`, `Wall.png`, `Fence.png`
 - **验收**: 环境装饰 Sprite 资产存在
 
 #### T3.A.3 生成新掉落物 Sprites
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/Drops/RoastChicken.png`, `Chest.png`, `MagnetItem.png`
 - **验收**: 3个掉落物 Sprite 资产存在
 
 #### T3.A.4 生成 UI 界面 Sprites
-- **状态**: ⬜
+- **状态**: ✅
 - **产物**: `Art/Sprites/UI/MenuBackground.png`, `CharacterCardFrame.png`, `BossBarFrame.png`
-- **验收**: UI Sprite 资产存在
+- **验收**: UI Sprite 资产存在（MenuBackground 透明背景，is_segmentation=true）
 
 ### T3.3 地图系统
 
@@ -1016,11 +1016,11 @@
 | Phase 1.8 (补充) | 1 | 8 | 8 | 0 | 0 |
 | Phase 2 | 6 | 38 | 38 | 0 | 0 |
 | Phase 2.A | 1 | 7 | 7 | 0 | 0 |
-| Phase 3 | 5 | 20 | 8 | 0 | 12 |
-| Phase 3.A | 1 | 4 | 0 | 0 | 4 |
+| Phase 3 | 5 | 20 | 12 | 0 | 8 |
+| Phase 3.A | 1 | 4 | 4 | 0 | 0 |
 | Phase 4 | 6 | 25 | 1 | 0 | 24 |
 | Phase 4.A | 1 | 3 | 0 | 0 | 3 |
-| **合计** | **31** | **145** | **102** | **0** | **43** |
+| **合计** | **31** | **145** | **106** | **0** | **39** |
 
 ---
 

@@ -55,7 +55,7 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 8/52 (T3.1 done, T3.4.1/T4.1.1 partial)
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 12/52 (T3.1+T3.A done, T3.4.1/T4.1.1 partial)
 - Game flow: MainMenuUI → 创建/选择存档 → CharacterSelectUI → StartGame(character) → Playing → GameOver → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
@@ -68,6 +68,13 @@
   - GameManager.StartGame() 显式初始化 PlayerStats + PlayerWeaponManager (修复 Awake/Start 时序)
   - GameManager.PendingAutoStart: 重试时保存角色, 场景重载后自动开始
   - 暂停菜单新增 重新开始/回到菜单 按钮, 逻辑同 ResultScreen
+- T3.A 美术资产生成(Phase 3): 4/4 ✅
+  - T3.A.1 BOSS: SkeletonKing.png, DarkLord.png, Death.png → Art/Sprites/Enemies/
+  - T3.A.2 环境: Tree.png, Rock.png, Wall.png, Fence.png → Art/Sprites/Environment/
+  - T3.A.3 掉落物: RoastChicken.png, Chest.png, MagnetItem.png → Art/Sprites/Drops/
+  - T3.A.4 UI: MenuBackground.png(透明), CharacterCardFrame.png, BossBarFrame.png → Art/Sprites/UI/
+  - 所有 Sprite 从 TJGenerators/History 整理到 Assets/Art/Sprites/ 对应子目录
+  - 旧 Assets/Sprites/ 目录已清理，统一使用 Assets/Art/Sprites/ 结构
 - T3.4.1 主菜单界面: ✅ (partial)
   - MainMenuUI: 编程式构建，"开始游戏"/"退出游戏"按钮，左上角"存档管理"按钮
   - MainMenuUI 显示时隐藏 HUD 元素，切换到角色选择时恢复
