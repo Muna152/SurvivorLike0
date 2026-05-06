@@ -39,7 +39,7 @@
 - ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
 - ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage
-- ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive
+- ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health, vacuum mechanic, DropManager
 - ✅ UI: HUD (HP/EXP/timer/weapon bar), result screen, UpgradeUI
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
@@ -109,6 +109,7 @@
 
 ## Known Issues
 - WeaponEvolutionVFX._particleCount unused (CS0414 warning, cosmetic only)
+- MainMenuUI not serialized in scene; HUDController.Start() auto-creates it via AddComponent if missing
 
 ## Pitfalls
 - GameEvents.ClearAll() in StartGame() wiped UpgradeManager/HUDController/ResultScreen event subscriptions → removed, scene reload handles cleanup

@@ -38,6 +38,10 @@ public class HUDController : MonoBehaviour
 
     private void Start()
     {
+        // Ensure MainMenuUI exists on the Canvas (it may be missing after scene reload)
+        if (GetComponent<MainMenuUI>() == null)
+            gameObject.AddComponent<MainMenuUI>();
+
         _stats = FindObjectOfType<PlayerStats>();
         _weaponManager = FindObjectOfType<PlayerWeaponManager>();
 

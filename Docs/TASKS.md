@@ -1089,6 +1089,29 @@
 - `Scripts/Data/Passives/*.asset` (补全 8 个 id + PowerUp/SpeedBoost id)
 - `Data/Passives/PowerUp.asset`, `SpeedBoost.asset` (补全 id)
 
+### 2026-05-06 升级卡片被动道具预览基于实际角色属性
+
+**问题**: 升级选项卡片中被动道具的效果数值预览使用硬编码默认值（如移速默认3、拾取范围1、HP 100、倍率1），而非玩家当前实际属性。每个角色初始属性不同（如法师HP70、骑士护甲2、游侠弹数+1），导致预览值与实际升级后数值不匹配。
+**根因**: `PassiveUpgradeOption.FormatDescription()` 为 static 方法，无法访问 `PlayerStats` 实例，只能用硬编码默认值计算预览。
+**解决**:
+1. `FormatDescription()` 改为实例方法，通过构造函数传入的 `_stats` 字段读取玩家当前实际属性
+2. 每个属性预览改为 `当前值 + 本级增量` 格式，例如移速预览 `_stats.MoveSpeed + bonus`
+3. 移除所有硬编码默认值（3f, 1f, 100f 等），改为实时读取
+
+**涉及文件**:
+- `Scripts/Upgrades/UpgradeOption.cs` (FormatDescription: static→instance, 硬编码→_stats实际值)
+
+### 2026-05-06 "回到菜单"按钮失效修复
+
+**问题**: 暂停菜单"回到菜单"按钮点击后场景重载但不显示主菜单，游戏HUD停留在黑屏上。
+**根因**: `MainMenuUI` 组件未序列化在场景文件中，也无脚本在运行时通过 `AddComponent` 创建它。该组件仅因编辑器中未保存的运行时添加而存在，`SceneManager.LoadScene()` 后不会重建。
+**解决**: 在 `HUDController.Start()` 中添加自愈检查：若 Canvas 上缺少 `MainMenuUI` 组件则自动 `AddComponent<MainMenuUI>()`。
+
+**涉及文件**:
+- `Scripts/UI/HUDController.cs` (Start() 中添加 MainMenuUI 存在性检查和自动创建)
+- `Scripts/UI/MainMenuUI.cs` (移除临时调试日志)
+- `Scripts/UI/PauseMenuController.cs` (移除临时调试日志)
+
 ### 2026-04-30 圣水(HolyWater) 生成间隔与伤害间隔混淆修复
 
 **问题**: 圣水水潭频繁在玩家脚下刷新（每0.5s销毁重建），伤害生成间隔与水潭生成间隔混用同一cooldown值

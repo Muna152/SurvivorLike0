@@ -145,41 +145,36 @@ public class PassiveUpgradeOption : UpgradeOption
         _stats.ApplyPassive(_data);
     }
 
-    private static string FormatDescription(PassiveData data, int currentLevel)
+    private string FormatDescription(PassiveData data, int currentLevel)
     {
         float bonus = data.effectPerLevel;
         string sign = data.affectedStat == PassiveData.StatType.CooldownMultiplier ? "-" : "+";
-        string statLabel = data.affectedStat.ToString();
 
-        // Show next-level value
-        float nextValue = bonus * (currentLevel + 1);
-        float currentValue = bonus * currentLevel;
-
-        // For special stats, show absolute value
+        // Calculate preview based on the player's actual current stats
         switch (data.affectedStat)
         {
             case PassiveData.StatType.MoveSpeed:
-                return $"Move Speed {sign}{bonus:F1} (→{3f + nextValue:F1})";
+                return $"Move Speed {sign}{bonus:F1} (→{_stats.MoveSpeed + bonus:F1})";
             case PassiveData.StatType.PickupRange:
-                return $"Pickup Range {sign}{bonus:F1} (→{1f + nextValue:F1})";
+                return $"Pickup Range {sign}{bonus:F1} (→{_stats.PickupRange + bonus:F1})";
             case PassiveData.StatType.Armor:
-                return $"Armor {sign}{Mathf.RoundToInt(bonus)} (→{Mathf.RoundToInt(nextValue)})";
+                return $"Armor {sign}{Mathf.RoundToInt(bonus)} (→{_stats.Armor + Mathf.RoundToInt(bonus)})";
             case PassiveData.StatType.Luck:
-                return $"Luck {sign}{bonus:F0} (→{nextValue:F0})";
+                return $"Luck {sign}{bonus:F0} (→{_stats.Luck + bonus:F0})";
             case PassiveData.StatType.Regen:
-                return $"HP Regen {sign}{bonus:F1}/s (→{nextValue:F1}/s)";
+                return $"HP Regen {sign}{bonus:F1}/s (→{_stats.Regen + bonus:F1}/s)";
             case PassiveData.StatType.DamageMultiplier:
-                return $"Damage {sign}{bonus * 100:F0}% (→{1f + nextValue:P0})";
+                return $"Damage {sign}{bonus * 100:F0}% (→{(_stats.DamageMultiplier + bonus) * 100:F0}%)";
             case PassiveData.StatType.CooldownMultiplier:
-                return $"Cooldown {sign}{bonus * 100:F0}% (→{1f - nextValue:P0})";
+                return $"Cooldown {sign}{bonus * 100:F0}% (→{(_stats.CooldownMultiplier - bonus) * 100:F0}%)";
             case PassiveData.StatType.AreaMultiplier:
-                return $"Area {sign}{bonus * 100:F0}% (→{1f + nextValue:P0})";
+                return $"Area {sign}{bonus * 100:F0}% (→{(_stats.AreaMultiplier + bonus) * 100:F0}%)";
             case PassiveData.StatType.ProjectileBonus:
-                return $"Projectiles {sign}{Mathf.RoundToInt(bonus)} (→+{Mathf.RoundToInt(nextValue)})";
+                return $"Projectiles {sign}{Mathf.RoundToInt(bonus)} (→{_stats.ProjectileBonus + Mathf.RoundToInt(bonus)})";
             case PassiveData.StatType.MaxHP:
-                return $"Max HP {sign}{bonus:F0} (→{100f + nextValue:F0})";
+                return $"Max HP {sign}{bonus:F0} (→{_stats.MaxHP + bonus:F0})";
             default:
-                return $"{statLabel} {sign}{bonus:F1}";
+                return $"{data.affectedStat} {sign}{bonus:F1}";
         }
     }
 }
