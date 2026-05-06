@@ -33,6 +33,16 @@ public class CharacterSelectUI : MonoBehaviour
     {
         RefreshCards();
 
+        // Auto-start if returning from a retry (PendingAutoStart set)
+        if (GameManager.HasInstance && GameManager.Instance.PendingAutoStart != null)
+        {
+            var character = GameManager.Instance.PendingAutoStart;
+            GameManager.Instance.PendingAutoStart = null;
+            GameManager.Instance.StartGame(character);
+            Hide();
+            return;
+        }
+
         // Show the character select if the game is in Menu state
         if (GameManager.HasInstance && GameManager.Instance.CurrentState == GameManager.GameState.Menu)
         {

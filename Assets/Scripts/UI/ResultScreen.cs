@@ -115,14 +115,17 @@ public class ResultScreen : MonoBehaviour
         if (PoolManager.HasInstance)
             PoolManager.Instance.ClearAll();
 
-        // Store selected character before scene reload
+        // Store selected character for auto-start after scene reload
         var selectedChar = GameManager.HasInstance ? GameManager.Instance.SelectedCharacter : null;
 
-        // Reload scene (this will trigger CharacterSelectUI to show in Menu state)
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Reset GameManager to Menu state so CharacterSelectUI shows after reload
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.PendingAutoStart = selectedChar;
+            GameManager.Instance.ReturnToMenu();
+        }
 
-        // Re-apply selected character after scene load (next frame)
-        // CharacterSelectUI will show in Menu state, and player can choose same or different character
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void ReturnToMenu()
@@ -130,9 +133,15 @@ public class ResultScreen : MonoBehaviour
         Time.timeScale = 1f;
         GameEvents.ClearAll();
 
-        // Reload scene to return to menu/character select
         if (PoolManager.HasInstance)
             PoolManager.Instance.ClearAll();
+
+        // Reset GameManager to Menu state so CharacterSelectUI shows after reload
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.PendingAutoStart = null;
+            GameManager.Instance.ReturnToMenu();
+        }
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }

@@ -27,6 +27,9 @@ public class GameManager : Singleton<GameManager>
     /// <summary>The character selected for the current run.</summary>
     public CharacterData SelectedCharacter { get; private set; }
 
+    /// <summary>Character to auto-start with after scene reload (used by Retry).</summary>
+    public CharacterData PendingAutoStart { get; set; }
+
     // References set by the scene setup; will be properly typed once those scripts exist.
     public MonoBehaviour PlayerControllerRef { get; set; }
     public MonoBehaviour EnemySpawnerRef { get; set; }
