@@ -34,7 +34,8 @@ public class PlayerHitbox : MonoBehaviour
             return;
 
         _enemyDamageTimers[id] = now;
-        _stats.TakeDamage((int)enemy.Data.damage);
+        float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+        _stats.TakeDamage(Mathf.CeilToInt(enemy.Data.damage * dmgScale));
         _invincibleTimer = _invincibleDuration;
 
         if (_sr != null) StartCoroutine(FlashCoroutine());

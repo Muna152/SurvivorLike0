@@ -68,7 +68,8 @@ public class MageEnemy : EnemyBase
         var mageProj = proj.GetComponent<MageProjectile>();
         if (mageProj != null)
         {
-            mageProj.Initialize(_data.damage, _projectileSpeed, dir);
+            float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+            mageProj.Initialize(_data.damage * dmgScale, _projectileSpeed, dir);
         }
     }
 }

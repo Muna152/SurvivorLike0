@@ -38,7 +38,17 @@ public class EnemyManager : Singleton<EnemyManager>
     private void OnEnemyDiedHandler(EnemyBase enemy)
     {
         _activeEnemies.Remove(enemy);
-        if (_playerStats != null) _playerStats.AddKill();
+        if (_playerStats != null)
+        {
+            _playerStats.AddKill();
+            if (enemy.IsElite)
+                _playerStats.AddEliteKill();
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        SpatialGrid.UpdateAll();
     }
 
     protected override void OnDestroy()

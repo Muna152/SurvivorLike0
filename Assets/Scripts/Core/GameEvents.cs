@@ -28,6 +28,10 @@ public static class GameEvents
     /// <summary>Fire when a drop item is collected. Parameter = the collected drop.</summary>
     public static event Action<DropBase> OnDropCollected;
 
+    // ── Difficulty Events ─────────────────────────────────────
+    /// <summary>Fire each game minute. Parameter = current minute (int).</summary>
+    public static event Action<int> OnDifficultyChanged;
+
     // ── Weapon Events ─────────────────────────────────────────
     /// <summary>Fire when a weapon evolves. Parameter = the evolved weapon.</summary>
     public static event Action<WeaponBase> OnWeaponEvolved;
@@ -42,6 +46,7 @@ public static class GameEvents
     public static void InvokeEnemyDied(EnemyBase enemy) => OnEnemyDied?.Invoke(enemy);
     public static void InvokeEnemySpawned(EnemyBase enemy) => OnEnemySpawned?.Invoke(enemy);
     public static void InvokeDropCollected(DropBase drop) => OnDropCollected?.Invoke(drop);
+    public static void InvokeDifficultyChanged(int minute) => OnDifficultyChanged?.Invoke(minute);
     public static void InvokeWeaponEvolved(WeaponBase weapon) => OnWeaponEvolved?.Invoke(weapon);
 
     /// <summary>
@@ -55,6 +60,7 @@ public static class GameEvents
         OnEnemyDied = null;
         OnEnemySpawned = null;
         OnDropCollected = null;
+        OnDifficultyChanged = null;
         OnWeaponEvolved = null;
     }
 }

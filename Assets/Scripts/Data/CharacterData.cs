@@ -28,5 +28,7 @@ public class CharacterData : ScriptableObject
     public string specialPassiveId;
 
     [Header("Unlock")]
-    public string unlockCondition;
+    public UnlockCondition unlockCondition;
+    [Tooltip("Whether this character is currently unlocked")]
+    public bool unlocked = true; // Default true for the starting character
 }

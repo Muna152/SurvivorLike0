@@ -25,6 +25,8 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private float _currentEXP;
     [SerializeField] private int _killCount;
     [SerializeField] private int _gold;
+    [SerializeField] private float _totalHealed;
+    [SerializeField] private int _eliteKillCount;
 
     // Passive tracking: PassiveData → current level (1-based, 0 = not owned)
     private readonly Dictionary<PassiveData, int> _passiveLevels = new Dictionary<PassiveData, int>();
@@ -36,6 +38,8 @@ public class PlayerStats : MonoBehaviour
     public float CurrentEXP => _currentEXP;
     public int KillCount => _killCount;
     public int Gold => _gold;
+    public float TotalHealed => _totalHealed;
+    public int EliteKillCount => _eliteKillCount;
 
     /// <summary>EXP needed to reach the next level (quadratic curve).</summary>
     public float EXPToNextLevel => 5 + 3 * _level * _level;
@@ -63,6 +67,7 @@ public class PlayerStats : MonoBehaviour
     public void Heal(float amount)
     {
         _currentHP = Mathf.Min(_currentHP + amount, MaxHP);
+        _totalHealed += amount;
     }
 
     // ── EXP / Level ──────────────────────────────────────────
@@ -85,6 +90,7 @@ public class PlayerStats : MonoBehaviour
     // ── Kill / Gold ───────────────────────────────────────────
 
     public void AddKill() => _killCount++;
+    public void AddEliteKill() => _eliteKillCount++;
     public void AddGold(int amount) => _gold += amount;
 
     // ── Passive Items ────────────────────────────────────────
@@ -111,6 +117,47 @@ public class PlayerStats : MonoBehaviour
 
         PassiveEffect.Apply(this, passive);
         _passiveLevels[passive] = current + 1;
+    }
+
+    /// <summary>Remove all levels of a passive and reverse its effects.</summary>
+    public void RemovePassive(PassiveData passive)
+    {
+        if (passive == null) return;
+
+        int current = GetPassiveLevel(passive);
+        if (current <= 0) return;
+
+        for (int i = 0; i < current; i++)
+        {
+            PassiveEffect.Remove(this, passive);
+        }
+        _passiveLevels.Remove(passive);
+    }
+
+    /// <summary>Set passive to a specific level (for debug).</summary>
+    public void SetPassiveLevel(PassiveData passive, int level)
+    {
+        if (passive == null) return;
+        level = Mathf.Clamp(level, 0, passive.maxLevel);
+
+        int current = GetPassiveLevel(passive);
+
+        // Remove all existing levels first
+        for (int i = 0; i < current; i++)
+        {
+            PassiveEffect.Remove(this, passive);
+        }
+
+        // Apply new level
+        for (int i = 0; i < level; i++)
+        {
+            PassiveEffect.Apply(this, passive);
+        }
+
+        if (level > 0)
+            _passiveLevels[passive] = level;
+        else
+            _passiveLevels.Remove(passive);
     }
 
     // ── Regen ─────────────────────────────────────────────────

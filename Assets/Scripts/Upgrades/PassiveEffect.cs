@@ -50,4 +50,48 @@ public static class PassiveEffect
                 break;
         }
     }
+
+    /// <summary>
+    /// Remove one level of the given passive's effect from the player stats (reverse of Apply).
+    /// </summary>
+    public static void Remove(PlayerStats stats, PassiveData passive)
+    {
+        if (stats == null || passive == null) return;
+
+        float bonus = passive.effectPerLevel;
+
+        switch (passive.affectedStat)
+        {
+            case PassiveData.StatType.MoveSpeed:
+                stats.MoveSpeed -= bonus;
+                break;
+            case PassiveData.StatType.PickupRange:
+                stats.PickupRange -= bonus;
+                break;
+            case PassiveData.StatType.Armor:
+                stats.Armor -= Mathf.RoundToInt(bonus);
+                break;
+            case PassiveData.StatType.Luck:
+                stats.Luck -= bonus;
+                break;
+            case PassiveData.StatType.Regen:
+                stats.Regen -= bonus;
+                break;
+            case PassiveData.StatType.DamageMultiplier:
+                stats.DamageMultiplier -= bonus;
+                break;
+            case PassiveData.StatType.CooldownMultiplier:
+                stats.CooldownMultiplier += bonus;
+                break;
+            case PassiveData.StatType.AreaMultiplier:
+                stats.AreaMultiplier -= bonus;
+                break;
+            case PassiveData.StatType.ProjectileBonus:
+                stats.ProjectileBonus -= Mathf.RoundToInt(bonus);
+                break;
+            case PassiveData.StatType.MaxHP:
+                stats.MaxHP -= bonus;
+                break;
+        }
+    }
 }

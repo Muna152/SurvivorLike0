@@ -46,7 +46,10 @@ public class EnemySpawner : MonoBehaviour
         if (_spawnTimer <= 0f)
         {
             SpawnWave();
-            _spawnTimer = _baseSpawnInterval;
+            float intervalScale = DifficultyManager.HasInstance
+                ? DifficultyManager.Instance.SpawnIntervalMultiplier
+                : 1f;
+            _spawnTimer = _baseSpawnInterval * intervalScale;
         }
 
         // Elite wave timer
@@ -156,13 +159,16 @@ public class EnemySpawner : MonoBehaviour
         {
             if (minutes >= ed.minSpawnTime / 60f)
             {
-                _availableBuffer.Add(new WeightedRandom.WeightedItem<EnemyData>(ed, ed.spawnWeight));
+                // Higher minSpawnTime enemies get a weight boost in elite waves
+                float weightBoost = 1f + ed.minSpawnTime / 120f;
+                _availableBuffer.Add(new WeightedRandom.WeightedItem<EnemyData>(ed, ed.spawnWeight * weightBoost));
             }
         }
         if (_availableBuffer.Count == 0) return;
 
-        // Spawn 5-10 elite enemies
-        int eliteCount = Random.Range(5, 11);
+        // Elite count scales with wave number: base 5-10 + 2 per previous wave
+        int waveBonus = DifficultyManager.HasInstance ? DifficultyManager.Instance.EliteWaveCount * 2 : 0;
+        int eliteCount = Mathf.Min(20, Random.Range(5, 11) + waveBonus);
         Vector2 playerPos = (Vector2)_player.transform.position;
 
         for (int i = 0; i < eliteCount; i++)
@@ -180,5 +186,9 @@ public class EnemySpawner : MonoBehaviour
                 enemyObj.SetElite();
             }
         }
+
+        // Track elite wave count for difficulty progression
+        if (DifficultyManager.HasInstance)
+            DifficultyManager.Instance.OnEliteWaveSpawned();
     }
 }

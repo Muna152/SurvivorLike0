@@ -1,7 +1,7 @@
 # SurvivorLike0 ContextCard
 
 ## Engine
-- Tuanjie 2023.2 | Built-in RP | .NET Standard 2.1 | 2D top-down
+- Tuanjie 1.8.4 | Built-in RP | .NET Standard 2.1 | 2D top-down
 
 ## Structure
 - Scripts/: Player|Enemies|Weapons|Upgrades|Drops|UI|Core|Data
@@ -20,9 +20,9 @@
 - No per-frame UI polling (use events)
 
 ## Patterns
-- Singleton<T>: GameManager, PoolManager, DropManager
+- Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager
 - ObjectPool<T> w/ prewarm & HashSet tracking
-- GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, etc.)
+- GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, etc.)
 - WeaponBase abstract → Projectile|Orbital|Area|Auxiliary
 - Factory: WeaponData.WeaponType → component creation
 
@@ -32,34 +32,39 @@
 - DropBase: vacuum after 2.5s, collect on contact
 - UpgradeOption: Evolution|WeaponUpgrade|NewWeapon|Passive
 - IWeightedRandom: weighted selection for drops/spawns
+- UnlockCondition: SurviveTime|KillCount|HealAmount|ReachLevel|KillElites
 
 ## Systems
-- ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots
+- ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
-- ✅ Enemies: chase AI, spawner time-scaling (1.5s→batch 3-15), elite 5min, mage
+- ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive
 - ✅ Drops: EXP/Gold/Health, vacuum mechanic, DropManager
 - ✅ UI: HUD (HP/EXP/timer/weapon bar), result screen, UpgradeUI
+- ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
+- ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check
 
 ## Perf Budget
 - Max 500 enemies on-screen | 6 weapon limit | Weapon max level 8
 - Pool: enemies, projectiles, drops (all prewarmed)
 - Event-driven UI | Cached refs | Reusable lists | Min GC alloc
+- SpatialGrid: O(1) proximity queries, cell size 8f
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 39/45 | Phase 3-4: 0/52
-- T2.5.1~T2.5.4 SpatialGrid + perf: ✅ Done
-- **AreaWeapon伤害判定 bug修复**: ✅ 完成
-  - 根因1: `CellKey(0,0)=0` 与 "未注册"哨兵值冲突 → 已修复(Unregister幂等化)
-  - 根因2: index-based stagger因_registered列表增删导致索引漂移 → 已移除stagger
-  - 根因3: SpawnEliteWave对EliteEnemy调用Initialize两次 → 已修复
-  - 根因4: _registered List与_registeredSet HashSet双集合不同步,UpdateAll迭代List漏掉敌人 → 已合并为单一HashSet _registered
-  - 根因5: 查询时grid可能过期 → QueryInRadius前调用Reconcile()强制同步所有cell
-  - **待验证**: ~~运行游戏确认 Missed:0~~ ✅ 已验证, 诊断日志已注释
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 0/52
 
-## Next (Phase 2 remaining — 5 tasks)
-- ✅ AreaWeapon伤害判定bug修复已验证完成, 诊断日志已注释
-- T2.6.1 DifficultyManager → T2.6.2 enemy HP scaling → T2.6.3 spawn density curve → T2.6.4 elite wave timer → T2.6.5 character unlock
+## Phase 2 Complete ✅
+- T2.5 SpatialGrid: O(1) queries, Reconcile() sync, perf verified at 500 enemies
+- T2.6 DifficultyManager: time-driven scaling (HP +10%/min, spawn accel +15%/min, damage +5%/min, speed +2%/min)
+- T2.6 Elite waves: count = 5-10 + waveCount×2, high-tier enemy weight boost
+- T2.6 UnlockCondition: 5 types (SurviveTime/KillCount/HealAmount/ReachLevel/KillElites)
+- PassiveData dedup: removed old PowerUp/SpeedBoost (Assets/Data/Passives/), kept 8 Chinese-named passives with evolution links
+
+## Difficulty Scaling Formulas
+- HPMultiplier = 1 + 0.1 × minutes
+- SpawnIntervalMultiplier = 1 / (1 + 0.15 × minutes)
+- DamageMultiplier = 1 + 0.05 × minutes (applied in PlayerHitbox + MageEnemy)
+- SpeedMultiplier = 1 + 0.02 × minutes (applied in EnemyBase.Initialize)
 
 ## Key Decisions
 - Built-in RP: simpler 2D, fewer shader compat issues
@@ -67,6 +72,7 @@
 - Static events: zero-coupling, any system can subscribe
 - Tuanjie over Unity: project originated on this engine fork
 - AreaWeapon split strategy: _followsPlayer auras refresh duration; puddles only create when none exists, expire naturally, respawn on next CD
+- DifficultyManager on GameManager GO: shares lifecycle, resets on StartGame()
 
 ## Known Issues
-- PassiveData reference breakage: null-guards in place, root cause (duplicate dirs) fixed in 1326bbd
+- WeaponEvolutionVFX._particleCount unused (CS0414 warning, cosmetic only)

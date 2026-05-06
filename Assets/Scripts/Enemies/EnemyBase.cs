@@ -71,8 +71,13 @@ public class EnemyBase : MonoBehaviour
     public virtual void Initialize(EnemyData data)
     {
         _data = data;
-        _currentHP = data.baseHP;
-        _moveSpeed = data.moveSpeed;
+
+        // Apply difficulty scaling to HP and speed
+        float hpScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.HPMultiplier : 1f;
+        float speedScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.SpeedMultiplier : 1f;
+
+        _currentHP = data.baseHP * hpScale;
+        _moveSpeed = data.moveSpeed * speedScale;
 
         _activeEnemies.Add(this);
         SpatialGrid.Register(this);

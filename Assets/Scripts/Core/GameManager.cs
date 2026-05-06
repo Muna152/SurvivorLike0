@@ -43,6 +43,8 @@ public class GameManager : Singleton<GameManager>
         _currentState = GameState.Playing;
         Time.timeScale = 1f;
         GameEvents.ClearAll();
+        if (DifficultyManager.HasInstance)
+            DifficultyManager.Instance.ResetDifficulty();
         Debug.Log("[GameManager] Game started.");
     }
 

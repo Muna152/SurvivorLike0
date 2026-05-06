@@ -113,7 +113,7 @@
 ### 2.2 被动道具系统
 
 - [x] 实现 `PassiveData` ScriptableObject (含 StatType 枚举、effectPerLevel、affectedStat、maxLevel)
-- [ ] 实现 `PassiveEffect` 系统（修改 PlayerStats 属性）
+- [x] 实现 `PassiveEffect` 系统（修改 PlayerStats 属性）
 - [x] 实现8种被动道具的数据和效果（已有 PowerUp、SpeedBoost）
 - [x] PlayerStats 被动道具管理（HasPassive/GetPassiveLevel/ApplyPassive）
 - [x] 道具在升级选项中出现
@@ -138,16 +138,16 @@
 
 ### 2.5 空间分区优化
 
-- [ ] 实现 `SpatialGrid` 空间分区
-- [ ] 武器瞄准使用空间分区查询
-- [ ] 敌人移动时更新网格位置
+- [x] 实现 `SpatialGrid` 空间分区
+- [x] 武器瞄准使用空间分区查询
+- [x] 敌人移动时更新网格位置
 
 ### 2.6 难度曲线
 
-- [ ] 时间驱动的难度缩放系统
-- [ ] 敌人HP随时间增长
-- [ ] 生成密度和间隔随时间变化
-- [ ] 精英波次定时出现
+- [x] 时间驱动的难度缩放系统
+- [x] 敌人HP随时间增长
+- [x] 生成密度和间隔随时间变化
+- [x] 精英波次定时出现（数量随波次递增）
 
 ---
 
@@ -160,7 +160,7 @@
 - [ ] 实现 `CharacterData` ScriptableObject
 - [ ] 5个角色数据定义（起始武器、特殊被动、属性差异）
 - [ ] 角色选择界面
-- [ ] 角色解锁条件系统
+- [x] 角色解锁条件系统
 
 ### 3.2 BOSS系统
 
