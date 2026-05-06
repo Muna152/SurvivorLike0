@@ -610,33 +610,36 @@
 ### T3.1 多角色系统
 
 #### T3.1.1 完善 CharacterData ScriptableObject
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.8
 - **产物**: 更新 `Scripts/Data/CharacterData.cs`
-- **验收**: 包含 baseHP, moveSpeed, pickupRange, armor, startingWeapon, specialPassiveId, unlockCondition
+- **说明**: 新增 id(string), description(TextArea), isDefaultUnlocked(bool) 字段；移除 unlocked 字段，改由 UnlockManager 运行时管理
+- **验收**: 包含 id, description, isDefaultUnlocked, baseHP, moveSpeed, armor, regen, projectileBonus, cooldownMultiplier, startingWeapon, portrait, unlockCondition
 
 #### T3.1.2 创建5个角色数据定义
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T3.1.1
-- **产物**: `Data/Characters/Hero.asset` (勇者:飞剑/HP+20%), `Mage.asset` (法师:能量球/冷却-10%), `Knight.asset` (骑士:旋转盾/护甲+2), `Ranger.asset` (游侠:飞刀/移速+15%), `Priest.asset` (牧师:圣光/再生+0.5s)
-- **验收**: 5个角色 SO 存在，各属性差异化
+- **产物**: `Data/Characters/Hero.asset` (勇者:飞剑/HP120), `Mage.asset` (法师:能量球/HP70/冷却0.9), `Knight.asset` (骑士:旋转盾/HP100/护甲2), `Ranger.asset` (游侠:飞刀/HP80/弹数+1), `Priest.asset` (牧师:圣光/HP90/再生0.5)
+- **验收**: 5个角色 SO 存在，各属性差异化，起始武器引用正确
 
 #### T3.1.3 实现角色选择界面
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T3.1.2
 - **产物**: `Scripts/UI/CharacterSelectUI.cs`
+- **说明**: 编程式构建UI（HorizontalLayoutGroup），5张角色卡片含肖像/名称/属性/描述/锁定状态；详情面板；"开始战斗"按钮调用 GameManager.StartGame(character)
 - **验收**: 显示5个角色卡片；未解锁角色灰色+解锁条件提示；选中后开始游戏
 
 #### T3.1.4 实现角色解锁逻辑
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.6.5, T3.1.2
-- **产物**: `Scripts/Core/UnlockManager.cs`
+- **产物**: `Scripts/Core/UnlockManager.cs` (Singleton), 更新 `Scripts/Core/GameEvents.cs` (OnCharacterUnlocked事件)
+- **说明**: PlayerPrefs持久化("Unlock_{id}")；CheckUnlocks()在游戏结算时调用；发现新解锁触发OnCharacterUnlocked事件
 - **验收**: 游戏结算时检查解锁条件；达成条件弹出解锁提示
 
 #### T3.1.5 生成其他4个角色 Sprite
-- **状态**: ⬜
-- **产物**: `Art/Sprites/Characters/Mage.png`, `Knight.png`, `Ranger.png`, `Priest.png`
-- **验收**: 4个角色 Sprite 资产存在
+- **状态**: ✅
+- **产物**: `Sprites/Characters/MagePortrait.png`, `KnightPortrait.png`, `RangerPortrait.png`, `PriestPortrait.png`
+- **验收**: 4个角色 Sprite 资产存在，Sprite导入设置正确
 
 ### T3.2 BOSS 系统
 
@@ -1010,15 +1013,15 @@
 | Phase 1.8 (补充) | 1 | 8 | 8 | 0 | 0 |
 | Phase 2 | 6 | 38 | 38 | 0 | 0 |
 | Phase 2.A | 1 | 7 | 7 | 0 | 0 |
-| Phase 3 | 5 | 20 | 0 | 0 | 20 |
+| Phase 3 | 5 | 20 | 5 | 0 | 15 |
 | Phase 3.A | 1 | 4 | 0 | 0 | 4 |
 | Phase 4 | 6 | 25 | 0 | 0 | 25 |
 | Phase 4.A | 1 | 3 | 0 | 0 | 3 |
-| **合计** | **31** | **145** | **93** | **0** | **52** |
+| **合计** | **31** | **145** | **98** | **0** | **47** |
 
 ---
 
-*文档版本: v1.9 | 最后更新: 2026-05-06*
+*文档版本: v2.0 | 最后更新: 2026-05-06*
 
 ## 游戏体验优化日志
 

@@ -20,7 +20,7 @@
 - No per-frame UI polling (use events)
 
 ## Patterns
-- Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager
+- Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager, UnlockManager
 - ObjectPool<T> w/ prewarm & HashSet tracking
 - GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, etc.)
 - WeaponBase abstract → Projectile|Orbital|Area|Auxiliary
@@ -43,6 +43,7 @@
 - ✅ UI: HUD (HP/EXP/timer/weapon bar), result screen, UpgradeUI
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check
+- ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ PlayerPrefs
 
 ## Perf Budget
 - Max 500 enemies on-screen | 6 weapon limit | Weapon max level 8
@@ -51,7 +52,15 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 0/52
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 5/52 (T3.1 done)
+- Game flow: Menu → CharacterSelectUI → StartGame(character) → Playing → GameOver → Unlock check → Retry/Menu
+
+## Phase 3-4 Progress
+- T3.1 多角色系统: 5/5 ✅
+  - CharacterData: id, description, isDefaultUnlocked, portrait, stats差异化
+  - UnlockManager: PlayerPrefs, CheckUnlocks at game end, OnCharacterUnlocked event
+  - CharacterSelectUI: 5 cards, portrait/stats/description, lock/unlock, detail panel
+  - PlayerStats.InitializeFromCharacterData(), PlayerWeaponManager reads startingWeapon from CharacterData
 
 ## Phase 2 Complete ✅
 - T2.5 SpatialGrid: O(1) queries, Reconcile() sync, perf verified at 500 enemies

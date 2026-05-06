@@ -46,6 +46,26 @@ public class PlayerStats : MonoBehaviour
 
     private void Awake()
     {
+        InitializeFromCharacterData();
+    }
+
+    /// <summary>Initialize all base stats from the currently selected CharacterData.</summary>
+    public void InitializeFromCharacterData()
+    {
+        var character = GameManager.HasInstance ? GameManager.Instance.SelectedCharacter : null;
+        if (character == null) return;
+
+        MaxHP = character.baseHP;
+        MoveSpeed = character.moveSpeed;
+        PickupRange = character.pickupRange;
+        Armor = character.armor;
+        Luck = character.luck;
+        Regen = character.regen;
+        DamageMultiplier = character.damageMultiplier;
+        CooldownMultiplier = character.cooldownMultiplier;
+        AreaMultiplier = character.areaMultiplier;
+        ProjectileBonus = character.projectileBonus;
+
         _currentHP = MaxHP;
     }
 

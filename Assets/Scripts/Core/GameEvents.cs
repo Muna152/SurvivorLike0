@@ -36,6 +36,10 @@ public static class GameEvents
     /// <summary>Fire when a weapon evolves. Parameter = the evolved weapon.</summary>
     public static event Action<WeaponBase> OnWeaponEvolved;
 
+    // ── Unlock Events ──────────────────────────────────────────
+    /// <summary>Fire when a character is unlocked. Parameter = character id.</summary>
+    public static event Action<string> OnCharacterUnlocked;
+
     // ── Invoke Helpers ─────────────────────────────────────────
     // Centralised invoke points so we never miss null-checks.
     // Also makes it easy to add logging / analytics later.
@@ -48,6 +52,7 @@ public static class GameEvents
     public static void InvokeDropCollected(DropBase drop) => OnDropCollected?.Invoke(drop);
     public static void InvokeDifficultyChanged(int minute) => OnDifficultyChanged?.Invoke(minute);
     public static void InvokeWeaponEvolved(WeaponBase weapon) => OnWeaponEvolved?.Invoke(weapon);
+    public static void InvokeCharacterUnlocked(string characterId) => OnCharacterUnlocked?.Invoke(characterId);
 
     /// <summary>
     /// Remove all subscribers. Useful when returning to the main menu or between runs.
@@ -62,5 +67,6 @@ public static class GameEvents
         OnDropCollected = null;
         OnDifficultyChanged = null;
         OnWeaponEvolved = null;
+        OnCharacterUnlocked = null;
     }
 }

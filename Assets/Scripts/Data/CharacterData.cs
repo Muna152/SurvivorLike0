@@ -2,14 +2,19 @@ using UnityEngine;
 
 /// <summary>
 /// Character (playable hero) data definition (ScriptableObject).
-/// Defines a character's base stats and starting equipment.
+/// Defines a character's base stats, starting equipment, and unlock condition.
+/// Unlock state is managed at runtime by UnlockManager (not stored on the asset).
 /// </summary>
 [CreateAssetMenu(fileName = "CharacterData", menuName = "Data/CharacterData")]
 public class CharacterData : ScriptableObject
 {
     [Header("Basic Info")]
+    [Tooltip("Unique identifier (e.g. \"hero\", \"mage\")")]
+    public string id;
     public string characterName;
     public Sprite portrait;
+    [TextArea(1, 3)]
+    public string description;
 
     [Header("Base Stats")]
     public float baseHP = 100f;
@@ -29,6 +34,6 @@ public class CharacterData : ScriptableObject
 
     [Header("Unlock")]
     public UnlockCondition unlockCondition;
-    [Tooltip("Whether this character is currently unlocked")]
-    public bool unlocked = true; // Default true for the starting character
+    [Tooltip("If true, this character is unlocked by default (no condition needed)")]
+    public bool isDefaultUnlocked;
 }

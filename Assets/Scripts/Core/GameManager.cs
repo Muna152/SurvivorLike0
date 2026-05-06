@@ -16,13 +16,16 @@ public class GameManager : Singleton<GameManager>
     }
 
     [Header("Current State")]
-    [SerializeField] private GameState _currentState = GameState.Playing;
+    [SerializeField] private GameState _currentState = GameState.Menu;
 
     /// <summary>Current game state (read-only for external consumers).</summary>
     public GameState CurrentState => _currentState;
 
     /// <summary>Elapsed play time in the current run (seconds, unscaled).</summary>
     public float ElapsedTime { get; private set; }
+
+    /// <summary>The character selected for the current run.</summary>
+    public CharacterData SelectedCharacter { get; private set; }
 
     // References set by the scene setup; will be properly typed once those scripts exist.
     public MonoBehaviour PlayerControllerRef { get; set; }
@@ -36,7 +39,14 @@ public class GameManager : Singleton<GameManager>
 
     // ── Lifecycle Methods ───────────────────────────────────────
 
-    /// <summary>Begin a new game run.</summary>
+    /// <summary>Begin a new game run with the selected character.</summary>
+    public void StartGame(CharacterData character)
+    {
+        SelectedCharacter = character;
+        StartGame();
+    }
+
+    /// <summary>Begin a new game run (uses previously selected character or default).</summary>
     public void StartGame()
     {
         ElapsedTime = 0f;
@@ -45,7 +55,13 @@ public class GameManager : Singleton<GameManager>
         GameEvents.ClearAll();
         if (DifficultyManager.HasInstance)
             DifficultyManager.Instance.ResetDifficulty();
-        Debug.Log("[GameManager] Game started.");
+
+        // Activate the player if they were disabled during menu
+        var player = FindObjectOfType<PlayerController>();
+        if (player != null && !player.gameObject.activeSelf)
+            player.gameObject.SetActive(true);
+
+        Debug.Log($"[GameManager] Game started with character: {(SelectedCharacter != null ? SelectedCharacter.characterName : "none")}");
     }
 
     /// <summary>Pause the game.</summary>

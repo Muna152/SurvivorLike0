@@ -11,9 +11,6 @@ public class PlayerWeaponManager : MonoBehaviour
     private const int MaxWeapons = 6;
     private readonly List<WeaponBase> _weapons = new List<WeaponBase>();
 
-    [Header("Starting Weapon")]
-    [SerializeField] private WeaponData _startingWeapon;
-
     [Header("All Passives (for evolution lookup)")]
     [SerializeField] private PassiveData[] _allPassives;
 
@@ -21,9 +18,12 @@ public class PlayerWeaponManager : MonoBehaviour
 
     private void Start()
     {
-        if (_startingWeapon != null)
+        var character = GameManager.HasInstance ? GameManager.Instance.SelectedCharacter : null;
+        var startingWeapon = character != null ? character.startingWeapon : null;
+
+        if (startingWeapon != null)
         {
-            EquipWeapon(_startingWeapon);
+            EquipWeapon(startingWeapon);
         }
     }
 

@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b624d60c6ff43ad4ab779fbf1b74620e, type: 3}
-  m_Name: 
+  m_Name: Mage
   m_EditorClassIdentifier: 
-  id: hero
-  characterName: "\u52C7\u8005"
-  portrait: {fileID: 0}
-  description: "\u5747\u8861\u578B\u6218\u58EB\uFF0C\u9002\u5408\u65B0\u624B\u3002\u751F\u547D\u503C\u52A0\u6210\u8BA9\u4ED6\u5728\u6218\u573A\u4E0A\u66F4\u52A0\u6301\u4E45\u3002"
-  baseHP: 120
+  id: mage
+  characterName: "\u6CD5\u5E08"
+  portrait: {fileID: 21300000, guid: 2f2fb09b361018f47a6f7e6d913d9e1e, type: 3}
+  description: "\u9AD8\u653B\u901F\u7684\u6CD5\u672F\u5927\u5E08\u3002\u51B7\u5374\u7F29\u51CF\u8BA9\u6B66\u5668\u53D1\u5C04\u66F4\u5FEB\uFF0C\u4F46\u8F83\u4F4E\u7684\u751F\u547D\u503C\u9700\u8981\u7075\u6D3B\u8D70\u4F4D\u3002"
+  baseHP: 70
   moveSpeed: 3
   pickupRange: 2.5
   armor: 0
   luck: 0
   regen: 0
   damageMultiplier: 1
-  cooldownMultiplier: 1
+  cooldownMultiplier: 0.9
   areaMultiplier: 1
   projectileBonus: 0
-  startingWeapon: {fileID: 11400000, guid: 7f0b0b60b37dfe24bb8a45d97b634c73, type: 2}
+  startingWeapon: {fileID: 11400000, guid: 9d7ebd716491c034f86934b623e475a1, type: 2}
   specialPassiveId: 
   unlockCondition:
     type: 0
-    threshold: 0
-  isDefaultUnlocked: 1
+    threshold: 600
+  isDefaultUnlocked: 0

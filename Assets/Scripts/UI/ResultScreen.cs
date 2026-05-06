@@ -12,6 +12,7 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private Text _timeText;
     [SerializeField] private Text _killsText;
     [SerializeField] private Text _goldText;
+    [SerializeField] private Text _unlockText;
     [SerializeField] private Button _retryButton;
     [SerializeField] private Button _menuButton;
 
@@ -76,6 +77,25 @@ public class ResultScreen : MonoBehaviour
 
         if (_goldText != null && stats != null)
             _goldText.text = $"Gold: {stats.Gold}";
+
+        // Check character unlocks at game end
+        if (_unlockText != null)
+            _unlockText.text = "";
+
+        if (UnlockManager.HasInstance && stats != null && gm != null)
+        {
+            var newlyUnlocked = UnlockManager.Instance.CheckUnlocks(stats, gm.ElapsedTime);
+            if (newlyUnlocked.Count > 0 && _unlockText != null)
+            {
+                var names = new System.Text.StringBuilder("🔓 新角色解锁: ");
+                for (int i = 0; i < newlyUnlocked.Count; i++)
+                {
+                    if (i > 0) names.Append(", ");
+                    names.Append(newlyUnlocked[i].characterName);
+                }
+                _unlockText.text = names.ToString();
+            }
+        }
     }
 
     private void Hide()
@@ -91,18 +111,29 @@ public class ResultScreen : MonoBehaviour
         GameEvents.ClearAll();
         EnemyBase.ResetStatics();
 
-        // Reset object pools – PoolManager persists across scene loads
-        // and would otherwise hold stale references to destroyed objects.
+        // Reset object pools
         if (PoolManager.HasInstance)
             PoolManager.Instance.ClearAll();
 
+        // Store selected character before scene reload
+        var selectedChar = GameManager.HasInstance ? GameManager.Instance.SelectedCharacter : null;
+
+        // Reload scene (this will trigger CharacterSelectUI to show in Menu state)
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+        // Re-apply selected character after scene load (next frame)
+        // CharacterSelectUI will show in Menu state, and player can choose same or different character
     }
 
     private void ReturnToMenu()
     {
         Time.timeScale = 1f;
         GameEvents.ClearAll();
-        if (GameManager.HasInstance) GameManager.Instance.ReturnToMenu();
+
+        // Reload scene to return to menu/character select
+        if (PoolManager.HasInstance)
+            PoolManager.Instance.ClearAll();
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

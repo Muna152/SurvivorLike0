@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b624d60c6ff43ad4ab779fbf1b74620e, type: 3}
-  m_Name: 
+  m_Name: Priest
   m_EditorClassIdentifier: 
-  id: hero
-  characterName: "\u52C7\u8005"
-  portrait: {fileID: 0}
-  description: "\u5747\u8861\u578B\u6218\u58EB\uFF0C\u9002\u5408\u65B0\u624B\u3002\u751F\u547D\u503C\u52A0\u6210\u8BA9\u4ED6\u5728\u6218\u573A\u4E0A\u66F4\u52A0\u6301\u4E45\u3002"
-  baseHP: 120
+  id: priest
+  characterName: "\u7267\u5E08"
+  portrait: {fileID: 21300000, guid: b3ef066e4feef7c41a3a9f40b5bfbcce, type: 3}
+  description: "\u795E\u5723\u7684\u81EA\u6108\u8005\u3002\u6301\u7EED\u7684\u751F\u547D\u56DE\u590D\u8BA9\u5979\u5728\u6301\u4E45\u6218\u4E2D\u8D8A\u6218\u8D8A\u52C7\uFF0C\u5723\u5149\u540C\u65F6\u517C\u987E\u4F24\u5BB3\u4E0E\u6CBB\u7597\u3002"
+  baseHP: 90
   moveSpeed: 3
   pickupRange: 2.5
   armor: 0
   luck: 0
-  regen: 0
+  regen: 0.5
   damageMultiplier: 1
   cooldownMultiplier: 1
   areaMultiplier: 1
   projectileBonus: 0
-  startingWeapon: {fileID: 11400000, guid: 7f0b0b60b37dfe24bb8a45d97b634c73, type: 2}
+  startingWeapon: {fileID: 11400000, guid: 15b77029b2915e3468f9a014bc1ef6c0, type: 2}
   specialPassiveId: 
   unlockCondition:
-    type: 0
-    threshold: 0
-  isDefaultUnlocked: 1
+    type: 2
+    threshold: 500
+  isDefaultUnlocked: 0
