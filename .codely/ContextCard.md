@@ -54,6 +54,7 @@
 ## State
 - Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 5/52 (T3.1 done)
 - Game flow: Menu → CharacterSelectUI → StartGame(character) → Playing → GameOver → Unlock check → Retry/Menu
+- Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
 ## Phase 3-4 Progress
 - T3.1 多角色系统: 5/5 ✅
@@ -61,6 +62,9 @@
   - UnlockManager: PlayerPrefs, CheckUnlocks at game end, OnCharacterUnlocked event
   - CharacterSelectUI: 5 cards, portrait/stats/description, lock/unlock, detail panel
   - PlayerStats.InitializeFromCharacterData(), PlayerWeaponManager reads startingWeapon from CharacterData
+  - GameManager.StartGame() 显式初始化 PlayerStats + PlayerWeaponManager (修复 Awake/Start 时序)
+  - GameManager.PendingAutoStart: 重试时保存角色, 场景重载后自动开始
+  - 暂停菜单新增 重新开始/回到菜单 按钮, 逻辑同 ResultScreen
 
 ## Phase 2 Complete ✅
 - T2.5 SpatialGrid: O(1) queries, Reconcile() sync, perf verified at 500 enemies
@@ -85,3 +89,8 @@
 
 ## Known Issues
 - WeaponEvolutionVFX._particleCount unused (CS0414 warning, cosmetic only)
+
+## Pitfalls
+- GameEvents.ClearAll() in StartGame() wiped UpgradeManager/HUDController/ResultScreen event subscriptions → removed, scene reload handles cleanup
+- DontDestroyOnLoad singletons survive SceneManager.LoadScene → must reset state via ReturnToMenu() before reload
+- PlayerStats.Awake/PlayerWeaponManager.Start run before character selection → GameManager.StartGame() must explicitly call InitializeFromCharacterData() and EquipStartingWeapon()
