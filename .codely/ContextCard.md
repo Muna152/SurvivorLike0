@@ -47,11 +47,19 @@
 - Event-driven UI | Cached refs | Reusable lists | Min GC alloc
 
 ## State
-- HolyWater bug fixed: spawn/tick interval separated
+- Phase 1: 48/48 ✅ | Phase 2: 39/45 | Phase 3-4: 0/52
+- T2.5.1~T2.5.4 SpatialGrid + perf: ✅ Done
+- **AreaWeapon伤害判定 bug修复**: ✅ 完成
+  - 根因1: `CellKey(0,0)=0` 与 "未注册"哨兵值冲突 → 已修复(Unregister幂等化)
+  - 根因2: index-based stagger因_registered列表增删导致索引漂移 → 已移除stagger
+  - 根因3: SpawnEliteWave对EliteEnemy调用Initialize两次 → 已修复
+  - 根因4: _registered List与_registeredSet HashSet双集合不同步,UpdateAll迭代List漏掉敌人 → 已合并为单一HashSet _registered
+  - 根因5: 查询时grid可能过期 → QueryInRadius前调用Reconcile()强制同步所有cell
+  - **待验证**: ~~运行游戏确认 Missed:0~~ ✅ 已验证, 诊断日志已注释
 
-## Next
-- Play-test HolyWater lifecycle in-game
-- Continue Phase 3 content per ROADMAP
+## Next (Phase 2 remaining — 5 tasks)
+- ✅ AreaWeapon伤害判定bug修复已验证完成, 诊断日志已注释
+- T2.6.1 DifficultyManager → T2.6.2 enemy HP scaling → T2.6.3 spawn density curve → T2.6.4 elite wave timer → T2.6.5 character unlock
 
 ## Key Decisions
 - Built-in RP: simpler 2D, fewer shader compat issues

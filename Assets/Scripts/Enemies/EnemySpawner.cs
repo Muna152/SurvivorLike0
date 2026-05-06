@@ -177,16 +177,7 @@ public class EnemySpawner : MonoBehaviour
             {
                 enemyObj.transform.position = pos;
                 enemyObj.Initialize(data);
-
-                // Make it elite
-                if (enemyObj is EliteEnemy elite)
-                {
-                    elite.Initialize(data);
-                }
-                else
-                {
-                    enemyObj.SetElite();
-                }
+                enemyObj.SetElite();
             }
         }
     }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -110,7 +111,90 @@ public abstract class AreaWeapon : WeaponBase
 
     protected virtual void SetupAreaEffect()
     {
-        // Override in derived classes to setup specific area effect
+        // Default: scale the area visual so the visible circle matches _areaRadius
+        ScaleAreaVisual();
+    }
+
+    /// <summary>
+    /// Small buffer added to the data-driven radius so that enemies visually
+    /// inside the zone are always within damage range, even if the sprite has
+    /// slight transparent padding or the visual scale is fractionally off.
+    /// </summary>
+    private const float DamageRadiusBuffer = 0.15f;
+
+    /// <summary>
+    /// Returns the damage radius: data-driven _areaRadius + buffer.
+    /// The visual is scaled to match _areaRadius (see ScaleAreaVisual), so the
+    /// buffer guarantees damage ≥ visual.  Never reads from SpriteRenderer.bounds
+    /// to avoid coupling gameplay logic to visual state.
+    /// </summary>
+    private float GetDamageRadius() => _areaRadius + DamageRadiusBuffer;
+
+    /// <summary>
+    /// Scales the area GameObject so the sprite's visible circle radius matches _areaRadius.
+    /// Accounts for transparent padding in the sprite texture.
+    /// </summary>
+    protected void ScaleAreaVisual()
+    {
+        if (_currentArea == null) return;
+        var sr = _currentArea.GetComponent<SpriteRenderer>();
+        if (sr == null || sr.sprite == null) return;
+
+        float fillRatio = GetSpriteFillRatio(sr.sprite);
+        float diameter = _areaRadius * 2f;
+        float spriteVisualSize = sr.sprite.bounds.size.x * fillRatio;
+        float scale = diameter / spriteVisualSize;
+        _currentArea.transform.localScale = new Vector3(scale, scale, 1f);
+        sr.sortingOrder = 1;
+    }
+
+    /// <summary>
+    /// Measures the ratio of the sprite's visible circle diameter to its bounds diameter.
+    /// Samples the texture alpha to find the actual opaque extent.
+    /// Result is cached per sprite to avoid repeated computation.
+    /// </summary>
+    private static float GetSpriteFillRatio(Sprite sprite)
+    {
+        int id = sprite.GetInstanceID();
+        if (_spriteFillCache.TryGetValue(id, out float ratio))
+            return ratio;
+
+        var tex = sprite.texture;
+        if (tex == null || !tex.isReadable)
+        {
+            // Texture not readable — assume circle fills bounds
+            ratio = 1f;
+        }
+        else
+        {
+            // Find max distance from center where alpha > threshold
+            int cx = tex.width / 2;
+            int cy = tex.height / 2;
+            int maxDist = 0;
+            int threshold = 30; // alpha threshold for "visible"
+            var pixels = tex.GetPixels();
+
+            for (int y = 0; y < tex.height; y++)
+            {
+                for (int x = 0; x < tex.width; x++)
+                {
+                    if (pixels[y * tex.width + x].a * 255f > threshold)
+                    {
+                        int dx = x - cx;
+                        int dy = y - cy;
+                        int dist = dx * dx + dy * dy;
+                        if (dist > maxDist) maxDist = dist;
+                    }
+                }
+            }
+
+            float visibleRadius = Mathf.Sqrt(maxDist);
+            float boundsRadius = tex.width * 0.5f;
+            ratio = boundsRadius > 0f ? visibleRadius / boundsRadius : 1f;
+        }
+
+        _spriteFillCache[id] = ratio;
+        return ratio;
     }
 
     /// <summary>
@@ -122,7 +206,7 @@ public abstract class AreaWeapon : WeaponBase
         obj.transform.position = _areaOrigin;
 
         var sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateCircleSprite(_isHealing ? new Color(1f, 1f, 0.5f, 0.4f) : new Color(0.3f, 0.6f, 1f, 0.4f));
+        sr.sprite = GetCachedCircleSprite(_isHealing);
         sr.sortingOrder = 1;
 
         return obj;
@@ -170,20 +254,32 @@ public abstract class AreaWeapon : WeaponBase
         }
     }
 
+    // Reusable list for QueryInRadius — avoids GC and shared-list corruption
+    private static readonly List<EnemyBase> _damageResults = new List<EnemyBase>(32);
+
     protected virtual void ApplyDamage()
     {
         var ld = CurrentLevelData;
         if (ld == null || _playerStats == null) return;
 
-        Vector2 center = _followsPlayer ? _playerPosition : _areaOrigin;
-        Collider2D[] hits = Physics2D.OverlapCircleAll(center, _areaRadius);
-        foreach (var hit in hits)
+        // Use data-driven damage radius (never read from visual bounds)
+        Vector2 center = _currentArea != null ? (Vector2)_currentArea.transform.position : _areaOrigin;
+        float radius = GetDamageRadius();
+        SpatialGrid.QueryInRadius(center, radius, _damageResults);
+
+#if UNITY_EDITOR
+        // Record hit results for Gizmo comparison
+        _lastHitInstanceIDs.Clear();
+        for (int i = 0; i < _damageResults.Count; i++)
+            _lastHitInstanceIDs.Add(_damageResults[i].GetInstanceID());
+        _lastTickCenter = center;
+        _lastTickRadius = radius;
+        _hasLastTick = true;
+#endif
+
+        for (int i = 0; i < _damageResults.Count; i++)
         {
-            var enemy = hit.GetComponent<EnemyBase>();
-            if (enemy != null)
-            {
-                enemy.TakeDamage(Mathf.RoundToInt(ld.damage * _playerStats.DamageMultiplier));
-            }
+            _damageResults[i].TakeDamage(Mathf.RoundToInt(ld.damage * _playerStats.DamageMultiplier));
         }
     }
 
@@ -219,6 +315,129 @@ public abstract class AreaWeapon : WeaponBase
     private void OnDestroy()
     {
         DestroyAreaEffect();
+    }
+
+#if UNITY_EDITOR
+    // ── Debug: track last tick results for Gizmo comparison ──
+    private static readonly HashSet<int> _lastHitInstanceIDs = new HashSet<int>();
+    private Vector2 _lastTickCenter;
+    private float _lastTickRadius;
+    private bool _hasLastTick;
+
+    private void OnDrawGizmos()
+    {
+        if (!Application.isPlaying) return;
+
+        // Always draw damage circle if zone exists
+        if (_currentArea != null)
+        {
+            var center = (Vector2)_currentArea.transform.position;
+            float r = GetDamageRadius();
+            DrawCircleGizmo(center, r, new Color(1f, 0.3f, 0.3f, 0.8f), 2f);
+
+            // White thin circle = raw _areaRadius (no buffer)
+            DrawCircleGizmo(center, _areaRadius, new Color(1f, 1f, 1f, 0.3f), 1f);
+        }
+
+        if (!_hasLastTick) return;
+
+        // Brute-force scan: find ALL active enemies within the last tick radius
+        var bruteForce = new HashSet<int>();
+        float radiusSq = _lastTickRadius * _lastTickRadius;
+        foreach (var e in EnemyBase.ActiveEnemies)
+        {
+            if (e == null) continue;
+            if ((_lastTickCenter - (Vector2)e.transform.position).sqrMagnitude <= radiusSq)
+                bruteForce.Add(e.GetInstanceID());
+        }
+
+        // Missed enemies: in brute-force but NOT in last SpatialGrid result
+        var missed = new List<EnemyBase>();
+        foreach (var e in EnemyBase.ActiveEnemies)
+        {
+            if (e == null) continue;
+            if (bruteForce.Contains(e.GetInstanceID()) && !_lastHitInstanceIDs.Contains(e.GetInstanceID()))
+                missed.Add(e);
+        }
+
+        // Log missed enemies for diagnosis (disabled — bug fixed)
+        // if (missed.Count > 0)
+        // {
+        //     foreach (var e in missed)
+        //     {
+        //         SpatialGrid.CellCoord(e.transform.position, out int actualCx, out int actualCy);
+        //         long expectedKey = SpatialGrid.CellKey(actualCx, actualCy);
+        //         long registeredKey = e.LastCellKey;
+        //         bool isRegistered = SpatialGrid.IsRegistered(e);
+        //         UnityEngine.Debug.LogWarning(
+        //             $"[AreaWeapon] MISSED enemy '{e.name}' pos={e.transform.position:F2} " +
+        //             $"registeredCell={registeredKey} expectedCell={expectedKey} " +
+        //             $"isRegistered={isRegistered} " +
+        //             $"center={_lastTickCenter:F2} radius={_lastTickRadius:F2}");
+        //     }
+        // }
+
+        // Draw missed enemies as bright magenta spheres with connecting line to center
+        if (missed.Count > 0)
+        {
+            Gizmos.color = new Color(1f, 0f, 1f, 1f); // bright magenta
+            foreach (var e in missed)
+            {
+                Gizmos.DrawSphere(e.transform.position, 0.35f);
+                Gizmos.DrawLine(_lastTickCenter, e.transform.position);
+            }
+        }
+
+        // Draw SpatialGrid scanned cells (from last query)
+        SpatialGrid.DrawDebugGizmos();
+
+        // HUD text: show hit count vs brute-force count
+        var style = new GUIStyle();
+        style.richText = true;
+        style.fontSize = 14;
+        style.normal.textColor = Color.white;
+        UnityEditor.Handles.Label(
+            _lastTickCenter + Vector2.up * (_lastTickRadius + 0.5f),
+            $"<color=red>Grid:{_lastHitInstanceIDs.Count}</color> / <color=cyan>Brute:{bruteForce.Count}</color> / <color=magenta>Missed:{missed.Count}</color>",
+            style
+        );
+    }
+
+    private static void DrawCircleGizmo(Vector2 center, float radius, Color color, float lineWidth = 1f)
+    {
+        Gizmos.color = color;
+        const int seg = 48;
+        for (int i = 0; i < seg; i++)
+        {
+            float a1 = (i / (float)seg) * Mathf.PI * 2f;
+            float a2 = ((i + 1) / (float)seg) * Mathf.PI * 2f;
+            var p1 = new Vector3(center.x + Mathf.Cos(a1) * radius, center.y + Mathf.Sin(a1) * radius, 0f);
+            var p2 = new Vector3(center.x + Mathf.Cos(a2) * radius, center.y + Mathf.Sin(a2) * radius, 0f);
+            Gizmos.DrawLine(p1, p2);
+        }
+    }
+#endif
+
+    // Cache sprite fill ratios: key = sprite instanceID, value = visibleRadius / boundsRadius
+    private static readonly Dictionary<int, float> _spriteFillCache = new Dictionary<int, float>(4);
+
+    private static Sprite _cachedHealSprite;
+    private static Sprite _cachedDamageSprite;
+
+    private static Sprite GetCachedCircleSprite(bool isHealing)
+    {
+        if (isHealing)
+        {
+            if (_cachedHealSprite == null)
+                _cachedHealSprite = CreateCircleSprite(new Color(1f, 1f, 0.5f, 0.4f));
+            return _cachedHealSprite;
+        }
+        else
+        {
+            if (_cachedDamageSprite == null)
+                _cachedDamageSprite = CreateCircleSprite(new Color(0.3f, 0.6f, 1f, 0.4f));
+            return _cachedDamageSprite;
+        }
     }
 
     private static Sprite CreateCircleSprite(Color color)

@@ -29,6 +29,10 @@ public class EnemyBase : MonoBehaviour
     protected bool _isElite;
     protected float _eliteDamageMultiplier;
 
+    // SpatialGrid integration — stores current cell key for O(1) boundary checks.
+    // Also used as "registered" flag: non-zero means the enemy is in the grid.
+    public long LastCellKey { get; set; }
+
     public EnemyData Data => _data;
     public float CurrentHP => _currentHP;
     public bool IsElite => _isElite;
@@ -51,6 +55,7 @@ public class EnemyBase : MonoBehaviour
     {
         _activeEnemies.Clear();
         _cachedPlayer = null;
+        SpatialGrid.Clear();
     }
 
     protected virtual void Awake()
@@ -70,6 +75,7 @@ public class EnemyBase : MonoBehaviour
         _moveSpeed = data.moveSpeed;
 
         _activeEnemies.Add(this);
+        SpatialGrid.Register(this);
     }
 
     /// <summary>
@@ -146,6 +152,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Die()
     {
         _activeEnemies.Remove(this);
+        SpatialGrid.Unregister(this);
 
         GameEvents.InvokeEnemyDied(this);
 
@@ -164,5 +171,7 @@ public class EnemyBase : MonoBehaviour
     private void OnDisable()
     {
         _activeEnemies.Remove(this);
+        // Unregister is idempotent — safe to call even if Die() already unregistered.
+        SpatialGrid.Unregister(this);
     }
 }
