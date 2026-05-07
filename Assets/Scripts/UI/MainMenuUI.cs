@@ -29,7 +29,19 @@ public class MainMenuUI : MonoBehaviour
     {
         _hudCanvas = GetComponentInParent<Canvas>()?.gameObject;
         BuildUI();
-        Show();
+
+        // Only show the menu if the game is in Menu state.
+        // If the game is already Playing (e.g., auto-start after restart),
+        // skip Show() to avoid setting timeScale=0 and hiding the HUD.
+        if (!GameManager.HasInstance || GameManager.Instance.CurrentState == GameManager.GameState.Menu)
+        {
+            Show();
+        }
+        else
+        {
+            // Immediately hide so it doesn't block the game
+            Hide();
+        }
     }
 
     private void Start()

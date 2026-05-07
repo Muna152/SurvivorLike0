@@ -38,6 +38,11 @@ public class CharacterSelectUI : MonoBehaviour
         {
             var character = GameManager.Instance.PendingAutoStart;
             GameManager.Instance.PendingAutoStart = null;
+
+            // Hide main menu first — it was shown in Awake and disabled HUD / set timeScale=0
+            var mainMenu = FindObjectOfType<MainMenuUI>();
+            if (mainMenu != null) mainMenu.Hide();
+
             GameManager.Instance.StartGame(character);
             Hide();
             return;

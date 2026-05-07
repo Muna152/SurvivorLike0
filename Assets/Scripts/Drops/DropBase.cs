@@ -24,7 +24,6 @@ public class DropBase : MonoBehaviour
 
     private bool _collected;
     private SpriteRenderer _sr;
-    private Rigidbody2D _rb;
     private float _attractSpeed = 15f;
     private float _collectRadius = 0.5f;
     private string _poolKey;
@@ -43,7 +42,6 @@ public class DropBase : MonoBehaviour
     private void Awake()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _rb = GetComponent<Rigidbody2D>();
         // Cache pool key once (DropType enum name is stable, no "(Clone)" issue)
         _poolKey = _type.ToString();
     }

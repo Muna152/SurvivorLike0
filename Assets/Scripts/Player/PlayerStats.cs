@@ -88,6 +88,7 @@ public class PlayerStats : MonoBehaviour
     {
         _currentHP = Mathf.Min(_currentHP + amount, MaxHP);
         _totalHealed += amount;
+        GameEvents.InvokePlayerHealed(amount);
     }
 
     // ── EXP / Level ──────────────────────────────────────────

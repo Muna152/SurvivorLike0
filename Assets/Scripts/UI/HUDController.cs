@@ -27,13 +27,14 @@ public class HUDController : MonoBehaviour
     private PlayerWeaponManager _weaponManager;
 
     // Cached values to detect changes and avoid redundant UI updates
-    private int _lastHPDisplay = -1;
-    private int _lastMaxHPDisplay = -1;
+    private float _lastHPDisplay = -1f;
+    private float _lastMaxHPDisplay = -1f;
     private int _lastLevel = -1;
     private int _lastTimerSec = -1;
 
     // Cached delegates to allow proper unsubscribe
     private System.Action<int> _onDamagedHandler;
+    private System.Action<float> _onHealedHandler;
     private System.Action<int> _onLevelUpHandler;
 
     private void Start()
@@ -47,9 +48,11 @@ public class HUDController : MonoBehaviour
 
         // Create cached delegate instances so unsubscribe works correctly
         _onDamagedHandler = _ => RefreshHP();
+        _onHealedHandler = _ => RefreshHP();
         _onLevelUpHandler = _ => OnLevelUp();
 
         GameEvents.OnPlayerDamaged += _onDamagedHandler;
+        GameEvents.OnPlayerHealed += _onHealedHandler;
         GameEvents.OnPlayerLevelUp += _onLevelUpHandler;
 
         // Initial refresh
@@ -61,6 +64,7 @@ public class HUDController : MonoBehaviour
     private void OnDestroy()
     {
         GameEvents.OnPlayerDamaged -= _onDamagedHandler;
+        GameEvents.OnPlayerHealed -= _onHealedHandler;
         GameEvents.OnPlayerLevelUp -= _onLevelUpHandler;
     }
 
@@ -89,25 +93,32 @@ public class HUDController : MonoBehaviour
             int hp = (int)_stats.CurrentHP;
             int maxHp = (int)_stats.MaxHP;
             _hpText.text = $"HP: {hp}/{maxHp}";
-            _lastHPDisplay = hp;
-            _lastMaxHPDisplay = maxHp;
         }
+
+        _lastHPDisplay = _stats.CurrentHP;
+        _lastMaxHPDisplay = _stats.MaxHP;
     }
 
     private void RefreshHPIfNeeded()
     {
-        if (_stats == null || _hpText == null) return;
+        if (_stats == null) return;
 
-        int hp = (int)_stats.CurrentHP;
-        int maxHp = (int)_stats.MaxHP;
-        if (hp != _lastHPDisplay || maxHp != _lastMaxHPDisplay)
+        float hp = _stats.CurrentHP;
+        float maxHp = _stats.MaxHP;
+        if (Mathf.Approximately(hp, _lastHPDisplay) && Mathf.Approximately(maxHp, _lastMaxHPDisplay))
+            return;
+
+        if (_hpSlider != null)
         {
-            _hpSlider.maxValue = _stats.MaxHP;
-            _hpSlider.value = _stats.CurrentHP;
-            _hpText.text = $"HP: {hp}/{maxHp}";
-            _lastHPDisplay = hp;
-            _lastMaxHPDisplay = maxHp;
+            _hpSlider.maxValue = maxHp;
+            _hpSlider.value = hp;
         }
+
+        if (_hpText != null)
+            _hpText.text = $"HP: {(int)hp}/{(int)maxHp}";
+
+        _lastHPDisplay = hp;
+        _lastMaxHPDisplay = maxHp;
     }
 
     private void RefreshEXP()

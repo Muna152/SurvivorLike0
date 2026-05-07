@@ -11,6 +11,9 @@ public static class GameEvents
     /// <summary>Fire when the player takes damage. Parameter = damage amount.</summary>
     public static event Action<int> OnPlayerDamaged;
 
+    /// <summary>Fire when the player is healed. Parameter = heal amount.</summary>
+    public static event Action<float> OnPlayerHealed;
+
     /// <summary>Fire when the player dies.</summary>
     public static event Action OnPlayerDied;
 
@@ -55,6 +58,7 @@ public static class GameEvents
     // Also makes it easy to add logging / analytics later.
 
     public static void InvokePlayerDamaged(int damage) => OnPlayerDamaged?.Invoke(damage);
+    public static void InvokePlayerHealed(float amount) => OnPlayerHealed?.Invoke(amount);
     public static void InvokePlayerDied() => OnPlayerDied?.Invoke();
     public static void InvokePlayerLevelUp(int newLevel) => OnPlayerLevelUp?.Invoke(newLevel);
     public static void InvokeEnemyDied(EnemyBase enemy) => OnEnemyDied?.Invoke(enemy);
@@ -73,6 +77,7 @@ public static class GameEvents
     public static void ClearAll()
     {
         OnPlayerDamaged = null;
+        OnPlayerHealed = null;
         OnPlayerDied = null;
         OnPlayerLevelUp = null;
         OnEnemyDied = null;

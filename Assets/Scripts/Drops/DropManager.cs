@@ -1,7 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Singleton drop manager: spawns drops when enemies die.
+/// Singleton drop manager: queues drop requests and spawns them
+/// over multiple frames to avoid mass-instantiation spikes.
+/// Nearby EXP/Gold drops are merged to reduce total object count.
 /// </summary>
 public class DropManager : Singleton<DropManager>
 {
@@ -14,9 +18,29 @@ public class DropManager : Singleton<DropManager>
     [Range(0f, 1f)] [SerializeField] private float _expGemChance = 0.8f;
     [Range(0f, 1f)] [SerializeField] private float _healthChance = 0.05f;
 
+    [Header("Performance")]
+    [SerializeField] private int _maxSpawnsPerFrame = 6;
+    [SerializeField] private float _mergeRadius = 2.5f;
+
+    private struct PendingDrop
+    {
+        public DropBase.DropType Type;
+        public Vector2 Position;
+        public int Value;
+    }
+
+    private readonly List<PendingDrop> _pending = new List<PendingDrop>(64);
+
     protected override void Awake()
     {
         base.Awake();
+        RegisterDropPools();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        _pending.Clear();
         RegisterDropPools();
     }
 
@@ -45,41 +69,94 @@ public class DropManager : Singleton<DropManager>
         );
     }
 
-    /// <summary>Spawn drops at the given position.</summary>
+    /// <summary>Queue drops at the given position. Merges nearby EXP/Gold requests.</summary>
     public void SpawnDrops(Vector2 position, int expValue, int goldValue)
     {
-        // Small random offset
         Vector2 offset = Random.insideUnitCircle * 0.5f;
         Vector2 spawnPos = position + offset;
 
-        // EXP gem
+        // EXP gem — merge with nearby pending gem
         if (_expGemPrefab != null && Random.value <= _expGemChance)
         {
-            var gem = SpawnDrop(_expGemPrefab, spawnPos, "ExpGem");
-            if (gem != null) gem.SetValue(expValue);
+            EnqueueOrMerge(DropBase.DropType.ExpGem, spawnPos, expValue);
         }
 
-        // Health
+        // Health — rare, no merging needed
         if (_healthPrefab != null && Random.value <= _healthChance)
         {
-            var health = SpawnDrop(_healthPrefab, spawnPos + Random.insideUnitCircle * 0.3f, "Health");
-            if (health != null) health.SetValue(30);
+            _pending.Add(new PendingDrop
+            {
+                Type = DropBase.DropType.Health,
+                Position = spawnPos + Random.insideUnitCircle * 0.3f,
+                Value = 30
+            });
         }
 
-        // Gold coin (always)
+        // Gold coin — merge with nearby pending gold
         if (_goldCoinPrefab != null && goldValue > 0)
         {
-            var coin = SpawnDrop(_goldCoinPrefab, spawnPos + Random.insideUnitCircle * 0.3f, "Gold");
-            if (coin != null) coin.SetValue(goldValue);
+            EnqueueOrMerge(DropBase.DropType.Gold, spawnPos + Random.insideUnitCircle * 0.3f, goldValue);
         }
     }
 
-    private DropBase SpawnDrop(GameObject prefab, Vector2 pos, string poolKey)
+    private void EnqueueOrMerge(DropBase.DropType type, Vector2 pos, int value)
     {
-        var dropObj = PoolManager.Instance.Get<DropBase>(poolKey);
-        if (dropObj == null) return null;
+        float mergeSq = _mergeRadius * _mergeRadius;
 
-        dropObj.transform.position = pos;
-        return dropObj;
+        for (int i = 0; i < _pending.Count; i++)
+        {
+            if (_pending[i].Type != type) continue;
+
+            float distSq = (pos - _pending[i].Position).sqrMagnitude;
+            if (distSq <= mergeSq)
+            {
+                // Merge: accumulate value, keep the earlier position
+                _pending[i] = new PendingDrop
+                {
+                    Type = type,
+                    Position = _pending[i].Position,
+                    Value = _pending[i].Value + value
+                };
+                return;
+            }
+        }
+
+        // No merge candidate — add new request
+        _pending.Add(new PendingDrop
+        {
+            Type = type,
+            Position = pos,
+            Value = value
+        });
+    }
+
+    private void Update()
+    {
+        if (_pending.Count == 0) return;
+
+        int spawned = 0;
+        int startIdx = 0;
+
+        while (startIdx < _pending.Count && spawned < _maxSpawnsPerFrame)
+        {
+            PendingDrop drop = _pending[startIdx];
+
+            string poolKey = drop.Type.ToString();
+            var dropObj = PoolManager.Instance.Get<DropBase>(poolKey);
+            if (dropObj != null)
+            {
+                dropObj.transform.position = drop.Position;
+                dropObj.SetValue(drop.Value);
+            }
+
+            // Remove by swapping with last (O(1) removal)
+            int lastIdx = _pending.Count - 1;
+            if (startIdx != lastIdx)
+                _pending[startIdx] = _pending[lastIdx];
+            _pending.RemoveAt(lastIdx);
+
+            // Don't increment startIdx — we swapped a new element into startIdx
+            spawned++;
+        }
     }
 }

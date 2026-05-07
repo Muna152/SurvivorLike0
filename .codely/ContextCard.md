@@ -40,11 +40,11 @@
 ## Systems
 - ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
-- ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage
+- ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage; Bat moveSpeed=2.2
 - ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI, EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
-- ✅ Drops: EXP/Gold/Health, vacuum mechanic, DropManager
-- ✅ UI: HUD (HP/EXP/timer/weapon bar), result screen, UpgradeUI, BossHealthBar (event-driven, top of screen)
+- ✅ Drops: EXP/Gold/Health, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge within 2.5f radius, scene-reload safe)
+- ✅ UI: HUD (HP/EXP/timer/weapon bar, float-based HP change detection, OnPlayerHealed event), result screen, UpgradeUI, BossHealthBar (event-driven, top of screen)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
 - ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ per-slot PlayerPrefs
@@ -127,8 +127,13 @@
 - WeaponEvolutionVFX._particleCount unused (CS0414 warning, cosmetic only)
 - MainMenuUI not serialized in scene; HUDController.Start() auto-creates it via AddComponent if missing
 - BossEnemy.OnDisable hides EnemyBase.OnDisable (both do ActiveEnemies.Remove + SpatialGrid.Unregister; idempotent)
+- HUD Canvas: 7 "referenced script missing" errors (pre-existing)
+- BossHealthBar font: Arial.ttf invalid, needs LegacyRuntime.ttf (pre-existing)
 
 ## Pitfalls
 - GameEvents.ClearAll() in StartGame() wiped UpgradeManager/HUDController/ResultScreen event subscriptions → removed, scene reload handles cleanup
 - DontDestroyOnLoad singletons survive SceneManager.LoadScene → must reset state via ReturnToMenu() before reload
 - PlayerStats.Awake/PlayerWeaponManager.Start run before character selection → GameManager.StartGame() must explicitly call InitializeFromCharacterData() and EquipStartingWeapon()
+- MainMenuUI.Awake() must check GameManager.CurrentState — if already Playing (auto-start after restart), skip Show() to avoid timeScale=0 / HUD hidden
+- DropManager (DontDestroyOnLoad) must re-register pools + clear _pending on sceneLoaded, since Awake() only runs once
+- Heal() must fire OnPlayerHealed event; HUDController.RefreshHPIfNeeded() must use float comparison (not int cast) to catch fractional HP changes
