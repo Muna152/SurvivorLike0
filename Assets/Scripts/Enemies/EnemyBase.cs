@@ -21,9 +21,9 @@ public class EnemyBase : MonoBehaviour
     protected SpriteRenderer _sr;
 
     // Hit flash state (timer instead of coroutine to avoid GC)
-    private float _flashTimer;
-    private Color _originalColor;
-    private bool _flashing;
+    protected float _flashTimer;
+    protected Color _originalColor;
+    protected bool _flashing;
 
     // Elite enemy state
     protected bool _isElite;

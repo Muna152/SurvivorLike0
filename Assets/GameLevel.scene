@@ -1039,6 +1039,7 @@ GameObject:
   - component: {fileID: 352724178}
   - component: {fileID: 352724177}
   - component: {fileID: 352724179}
+  - component: {fileID: 352724180}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: HUD Canvas
@@ -1200,6 +1201,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69a19dbb1499cbe4eaec3afd577a7893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &352724180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 352724171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccf8b3addd2553348ab1614b469db4e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &434069888
@@ -2842,6 +2855,10 @@ MonoBehaviour:
   _maxSpawnDistance: 25
   _maxEnemiesOnScreen: 500
   _eliteWaveInterval: 300
+  _skeletonKingData: {fileID: 11400000, guid: dc92a9bf144c22c418f473aa6230970c, type: 2}
+  _darkLordData: {fileID: 11400000, guid: f28710602235c5d41bf4b3461bd86a57, type: 2}
+  _deathBossData: {fileID: 11400000, guid: e59eebca8c484f0448878e76fa355fa3, type: 2}
+  _bossSpawnDistance: 18
 --- !u!4 &1408426986
 Transform:
   m_ObjectHideFlags: 0
@@ -3700,7 +3717,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 460, y: 27.600006}
+  m_AnchoredPosition: {x: 460, y: 27.600037}
   m_SizeDelta: {x: 100, y: 24}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!1 &1870871892

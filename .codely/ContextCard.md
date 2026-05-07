@@ -25,11 +25,13 @@
 - ObjectPool<T> w/ prewarm & HashSet tracking
 - GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, etc.)
 - WeaponBase abstract → Projectile|Orbital|Area|Auxiliary
+- BossEnemy abstract → ExecuteAttack, OnPhaseChanged; Destroy-on-death (not pooled)
 - Factory: WeaponData.WeaponType → component creation
 
 ## Interfaces
 - WeaponBase: cooldown, auto-attack, level stats
 - EnemyBase: chase, takeDamage, die→spawn drops
+- BossEnemy: multi-phase (HP thresholds), abstract ExecuteAttack, unkillable option, health bar events
 - DropBase: vacuum after 2.5s, collect on contact
 - UpgradeOption: Evolution|WeaponUpgrade|NewWeapon|Passive
 - IWeightedRandom: weighted selection for drops/spawns
@@ -39,9 +41,10 @@
 - ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
 - ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage
+- ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI, EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health, vacuum mechanic, DropManager
-- ✅ UI: HUD (HP/EXP/timer/weapon bar), result screen, UpgradeUI
+- ✅ UI: HUD (HP/EXP/timer/weapon bar), result screen, UpgradeUI, BossHealthBar (event-driven, top of screen)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
 - ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ per-slot PlayerPrefs
@@ -55,7 +58,7 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 12/52 (T3.1+T3.A done, T3.4.1/T4.1.1 partial)
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3-4: 18/52 (T3.1+T3.A+T3.2 done, T3.4.1/T4.1.1 partial)
 - Game flow: MainMenuUI → 创建/选择存档 → CharacterSelectUI → StartGame(character) → Playing → GameOver → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
@@ -75,6 +78,19 @@
   - T3.A.4 UI: MenuBackground.png(透明), CharacterCardFrame.png, BossBarFrame.png → Art/Sprites/UI/
   - 所有 Sprite 从 TJGenerators/History 整理到 Assets/Art/Sprites/ 对应子目录
   - 旧 Assets/Sprites/ 目录已清理，统一使用 Assets/Art/Sprites/ 结构
+- T3.2 BOSS 系统: 6/6 ✅
+  - BossEnemy: 抽象基类 (EnemyBase), 多阶段系统, 血条事件集成, 增强掉落, Destroy-on-death (非池化)
+  - SkeletonKing: 10分钟, HP=500, 召唤骷髅群 + 震击攻击, 50%血量阶段转换
+  - DarkLord: 20分钟, HP=2000, 扇形弹幕 + 环形弹幕 + 传送 + 召唤精英, 两阶段转换
+  - DeathBoss: 30分钟, HP=5000, 追踪弹幕 + 扩散攻击, 不可击杀 (_isUnkillable), 存活到时间结束
+  - BossProjectile: 通用弹幕组件 (damage/speed/direction/pierce)
+  - BossShockwave: 扩展AoE震击环 (expandSpeed/maxRadius/damage)
+  - BossHealthBar: 编程式构建, 事件驱动 (OnBossSpawned/Died/HealthChanged), 顶部显示
+  - GameEvents: +OnBossSpawned, OnBossDied, OnBossHealthChanged
+  - EnemySpawner: +CheckBossSpawns (10/20/30分钟), SpawnBoss, ResetBossFlags
+  - EnemyBase: _originalColor/_flashTimer/_flashing 改为 protected (子类访问)
+  - GameManager.StartGame(): 重置 spawner.ResetBossFlags()
+  - 资产: Data/Bosses/*.asset, Prefabs/Bosses/*.prefab
 - T3.4.1 主菜单界面: ✅ (partial)
   - MainMenuUI: 编程式构建，"开始游戏"/"退出游戏"按钮，左上角"存档管理"按钮
   - MainMenuUI 显示时隐藏 HUD 元素，切换到角色选择时恢复
@@ -110,6 +126,7 @@
 ## Known Issues
 - WeaponEvolutionVFX._particleCount unused (CS0414 warning, cosmetic only)
 - MainMenuUI not serialized in scene; HUDController.Start() auto-creates it via AddComponent if missing
+- BossEnemy.OnDisable hides EnemyBase.OnDisable (both do ActiveEnemies.Remove + SpatialGrid.Unregister; idempotent)
 
 ## Pitfalls
 - GameEvents.ClearAll() in StartGame() wiped UpgradeManager/HUDController/ResultScreen event subscriptions → removed, scene reload handles cleanup

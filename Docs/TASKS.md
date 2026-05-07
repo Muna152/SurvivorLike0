@@ -644,39 +644,39 @@
 ### T3.2 BOSS 系统
 
 #### T3.2.1 实现 BossEnemy 基类
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1
 - **产物**: `Scripts/Enemies/BossEnemy.cs`
 - **验收**: 编译通过；BOSS行为（多阶段、特殊攻击模式、血条显示）
 
 #### T3.2.2 创建骷髅王 BOSS
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T3.2.1, T3.A.1
-- **产物**: `Data/Enemies/SkeletonKing.asset`, `Prefabs/Enemies/SkeletonKing.prefab`
+- **产物**: `Data/Bosses/SkeletonKing.asset`, `Prefabs/Bosses/SkeletonKing.prefab`, `Scripts/Enemies/SkeletonKing.cs`
 - **验收**: 10分钟出现；HP=500；召唤骷髅群 + 范围震击攻击
 
 #### T3.2.3 创建暗夜领主 BOSS
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T3.2.1, T3.A.1
-- **产物**: `Data/Enemies/DarkLord.asset`, `Prefabs/Enemies/DarkLord.prefab`
+- **产物**: `Data/Bosses/DarkLord.asset`, `Prefabs/Bosses/DarkLord.prefab`, `Scripts/Enemies/DarkLord.cs`
 - **验收**: 20分钟出现；HP=2000；全屏弹幕 + 传送 + 召唤精英
 
 #### T3.2.4 创建死神 BOSS
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T3.2.1, T3.A.1
-- **产物**: `Data/Enemies/Death.asset`, `Prefabs/Enemies/Death.prefab`
-- **验收**: 30分钟出现；HP=5000；一击必杀线 + 追踪光束；不可被击杀（存活到时间结束）
+- **产物**: `Data/Bosses/DeathBoss.asset`, `Prefabs/Bosses/DeathBoss.prefab`, `Scripts/Enemies/DeathBoss.cs`
+- **验收**: 30分钟出现；HP=5000；追踪弹幕 + 扩散攻击；不可被击杀（存活到时间结束）
 
 #### T3.2.5 实现 BOSS 血条 UI
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T3.2.1
 - **产物**: `Scripts/UI/BossHealthBar.cs`
 - **验收**: BOSS出现时屏幕顶部显示血条；HP实时更新
 
 #### T3.2.6 更新 EnemySpawner 定时生成 BOSS
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T3.2.2, T3.2.3, T3.2.4, T1.4.2
-- **产物**: 更新 `Scripts/Enemies/EnemySpawner.cs`
+- **产物**: 更新 `Scripts/Enemies/EnemySpawner.cs`, `Scripts/Enemies/BossProjectile.cs`, `Scripts/Enemies/BossShockwave.cs`
 - **验收**: 10/20/30分钟自动生成对应 BOSS
 
 ### T3.A 美术资产生成（Phase 3）

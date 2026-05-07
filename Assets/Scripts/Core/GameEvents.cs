@@ -36,6 +36,16 @@ public static class GameEvents
     /// <summary>Fire when a weapon evolves. Parameter = the evolved weapon.</summary>
     public static event Action<WeaponBase> OnWeaponEvolved;
 
+    // ── Boss Events ────────────────────────────────────────────
+    /// <summary>Fire when a boss spawns. Parameter = the boss that spawned.</summary>
+    public static event Action<BossEnemy> OnBossSpawned;
+
+    /// <summary>Fire when a boss dies. Parameter = the boss that died.</summary>
+    public static event Action<BossEnemy> OnBossDied;
+
+    /// <summary>Fire when a boss takes damage (for health bar). Parameter = the boss.</summary>
+    public static event Action<BossEnemy> OnBossHealthChanged;
+
     // ── Unlock Events ──────────────────────────────────────────
     /// <summary>Fire when a character is unlocked. Parameter = character id.</summary>
     public static event Action<string> OnCharacterUnlocked;
@@ -52,6 +62,9 @@ public static class GameEvents
     public static void InvokeDropCollected(DropBase drop) => OnDropCollected?.Invoke(drop);
     public static void InvokeDifficultyChanged(int minute) => OnDifficultyChanged?.Invoke(minute);
     public static void InvokeWeaponEvolved(WeaponBase weapon) => OnWeaponEvolved?.Invoke(weapon);
+    public static void InvokeBossSpawned(BossEnemy boss) => OnBossSpawned?.Invoke(boss);
+    public static void InvokeBossDied(BossEnemy boss) => OnBossDied?.Invoke(boss);
+    public static void InvokeBossHealthChanged(BossEnemy boss) => OnBossHealthChanged?.Invoke(boss);
     public static void InvokeCharacterUnlocked(string characterId) => OnCharacterUnlocked?.Invoke(characterId);
 
     /// <summary>
@@ -67,6 +80,9 @@ public static class GameEvents
         OnDropCollected = null;
         OnDifficultyChanged = null;
         OnWeaponEvolved = null;
+        OnBossSpawned = null;
+        OnBossDied = null;
+        OnBossHealthChanged = null;
         OnCharacterUnlocked = null;
     }
 }

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e495c675233624540830e42afaec208f, type: 3}
+  m_Name: DeathBoss
+  m_EditorClassIdentifier: 
+  enemyName: DeathBoss
+  prefab: {fileID: 2267065534214919610, guid: 99de6048ca7c60146bb270d099c198ea, type: 3}
+  icon: {fileID: 21300000, guid: e149ee81566d32d43ae23a2ed08f11a1, type: 3}
+  baseHP: 5000
+  moveSpeed: 2
+  damage: 5
+  expValue: 0
+  goldValue: 0
+  spawnWeight: 0
+  minSpawnTime: 1800

@@ -30,5 +30,5 @@ MonoBehaviour:
   specialPassiveId: 
   unlockCondition:
     type: 0
-    threshold: 600
+    threshold: 60
   isDefaultUnlocked: 0

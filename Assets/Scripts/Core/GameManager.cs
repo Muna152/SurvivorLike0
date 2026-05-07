@@ -59,6 +59,10 @@ public class GameManager : Singleton<GameManager>
         if (DifficultyManager.HasInstance)
             DifficultyManager.Instance.ResetDifficulty();
 
+        // Reset boss spawn flags for new run
+        var spawner = FindObjectOfType<EnemySpawner>();
+        if (spawner != null) spawner.ResetBossFlags();
+
         // Activate the player if they were disabled during menu
         var player = FindObjectOfType<PlayerController>();
         if (player != null && !player.gameObject.activeSelf)

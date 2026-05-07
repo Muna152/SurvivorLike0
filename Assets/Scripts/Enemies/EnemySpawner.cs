@@ -3,6 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Spawns enemy waves around the player at configurable intervals.
+/// Also spawns bosses at timed intervals (10/20/30 minutes).
 /// </summary>
 public class EnemySpawner : MonoBehaviour
 {
@@ -13,12 +14,23 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private int _maxEnemiesOnScreen = 500;
     [SerializeField] private float _eliteWaveInterval = 300f; // 5 minutes in seconds
 
+    [Header("Boss Spawning")]
+    [SerializeField] private EnemyData _skeletonKingData;
+    [SerializeField] private EnemyData _darkLordData;
+    [SerializeField] private EnemyData _deathBossData;
+    [SerializeField] private float _bossSpawnDistance = 18f;
+
     private float _spawnTimer;
     private float _eliteWaveTimer;
     private PlayerController _player;
     private bool _poolsRegistered;
     private readonly List<WeightedRandom.WeightedItem<EnemyData>> _availableBuffer
         = new List<WeightedRandom.WeightedItem<EnemyData>>();
+
+    // Boss tracking — each boss spawns only once per run
+    private bool _skeletonKingSpawned;
+    private bool _darkLordSpawned;
+    private bool _deathBossSpawned;
 
     private void Awake()
     {
@@ -59,6 +71,65 @@ public class EnemySpawner : MonoBehaviour
             SpawnEliteWave();
             _eliteWaveTimer = _eliteWaveInterval;
         }
+
+        // Boss spawn checks
+        CheckBossSpawns();
+    }
+
+    private void CheckBossSpawns()
+    {
+        float minutes = GameManager.Instance != null ? GameManager.Instance.ElapsedTime / 60f : 0f;
+
+        // 10 min — Skeleton King
+        if (!_skeletonKingSpawned && minutes >= 10f && _skeletonKingData != null)
+        {
+            SpawnBoss(_skeletonKingData);
+            _skeletonKingSpawned = true;
+        }
+
+        // 20 min — Dark Lord
+        if (!_darkLordSpawned && minutes >= 20f && _darkLordData != null)
+        {
+            SpawnBoss(_darkLordData);
+            _darkLordSpawned = true;
+        }
+
+        // 30 min — Death
+        if (!_deathBossSpawned && minutes >= 30f && _deathBossData != null)
+        {
+            SpawnBoss(_deathBossData);
+            _deathBossSpawned = true;
+        }
+    }
+
+    /// <summary>Spawn a boss at a fixed distance from the player. Bosses are instantiated (not pooled).</summary>
+    private void SpawnBoss(EnemyData bossData)
+    {
+        if (bossData.prefab == null || _player == null) return;
+
+        Vector2 playerPos = (Vector2)_player.transform.position;
+        float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        Vector2 spawnPos = playerPos + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * _bossSpawnDistance;
+
+        GameObject bossObj = Instantiate(bossData.prefab, spawnPos, Quaternion.identity);
+        var boss = bossObj.GetComponent<BossEnemy>();
+        if (boss != null)
+        {
+            boss.Initialize(bossData);
+            Debug.Log($"[EnemySpawner] Boss spawned: {bossData.enemyName} at {spawnPos}");
+        }
+        else
+        {
+            Debug.LogWarning($"[EnemySpawner] Boss prefab missing BossEnemy component: {bossData.enemyName}");
+        }
+    }
+
+    /// <summary>Reset boss spawn flags for a new game run.</summary>
+    public void ResetBossFlags()
+    {
+        _skeletonKingSpawned = false;
+        _darkLordSpawned = false;
+        _deathBossSpawned = false;
     }
 
     private void RegisterEnemyPools()
