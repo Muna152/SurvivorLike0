@@ -56,12 +56,13 @@ public class ProjectileWeapon : WeaponBase
         Vector2 baseDir = ((Vector2)nearest.transform.position - _playerPosition).normalized;
 
         // Fan spread
-        float totalAngle = count > 1 ? 30f * (count - 1) : 0f;
+        float spread = _data.spreadAngle;
+        float totalAngle = count > 1 ? spread * (count - 1) : 0f;
         float startAngle = -totalAngle / 2f;
 
         for (int i = 0; i < count; i++)
         {
-            float angle = count > 1 ? startAngle + (30f * i) : 0f;
+            float angle = count > 1 ? startAngle + (spread * i) : 0f;
             var dir = RotateVector(baseDir, angle);
 
             var projObj = PoolManager.Instance.Get<Projectile>(_data.projectilePrefab.name);

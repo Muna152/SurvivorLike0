@@ -38,7 +38,7 @@ public class Projectile : MonoBehaviour
         _damageMultiplier = damageMultiplier;
 
         transform.position = origin;
-        transform.right = _direction;
+        transform.up = _direction;
 
         // Reset velocity for Dynamic RB (pooled objects may carry stale forces)
         if (_rb != null)

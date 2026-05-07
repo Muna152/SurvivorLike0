@@ -24,12 +24,13 @@
 - Static utility: SaveSlotManager (no MonoBehaviour, pure PlayerPrefs)
 - ObjectPool<T> w/ prewarm & HashSet tracking
 - GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, etc.)
-- WeaponBase abstract → Projectile|Orbital|Area|Auxiliary
+- WeaponBase abstract → Projectile|Orbital|Area|Auxiliary; WeaponData.spreadAngle drives fan spacing
 - BossEnemy abstract → ExecuteAttack, OnPhaseChanged; Destroy-on-death (not pooled)
 - Factory: WeaponData.WeaponType → component creation
 
 ## Interfaces
-- WeaponBase: cooldown, auto-attack, level stats
+- WeaponBase: cooldown, auto-attack, level stats; spreadAngle (per-weapon fan degree)
+- Projectile: transform.up=_direction (blade tip forward for swords/daggers)
 - EnemyBase: chase, takeDamage, die→spawn drops
 - BossEnemy: multi-phase (HP thresholds), abstract ExecuteAttack, unkillable option, health bar events
 - DropBase: vacuum after 2.5s, collect on contact

@@ -16,6 +16,10 @@ public class WeaponData : ScriptableObject
     public Sprite icon;
     public GameObject projectilePrefab;
 
+    [Header("Projectile Settings")]
+    [Tooltip("Angle in degrees between each projectile in a fan spread.")]
+    public float spreadAngle = 30f;
+
     [Header("Level Data")]
     public int maxLevel = 8;
     public LevelData[] levelData;

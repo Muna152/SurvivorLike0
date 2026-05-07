@@ -15,6 +15,7 @@ MonoBehaviour:
   weaponName: Flying Sword
   description: Auto-aims at nearest enemy. High single-target damage with piercing.
   weaponType: 0
+  spreadAngle: 15
   icon: {fileID: 21300000, guid: 11e22fc14f429264e98e110ffdeab00b, type: 3}
   projectilePrefab: {fileID: 269830798354925926, guid: 51a19a18638dbe84e9419ef3afc60dbe, type: 3}
   maxLevel: 8
