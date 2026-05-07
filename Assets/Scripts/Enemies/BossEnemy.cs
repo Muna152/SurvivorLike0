@@ -103,7 +103,8 @@ public abstract class BossEnemy : EnemyBase
             DropManager.Instance.SpawnDrops(
                 transform.position,
                 _data.expValue * _expMultiplier,
-                _data.goldValue * _goldMultiplier);
+                _data.goldValue * _goldMultiplier,
+                false, true);
         }
 
         Destroy(gameObject);

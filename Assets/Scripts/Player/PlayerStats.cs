@@ -28,6 +28,11 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private float _totalHealed;
     [SerializeField] private int _eliteKillCount;
 
+    // Magnet buff state
+    private float _magnetBuffTimer;
+    private float _magnetBuffBonus;
+    private float _basePickupRange;
+
     // Passive tracking: PassiveData → current level (1-based, 0 = not owned)
     private readonly Dictionary<PassiveData, int> _passiveLevels = new Dictionary<PassiveData, int>();
 
@@ -181,17 +186,40 @@ public class PlayerStats : MonoBehaviour
             _passiveLevels.Remove(passive);
     }
 
-    // ── Regen ─────────────────────────────────────────────────
+    public void ApplyMagnetEffect(float duration, float pickupBoost)
+    {
+        if (_magnetBuffTimer <= 0f)
+        {
+            _basePickupRange = PickupRange;
+            PickupRange += pickupBoost;
+        }
+        _magnetBuffBonus = pickupBoost;
+        _magnetBuffTimer = duration;
+    }
+
+    // ── Regen / Buffs ─────────────────────────────────────────
 
     private void Update()
     {
-        if (Regen <= 0f) return;
-
-        _nextRegenTick -= Time.deltaTime;
-        if (_nextRegenTick <= 0f)
+        if (Regen > 0f)
         {
-            Heal(Regen);
-            _nextRegenTick = 1f;
+            _nextRegenTick -= Time.deltaTime;
+            if (_nextRegenTick <= 0f)
+            {
+                Heal(Regen);
+                _nextRegenTick = 1f;
+            }
+        }
+
+        // Magnet buff countdown
+        if (_magnetBuffTimer > 0f)
+        {
+            _magnetBuffTimer -= Time.deltaTime;
+            if (_magnetBuffTimer <= 0f)
+            {
+                PickupRange = _basePickupRange;
+                _magnetBuffBonus = 0f;
+            }
         }
     }
 }

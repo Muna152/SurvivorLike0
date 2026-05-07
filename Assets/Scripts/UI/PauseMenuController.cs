@@ -103,6 +103,13 @@ public class PauseMenuController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
+    private void ShowCodex()
+    {
+        var codex = FindObjectOfType<CodexUI>();
+        if (codex != null)
+            codex.Show();
+    }
+
     // ── Data Loading ────────────────────────────────────────────
 
     private void LoadAllDataAssets()
@@ -199,6 +206,17 @@ public class PauseMenuController : MonoBehaviour
         menuColors.pressedColor = new Color(0.4f, 0.1f, 0.1f);
         menuBtn.colors = menuColors;
         menuBtn.onClick.AddListener(ReturnToMenu);
+
+        // Codex button
+        var codexBtn = CreateButton(panelObj.transform, "CodexBtn", "📖 图鉴",
+            new Vector2(0.3f, 0.92f), new Vector2(0.7f, 0.97f));
+        var codexImg = codexBtn.GetComponent<Image>();
+        if (codexImg != null) codexImg.color = new Color(0.3f, 0.3f, 0.55f, 0.9f);
+        var codexColors = codexBtn.colors;
+        codexColors.highlightedColor = new Color(0.4f, 0.4f, 0.7f);
+        codexColors.pressedColor = new Color(0.2f, 0.2f, 0.4f);
+        codexBtn.colors = codexColors;
+        codexBtn.onClick.AddListener(ShowCodex);
 
         // Weapon section header + count
         CreateLabel(panelObj.transform, "WeaponHeader", "── 武器 ──", 24, new Color(1f, 0.85f, 0.3f),

@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Game over / victory result screen.
+/// Enhanced game over / victory result screen with detailed statistics.
 /// Uses CanvasGroup so the panel stays active (Start() always runs) while being invisible.
 /// </summary>
 public class ResultScreen : MonoBehaviour
@@ -12,6 +12,10 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private Text _timeText;
     [SerializeField] private Text _killsText;
     [SerializeField] private Text _goldText;
+    [SerializeField] private Text _levelText;
+    [SerializeField] private Text _eliteKillsText;
+    [SerializeField] private Text _healedText;
+    [SerializeField] private Text _characterText;
     [SerializeField] private Text _unlockText;
     [SerializeField] private Button _retryButton;
     [SerializeField] private Button _menuButton;
@@ -60,7 +64,7 @@ public class ResultScreen : MonoBehaviour
         Time.timeScale = 0f;
 
         if (_titleText != null)
-            _titleText.text = victory ? "VICTORY!" : "GAME OVER";
+            _titleText.text = victory ? "🎉 VICTORY!" : "💀 GAME OVER";
 
         var gm = GameManager.Instance;
         var stats = FindObjectOfType<PlayerStats>();
@@ -69,14 +73,26 @@ public class ResultScreen : MonoBehaviour
         {
             int min = (int)(gm.ElapsedTime / 60f);
             int sec = (int)(gm.ElapsedTime % 60f);
-            _timeText.text = $"Time: {min:D2}:{sec:D2}";
+            _timeText.text = $"⏱ 存活时间: {min:D2}:{sec:D2}";
         }
 
         if (_killsText != null && stats != null)
-            _killsText.text = $"Kills: {stats.KillCount}";
+            _killsText.text = $"⚔ 击杀数: {stats.KillCount}";
 
         if (_goldText != null && stats != null)
-            _goldText.text = $"Gold: {stats.Gold}";
+            _goldText.text = $"💰 金币: {stats.Gold}";
+
+        if (_levelText != null && stats != null)
+            _levelText.text = $"📊 等级: Lv.{stats.Level}";
+
+        if (_eliteKillsText != null && stats != null)
+            _eliteKillsText.text = $"👹 精英击杀: {stats.EliteKillCount}";
+
+        if (_healedText != null && stats != null)
+            _healedText.text = $"💚 总治疗量: {(int)stats.TotalHealed}";
+
+        if (_characterText != null && gm != null && gm.SelectedCharacter != null)
+            _characterText.text = $"🧙 角色: {gm.SelectedCharacter.characterName}";
 
         // Check character unlocks at game end
         if (_unlockText != null)
@@ -111,14 +127,11 @@ public class ResultScreen : MonoBehaviour
         GameEvents.ClearAll();
         EnemyBase.ResetStatics();
 
-        // Reset object pools
         if (PoolManager.HasInstance)
             PoolManager.Instance.ClearAll();
 
-        // Store selected character for auto-start after scene reload
         var selectedChar = GameManager.HasInstance ? GameManager.Instance.SelectedCharacter : null;
 
-        // Reset GameManager to Menu state so CharacterSelectUI shows after reload
         if (GameManager.HasInstance)
         {
             GameManager.Instance.PendingAutoStart = selectedChar;
@@ -136,7 +149,6 @@ public class ResultScreen : MonoBehaviour
         if (PoolManager.HasInstance)
             PoolManager.Instance.ClearAll();
 
-        // Reset GameManager to Menu state so MainMenuUI shows after reload
         if (GameManager.HasInstance)
         {
             GameManager.Instance.PendingAutoStart = null;

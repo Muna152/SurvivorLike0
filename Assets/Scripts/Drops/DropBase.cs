@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class DropBase : MonoBehaviour
 {
-    public enum DropType { ExpGem, Health, Gold, Chest }
+    public enum DropType { ExpGem, Health, Gold, Chest, Magnet }
 
     [SerializeField] private DropType _type;
     [SerializeField] private int _value = 1;
@@ -16,8 +16,14 @@ public class DropBase : MonoBehaviour
     [SerializeField] private float _vacuumDelay = 0.5f;
     [SerializeField] private float _vacuumRange = 6f;
 
+    [Header("Magnet Effect")]
+    [SerializeField] private float _magnetDuration = 10f;
+    [SerializeField] private float _magnetPickupBoost = 5f;
+
     public DropType Type => _type;
     public int Value => _value;
+    public float MagnetDuration => _magnetDuration;
+    public float MagnetPickupBoost => _magnetPickupBoost;
 
     private static PlayerController _cachedPlayer;
     private static PlayerStats _cachedPlayerStats;
@@ -114,6 +120,9 @@ public class DropBase : MonoBehaviour
                 {
                     pwm.CheckAndEvolveWeapons();
                 }
+                break;
+            case DropType.Magnet:
+                _cachedPlayerStats.ApplyMagnetEffect(_magnetDuration, _magnetPickupBoost);
                 break;
         }
 

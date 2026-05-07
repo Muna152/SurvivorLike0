@@ -166,7 +166,7 @@ public class EnemyBase : MonoBehaviour
             // Elite enemies drop more experience and gold
             int expMultiplier = _isElite ? 10 : 1;
             int goldMultiplier = _isElite ? 5 : 1;
-            DropManager.Instance.SpawnDrops(transform.position, _data.expValue * expMultiplier, _data.goldValue * goldMultiplier);
+            DropManager.Instance.SpawnDrops(transform.position, _data.expValue * expMultiplier, _data.goldValue * goldMultiplier, _isElite, false);
         }
 
         // Pool's resetAction handles ResetForReuse — don't call it here
