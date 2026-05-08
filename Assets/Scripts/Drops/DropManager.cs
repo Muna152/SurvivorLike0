@@ -186,6 +186,7 @@ public class DropManager : Singleton<DropManager>
             {
                 dropObj.transform.position = drop.Position;
                 dropObj.SetValue(drop.Value);
+                dropObj.SetType(drop.Type);
 
                 // Apply magnet config from drop table
                 if (drop.Type == DropBase.DropType.Magnet)

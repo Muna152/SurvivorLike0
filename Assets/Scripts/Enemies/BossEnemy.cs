@@ -96,6 +96,14 @@ public abstract class BossEnemy : EnemyBase
         ActiveEnemies.Remove(this);
         SpatialGrid.Unregister(this);
 
+        // Track kill count on PlayerStats (same as EnemyBase.Die)
+        if (CachedPlayerStats != null)
+        {
+            CachedPlayerStats.AddKill();
+            CachedPlayerStats.AddEliteKill();
+        }
+
+        GameEvents.InvokeEnemyDied(this);
         GameEvents.InvokeBossDied(this);
 
         if (DropManager.Instance != null && _data != null)

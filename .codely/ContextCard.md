@@ -41,7 +41,7 @@
 ## Systems
 - ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking, magnet buff (timer-based PickupRange boost), ExtraLives (revive at 50% HP before OnPlayerDied), position clamped to map bounds
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
-- ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage; Bat moveSpeed=2.2
+- ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage; Bat moveSpeed=2.2; EnemyBase.Die() tracks KillCount/EliteKillCount via static _cachedPlayerStats
 - ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI (hides on pause/player death, LateUpdate guard), EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff); DropTableData SO for all drop values/rates
@@ -63,7 +63,7 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f, Reconcile() on all query paths
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 10/26
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 11/26
 - Game flow: MainMenuUI → 创建/选择存档 → 🛒 商店(永久升级) → CharacterSelectUI → StartGame(character) → Playing → GameOver → Gold/Stats persisted → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
@@ -81,7 +81,7 @@
 - T4.3: VFX system (hit/attack/death/pickup effects)
 - T4.4: Numerical balance (weapons/enemies/XP/evolution costs)
 - T4.5: Performance optimization (pool audit, LOD, layers, batching, GC)
-- T4.6: Bug fixes & polish — 5/7 done ✅ (boundary clamp, spatial reconcile, heal event, DropTableData SO, give-up button)
+- T4.6: Bug fixes & polish — 6/7 done ✅ (boundary clamp, spatial reconcile, heal event, DropTableData SO, give-up button, kill/heal/gold tracking fixes)
 
 ### T4.6 Bug Fix Details ✅ (4/7)
 - T4.6.1a Player boundary: PlayerController position clamped to MapManager.CurrentMapHalfSize
@@ -89,6 +89,7 @@
 - T4.6.1c Heal event: only fires OnPlayerHealed when actual HP change occurs
 - T4.6.1d DropTableData SO: extracted all hardcoded drop values into ScriptableObject
 - T4.6.1e Give-up button: PauseMenu "回到菜单"→"放弃", GiveUp() hides pause→EndGame(false)→ResultScreen.Show(false) for settlement then return to menu
+- T4.6.1f Kill/heal/gold tracking: EnemyBase.Die() now calls AddKill()/AddEliteKill() via static _cachedPlayerStats; BossEnemy.Die() also tracks kills + fires OnEnemyDied; DropManager sets DropType explicitly via SetType() at spawn time
 
 ### Key Design Decisions (T4.1)
 - GoldManager/StatsTracker as static classes — consistent with SaveSlotManager pattern
@@ -160,3 +161,6 @@
 - ExtraLife revive in TakeDamage() returns 50% MaxHP and skips OnPlayerDied — do not add death-side effects assuming every death fires OnPlayerDied
 - DropTableData SO holds all drop gameplay values — DropManager reads from it, not its own [SerializeField]; DropBase.SetMagnetConfig() used when spawning magnet drops from SO
 - SpatialGrid.QueryNearest() must call Reconcile() before querying — same as QueryInRadius(), ensures stale cells are updated
+- EnemyBase._cachedPlayerStats is set alongside _cachedPlayer in SetPlayerReference(); used in Die() for kill tracking; must be cleared in ResetStatics()
+- BossEnemy.Die() does NOT call base.Die() — it handles ActiveEnemies/kill/spawn/destroy independently; must fire OnEnemyDied itself
+- DropManager calls dropObj.SetType() at spawn time to ensure DropType correctness regardless of prefab serialized value

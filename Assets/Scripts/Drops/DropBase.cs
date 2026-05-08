@@ -57,6 +57,13 @@ public class DropBase : MonoBehaviour
         _value = value;
     }
 
+    /// <summary>Override the drop type at spawn time (ensures correctness even if prefab _type is wrong).</summary>
+    public void SetType(DropType type)
+    {
+        _type = type;
+        _poolKey = type.ToString();
+    }
+
     /// <summary>Override magnet settings from DropTableData when spawning.</summary>
     public void SetMagnetConfig(float duration, float pickupBoost)
     {

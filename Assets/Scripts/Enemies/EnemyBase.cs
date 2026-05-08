@@ -10,6 +10,10 @@ public class EnemyBase : MonoBehaviour
 {
     private static readonly HashSet<EnemyBase> _activeEnemies = new HashSet<EnemyBase>();
     private static PlayerController _cachedPlayer;
+    private static PlayerStats _cachedPlayerStats;
+
+    /// <summary>PlayerStats reference for subclasses (e.g. BossEnemy) to use in Die().</summary>
+    protected static PlayerStats CachedPlayerStats => _cachedPlayerStats;
 
     public static HashSet<EnemyBase> ActiveEnemies => _activeEnemies;
     public static int ActiveEnemyCount => _activeEnemies.Count;
@@ -41,6 +45,7 @@ public class EnemyBase : MonoBehaviour
     public static void SetPlayerReference(PlayerController player)
     {
         _cachedPlayer = player;
+        _cachedPlayerStats = player != null ? player.GetComponent<PlayerStats>() : null;
     }
 
     public static PlayerController GetPlayer()
@@ -55,6 +60,7 @@ public class EnemyBase : MonoBehaviour
     {
         _activeEnemies.Clear();
         _cachedPlayer = null;
+        _cachedPlayerStats = null;
         SpatialGrid.Clear();
     }
 
@@ -158,6 +164,14 @@ public class EnemyBase : MonoBehaviour
     {
         _activeEnemies.Remove(this);
         SpatialGrid.Unregister(this);
+
+        // Track kill count on PlayerStats
+        if (_cachedPlayerStats != null)
+        {
+            _cachedPlayerStats.AddKill();
+            if (_isElite)
+                _cachedPlayerStats.AddEliteKill();
+        }
 
         GameEvents.InvokeEnemyDied(this);
 
