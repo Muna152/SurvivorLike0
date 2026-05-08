@@ -110,11 +110,11 @@ public abstract class BossEnemy : EnemyBase
         Destroy(gameObject);
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
-        // Bosses are destroyed, not pooled — still unregister from static tracking
-        ActiveEnemies.Remove(this);
-        SpatialGrid.Unregister(this);
+        // Delegates to base class (which does ActiveEnemies.Remove + SpatialGrid.Unregister).
+        // Both operations are idempotent, so calling base is safe even if Die() already ran them.
+        base.OnDisable();
     }
 
     // ── Phase System ────────────────────────────────────────────

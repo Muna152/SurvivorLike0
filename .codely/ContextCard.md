@@ -46,7 +46,7 @@
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff)
 - ✅ UI: HUD, UpgradeUI, BossHealthBar, ResultScreen (9 stats incl. level/elites/healed/character), PauseMenu (+Codex button), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic)
-- ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping
+- ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
 - ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ per-slot PlayerPrefs
@@ -77,7 +77,7 @@
 - T3.3 地图系统: 4/4 ✅
   - MapManager: procedural ±100 boundary (EdgeCollider2D), 50 trees/35 rocks/12 walls/200 fence/80 grass
   - CameraFollow: orthographic clamping within map bounds
-  - Obstacles: SpriteRenderer+BoxCollider2D, random rotation/scale, 10-unit clear radius from center
+  - Obstacles: SpriteRenderer+BoxCollider2D, random rotation/scale, 10-unit clear radius from center; scaleMultiplier=0.04f, sortingOrder=-2 (below characters)
 - T3.4 完整UI: 3/3 ✅ (T3.4.1 MainMenu done earlier)
   - T3.4.3 PauseMenu: +Codex button (ShowCodex→CodexUI.Show)
   - T3.4.4 ResultScreen: 9 stats (level/elites/healed/character + original 5), programmatic rebuild
@@ -105,16 +105,12 @@
 - Tuanjie over Unity: project originated on this engine fork
 - AreaWeapon split strategy: _followsPlayer auras refresh duration; puddles only create when none exists, expire naturally, respawn on next CD
 - DifficultyManager on GameManager GO: shares lifecycle, resets on StartGame()
-- MapManager procedural: no env prefabs needed, everything built in Start()
+- MapManager procedural: no env prefabs needed, everything built in Start(); obstacles use scaleMultiplier param for consistent sizing below characters
 - EXP gem tiering: time-based thresholds (8min/18min) + enemy type (elite/boss boost)
 - CodexUI: CanvasGroup overlay, programmatic construction (no prefab), Resources.FindObjectsOfTypeAll for data
 
 ## Known Issues
-- WeaponEvolutionVFX._particleCount unused (CS0414 warning, cosmetic only)
 - MainMenuUI not serialized in scene; HUDController.Start() auto-creates it via AddComponent if missing
-- BossEnemy.OnDisable hides EnemyBase.OnDisable (both do ActiveEnemies.Remove + SpatialGrid.Unregister; idempotent)
-- HUD Canvas: 7 "referenced script missing" errors (pre-existing)
-- BossHealthBar font: Arial.ttf invalid, needs LegacyRuntime.ttf (pre-existing)
 
 ## Pitfalls
 - GameEvents.ClearAll() in StartGame() wiped UpgradeManager/HUDController/ResultScreen event subscriptions → removed, scene reload handles cleanup

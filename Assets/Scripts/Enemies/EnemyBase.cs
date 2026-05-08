@@ -173,7 +173,7 @@ public class EnemyBase : MonoBehaviour
         PoolManager.Instance.Return<EnemyBase>(_data != null ? _data.enemyName : name, this);
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
         _activeEnemies.Remove(this);
         // Unregister is idempotent — safe to call even if Die() already unregistered.

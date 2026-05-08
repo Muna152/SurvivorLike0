@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Plays a visual effect when a weapon evolves.
-/// Listens to GameEvents.OnWeaponEvolved and spawns a flash + scale pulse.
+/// Listens to GameEvents.OnWeaponEvolved and spawns a flash + ring of particles.
 /// </summary>
 public class WeaponEvolutionVFX : MonoBehaviour
 {
@@ -39,6 +39,26 @@ public class WeaponEvolutionVFX : MonoBehaviour
         sr.sortingOrder = 100;
         sr.drawMode = SpriteDrawMode.Sliced;
 
+        // Spawn ring of particles that fly outward and fade
+        var particles = new SpriteRenderer[_particleCount];
+        var particleVelocities = new Vector2[_particleCount];
+        for (int i = 0; i < _particleCount; i++)
+        {
+            var pObj = new GameObject($"EvoParticle_{i}");
+            pObj.transform.position = position;
+            pObj.transform.SetParent(flashObj.transform, false);
+
+            var pSr = pObj.AddComponent<SpriteRenderer>();
+            pSr.sprite = CreateCircleSprite();
+            pSr.color = _flashColor;
+            pSr.sortingOrder = 101;
+            pSr.transform.localScale = Vector3.one * 0.3f;
+
+            float angle = (360f / _particleCount) * i * Mathf.Deg2Rad;
+            particleVelocities[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 4f;
+            particles[i] = pSr;
+        }
+
         float elapsed = 0f;
         float maxSize = 6f;
         float minSize = 0.5f;
@@ -51,10 +71,22 @@ public class WeaponEvolutionVFX : MonoBehaviour
             float size = Mathf.Lerp(minSize, maxSize, t);
             sr.size = new Vector2(size, size);
 
-            // Fade out
+            // Fade out flash
             Color c = _flashColor;
             c.a = Mathf.Lerp(0.8f, 0f, t);
             sr.color = c;
+
+            // Animate particles outward with fade
+            for (int i = 0; i < _particleCount; i++)
+            {
+                if (particles[i] != null)
+                {
+                    particles[i].transform.position += (Vector3)(particleVelocities[i] * Time.deltaTime);
+                    Color pc = _flashColor;
+                    pc.a = Mathf.Lerp(1f, 0f, t);
+                    particles[i].color = pc;
+                }
+            }
 
             elapsed += Time.deltaTime;
             yield return null;

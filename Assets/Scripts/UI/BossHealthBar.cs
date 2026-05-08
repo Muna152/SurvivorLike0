@@ -75,7 +75,7 @@ public class BossHealthBar : MonoBehaviour
         var nameObj = new GameObject("BossName");
         nameObj.transform.SetParent(_panel.transform, false);
         _bossNameText = nameObj.AddComponent<Text>();
-        _bossNameText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        _bossNameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         _bossNameText.fontSize = 18;
         _bossNameText.fontStyle = FontStyle.Bold;
         _bossNameText.color = Color.white;
@@ -133,7 +133,7 @@ public class BossHealthBar : MonoBehaviour
         hpTextRect.anchorMax = Vector2.one;
         hpTextRect.sizeDelta = Vector2.zero;
         _hpText = hpTextObj.AddComponent<Text>();
-        _hpText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        _hpText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         _hpText.fontSize = 14;
         _hpText.color = Color.white;
         _hpText.alignment = TextAnchor.MiddleCenter;

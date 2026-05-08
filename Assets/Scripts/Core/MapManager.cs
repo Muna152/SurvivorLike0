@@ -122,33 +122,33 @@ public class MapManager : MonoBehaviour
         var obstacleParent = new GameObject("Obstacles");
         obstacleParent.transform.SetParent(transform);
 
-        // Spawn trees
+        // Spawn trees (small, below characters)
         for (int i = 0; i < _treeCount; i++)
         {
             var pos = GetRandomPosition(_obstacleClearRadius);
             CreateObstacle(obstacleParent, $"Tree_{i}", _treeSprite, pos,
-                new Vector2(1.2f, 1.6f), 1.8f, 2); // Box collider
+                new Vector2(1.2f, 1.6f), 1.8f, -2, 0.04f);
         }
 
-        // Spawn rocks
+        // Spawn rocks (small, below characters)
         for (int i = 0; i < _rockCount; i++)
         {
             var pos = GetRandomPosition(_obstacleClearRadius);
             CreateObstacle(obstacleParent, $"Rock_{i}", _rockSprite, pos,
-                new Vector2(0.9f, 0.9f), 1.2f, 1); // Slightly smaller
+                new Vector2(0.9f, 0.9f), 1.2f, -2, 0.04f);
         }
 
-        // Spawn walls
+        // Spawn walls (small, below characters)
         for (int i = 0; i < _wallCount; i++)
         {
             var pos = GetRandomPosition(_obstacleClearRadius);
             CreateObstacle(obstacleParent, $"Wall_{i}", _wallSprite, pos,
-                new Vector2(3f, 0.8f), 3.5f, 3); // Wider, like a wall segment
+                new Vector2(3f, 0.8f), 3.5f, -2, 0.04f);
         }
     }
 
     private void CreateObstacle(GameObject parent, string name, Sprite sprite, Vector2 position,
-        Vector2 colliderSize, float collisionRadius, int sortingOrder)
+        Vector2 colliderSize, float collisionRadius, int sortingOrder, float scaleMultiplier = 1f)
     {
         var obj = new GameObject(name);
         obj.transform.SetParent(parent.transform);
@@ -159,7 +159,7 @@ public class MapManager : MonoBehaviour
         sr.sortingOrder = sortingOrder;
 
         var bc = obj.AddComponent<BoxCollider2D>();
-        bc.size = colliderSize;
+        bc.size = colliderSize * scaleMultiplier;
 
         // Random slight rotation for variety (except walls)
         if (!name.StartsWith("Wall"))
@@ -168,7 +168,7 @@ public class MapManager : MonoBehaviour
         }
 
         // Random scale variation
-        float scale = Random.Range(0.85f, 1.15f);
+        float scale = Random.Range(0.85f, 1.15f) * scaleMultiplier;
         obj.transform.localScale = new Vector3(scale, scale, 1f);
     }
 
