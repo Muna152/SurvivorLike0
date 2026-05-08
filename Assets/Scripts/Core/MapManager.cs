@@ -31,8 +31,12 @@ public class MapManager : MonoBehaviour
 
     public float MapHalfSize => _mapHalfSize;
 
+    /// <summary>Static accessor so other systems (e.g. PlayerController) can query bounds without a reference.</summary>
+    public static float CurrentMapHalfSize { get; private set; }
+
     private void Start()
     {
+        CurrentMapHalfSize = _mapHalfSize;
         CreateBoundaries();
         CreateGround();
         CreateObstacles();

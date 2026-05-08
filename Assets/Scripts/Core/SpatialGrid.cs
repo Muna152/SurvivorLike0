@@ -133,6 +133,9 @@ public static class SpatialGrid
     /// </summary>
     public static EnemyBase QueryNearest(Vector2 center, float maxRadius)
     {
+        // Ensure grid cells are up-to-date before querying (same as QueryInRadius)
+        Reconcile();
+
         // Fast path: small radius covers most gameplay cases
         var near = QueryNearestInRadius(center, 15f);
         if (near != null) return near;

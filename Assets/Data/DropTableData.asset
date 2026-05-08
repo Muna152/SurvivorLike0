@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e059f43d291abcc42aa2408ebed86afb, type: 3}
+  m_Name: DropTableData
+  m_EditorClassIdentifier: 
+  expGemChance: 0.8
+  healthChance: 0.001
+  chestChance: 0.005
+  magnetChance: 0.002
+  expGemSmallValue: 1
+  expGemMediumValue: 5
+  expGemLargeValue: 20
+  expGemMediumThreshold: 8
+  expGemLargeThreshold: 18
+  healthValue: 30
+  magnetDuration: 10
+  magnetPickupBoost: 5
+  maxSpawnsPerFrame: 6
+  mergeRadius: 2.5

@@ -982,8 +982,33 @@
 ### T4.6 Bug 修复与打磨
 
 #### T4.6.1 边界情况处理
-- **状态**: ⬜
+- **状态**: 🔧
 - **验收**: 处理：玩家死亡时武器仍在攻击；升级界面重复弹出；敌人重叠卡住等
+
+#### T4.6.1a 玩家超出地图边界
+- **状态**: ✅
+- **问题**: PlayerController 无位置钳制，玩家可移出 ±100 地图边界，CameraFollow 钳制后导致相机不同步
+- **解决**: PlayerController.FixedUpdate() 添加 Mathf.Clamp 钳制位置到 MapManager.CurrentMapHalfSize；MapManager 新增静态属性 CurrentMapHalfSize
+- **涉及文件**: `Scripts/Player/PlayerController.cs`, `Scripts/Core/MapManager.cs`
+
+#### T4.6.1b 飞刀/飞剑索敌偶尔无法锁定最近目标
+- **状态**: ✅
+- **问题**: SpatialGrid.QueryNearest() 查询前未调用 Reconcile()，敌人可能在过时格子中导致最近目标查询遗漏
+- **解决**: 在 QueryNearest() 开头加 Reconcile() 调用，与 QueryInRadius() 保持一致
+- **涉及文件**: `Scripts/Core/SpatialGrid.cs`
+
+#### T4.6.1c HealthBar 订阅错误事件
+- **状态**: ✅
+- **问题**: PlayerStats.Heal() 即使满血也触发 OnPlayerHealed 事件（HolyLight 每 tick 调用），导致 HUD 在无实际 HP 变化时仍刷新
+- **解决**: 先计算实际治疗量 actualHeal，仅在 > 0 时触发事件和累加 _totalHealed
+- **涉及文件**: `Scripts/Player/PlayerStats.cs`
+
+#### T4.6.1d 掉落数值硬编码重构
+- **状态**: ✅
+- **问题**: DropManager 的掉落率、经验宝石分级、回血值、磁铁配置等数值均为 [SerializeField] 硬编码或字面量 (health=30)，无法被策划在 Inspector 中独立调整
+- **解决**: 新增 DropTableData ScriptableObject，集中管理所有掉落游戏数值；DropManager 改为引用 SO；DropBase 新增 SetMagnetConfig() 方法支持 SO 覆盖磁铁配置
+- **产物**: `Scripts/Data/DropTableData.cs`, `Data/DropTableData.asset`
+- **涉及文件**: `Scripts/Data/DropTableData.cs`, `Scripts/Drops/DropManager.cs`, `Scripts/Drops/DropBase.cs`
 
 #### T4.6.2 UI 适配和交互优化
 - **状态**: ⬜
@@ -1113,6 +1138,33 @@
 
 **涉及文件**:
 - `Scripts/UI/HUDController.cs` (Start() 中添加 MainMenuUI 存在性检查和自动创建)
+
+### 2026-05-08 Bug修复: 玩家边界/索敌/HealthBar + DropTableData SO重构
+
+**Bug1: 玩家超出地图边界**
+- **根因**: PlayerController 无位置钳制，EdgeCollider2D 边界墙对 trigger 类型的 PlayerHitbox 不产生物理阻挡；CameraFollow 钳制相机但不钳制玩家，导致相机不同步
+- **解决**: PlayerController.FixedUpdate() 添加 Mathf.Clamp 到 MapManager.CurrentMapHalfSize；MapManager 新增静态属性供无引用访问
+
+**Bug2: 飞刀/飞剑索敌偶尔无法锁定最近目标**
+- **根因**: SpatialGrid.QueryNearest() 查询前未调用 Reconcile()，敌人可能在过时格子中；QueryInRadius() 有此调用但 QueryNearest 遗漏
+- **解决**: 在 QueryNearest() 开头加 Reconcile() 调用
+
+**Bug3: HealthBar 订阅错误事件**
+- **根因**: PlayerStats.Heal() 即使满血也触发 OnPlayerHealed 事件（HolyLight 每 tick 调用），导致 HUD 在无实际 HP 变化时仍刷新
+- **解决**: 先计算实际治疗量 actualHeal，仅在 > 0 时触发事件和累加 _totalHealed
+
+**重构: DropTableData SO**
+- **问题**: DropManager 的掉落率/经验分级/回血值/磁铁配置等数值均为 [SerializeField] 硬编码或字面量，无法独立调整
+- **解决**: 新增 DropTableData SO 集中管理；DropManager 引用 SO 替代原字段；DropBase 新增 SetMagnetConfig() 支持 SO 覆盖
+
+**涉及文件**:
+- `Scripts/Player/PlayerController.cs` (添加位置钳制)
+- `Scripts/Core/MapManager.cs` (新增 CurrentMapHalfSize)
+- `Scripts/Core/SpatialGrid.cs` (QueryNearest 加 Reconcile)
+- `Scripts/Player/PlayerStats.cs` (Heal 仅在有效时触发事件)
+- `Scripts/Data/DropTableData.cs` (新增)
+- `Scripts/Drops/DropManager.cs` (引用 DropTableData SO)
+- `Scripts/Drops/DropBase.cs` (新增 SetMagnetConfig)
 - `Scripts/UI/MainMenuUI.cs` (移除临时调试日志)
 - `Scripts/UI/PauseMenuController.cs` (移除临时调试日志)
 

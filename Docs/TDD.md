@@ -696,7 +696,7 @@ Assets/
 │   │
 │   ├── Drops/                         # 掉落物系统
 │   │   ├── DropBase.cs                # 掉落物基类
-│   │   └── DropManager.cs             # 掉落物管理器
+│   │   └── DropManager.cs             # 掉落物管理器 (引用 DropTableData SO)
 │   │
 │   ├── Upgrades/                      # 升级系统
 │   │   ├── UpgradeManager.cs          # 升级管理器
@@ -717,6 +717,7 @@ Assets/
 │       ├── EnemyData.cs               # 敌人数据SO
 │       ├── CharacterData.cs           # 角色数据SO
 │       ├── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
+│       ├── DropTableData.cs           # 掉落表数据SO (掉落率/数值/分级)
 │       ├── SaveSlotManager.cs         # 存档栏位管理 (静态工具类)
 │       └── UnlockManager.cs          # 角色解锁管理 (Singleton, slot-aware)
 │
@@ -724,7 +725,8 @@ Assets/
 │   ├── Weapons/
 │   ├── Enemies/
 │   ├── Characters/
-│   └── Passives/
+│   ├── Passives/
+│   └── DropTableData.asset            # 全局掉落表 (掉落率/经验分级/磁铁配置)
 │
 ├── Prefabs/
 │   ├── Player/

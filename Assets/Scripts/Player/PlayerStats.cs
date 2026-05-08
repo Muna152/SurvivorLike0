@@ -104,9 +104,15 @@ public class PlayerStats : MonoBehaviour
 
     public void Heal(float amount)
     {
+        float before = _currentHP;
         _currentHP = Mathf.Min(_currentHP + amount, MaxHP);
-        _totalHealed += amount;
-        GameEvents.InvokePlayerHealed(amount);
+        float actualHeal = _currentHP - before;
+
+        if (actualHeal > 0f)
+        {
+            _totalHealed += actualHeal;
+            GameEvents.InvokePlayerHealed(actualHeal);
+        }
     }
 
     /// <summary>Clamp CurrentHP to [0, MaxHP]. Call after MaxHP decreases.</summary>

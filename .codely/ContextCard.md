@@ -5,7 +5,7 @@
 
 ## Structure
 - Scripts/: Player|Enemies|Weapons|Upgrades|Drops|UI|Core|Data
-- Data/: SO defs (Weapon|Passive|Enemy|Character*Data)
+- Data/: SO defs (Weapon|Passive|Enemy|Character|DropTable*Data)
 - Prefabs/: mirror Scripts/ | Art/ Audio/ Fonts/
 
 ## Conventions
@@ -39,14 +39,14 @@
 - UnlockCondition: SurviveTime|KillCount|HealAmount|ReachLevel|KillElites
 
 ## Systems
-- ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking, magnet buff (timer-based PickupRange boost), ExtraLives (revive at 50% HP before OnPlayerDied)
+- ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking, magnet buff (timer-based PickupRange boost), ExtraLives (revive at 50% HP before OnPlayerDied), position clamped to map bounds
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
 - ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage; Bat moveSpeed=2.2
 - ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI (hides on pause/player death, LateUpdate guard), EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
-- ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff)
+- ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff); DropTableData SO for all drop values/rates
 - ✅ UI: HUD (slider value clamped to MaxHP, 💰 gold text), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character + gold persistence with _persisted guard), PauseMenu (4-button layout: Resume full-width top row, Restart/Codex/Menu second row; fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic), UpgradeShopUI (5 permanent upgrades, shop button in MainMenuUI)
-- ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
+- ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; PlayerController position clamping; CurrentMapHalfSize static accessor; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
 - ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ per-slot PlayerPrefs
@@ -60,10 +60,10 @@
 - Max 500 enemies on-screen | 6 weapon limit | Weapon max level 8
 - Pool: enemies, projectiles, drops (all prewarmed)
 - Event-driven UI | Cached refs | Reusable lists | Min GC alloc
-- SpatialGrid: O(1) proximity queries, cell size 8f
+- SpatialGrid: O(1) proximity queries, cell size 8f, Reconcile() on all query paths
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 5/26
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 9/26
 - Game flow: MainMenuUI → 创建/选择存档 → 🛒 商店(永久升级) → CharacterSelectUI → StartGame(character) → Playing → GameOver → Gold/Stats persisted → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
@@ -75,13 +75,19 @@
   - T4.1.4 Unlock system: verified complete (UnlockManager + SaveSlotManager integration)
   - T4.1.5 StatsTracker: TotalKills/TotalGames/BestSurvivalTime/TotalGoldEarned per slot
 
-### Remaining Phase 4 Tasks (21 items)
+### Remaining Phase 4 Tasks (17 items)
 - T4.A: Audio asset generation (3 BGM + 12 SFX)
 - T4.2: Audio system integration (AudioManager + hooks)
 - T4.3: VFX system (hit/attack/death/pickup effects)
 - T4.4: Numerical balance (weapons/enemies/XP/evolution costs)
 - T4.5: Performance optimization (pool audit, LOD, layers, batching, GC)
-- T4.6: Bug fixes & polish (edge cases, UI, animations, tutorial)
+- T4.6: Bug fixes & polish — 4/7 done ✅ (boundary clamp, spatial reconcile, heal event, DropTableData SO)
+
+### T4.6 Bug Fix Details ✅ (4/7)
+- T4.6.1a Player boundary: PlayerController position clamped to MapManager.CurrentMapHalfSize
+- T4.6.1b SpatialGrid QueryNearest: added Reconcile() call for correct nearest-enemy lookup
+- T4.6.1c Heal event: only fires OnPlayerHealed when actual HP change occurs
+- T4.6.1d DropTableData SO: extracted all hardcoded drop values into ScriptableObject
 
 ### Key Design Decisions (T4.1)
 - GoldManager/StatsTracker as static classes — consistent with SaveSlotManager pattern
@@ -130,8 +136,8 @@
 - Tuanjie over Unity: project originated on this engine fork
 - AreaWeapon split strategy: _followsPlayer auras refresh duration; puddles only create when none exists, expire naturally, respawn on next CD
 - DifficultyManager on GameManager GO: shares lifecycle, resets on StartGame()
-- MapManager procedural: no env prefabs needed, everything built in Start(); obstacles use scaleMultiplier param for consistent sizing below characters
-- EXP gem tiering: time-based thresholds (8min/18min) + enemy type (elite/boss boost)
+- MapManager procedural: no env prefabs needed, everything built in Start(); obstacles use scaleMultiplier param for consistent sizing below characters; CurrentMapHalfSize static accessor for boundary clamping
+- EXP gem tiering: time-based thresholds (8min/18min) + enemy type (elite/boss boost); values in DropTableData SO
 - CodexUI: CanvasGroup overlay, programmatic construction (no prefab), Resources.FindObjectsOfTypeAll for data
 
 ## Known Issues
@@ -143,7 +149,7 @@
 - PlayerStats.Awake/PlayerWeaponManager.Start run before character selection → GameManager.StartGame() must explicitly call InitializeFromCharacterData() and EquipStartingWeapon()
 - MainMenuUI.Awake() must check GameManager.CurrentState — if already Playing (auto-start after restart), skip Show() to avoid timeScale=0 / HUD hidden
 - DropManager (DontDestroyOnLoad) must re-register pools + clear _pending on sceneLoaded, since Awake() only runs once
-- Heal() must fire OnPlayerHealed event; HUDController.RefreshHPIfNeeded() must use float comparison (not int cast) to catch fractional HP changes
+- Heal() must fire OnPlayerHealed event ONLY when actual healing occurs; HUDController.RefreshHPIfNeeded() must use float comparison (not int cast) to catch fractional HP changes
 - PassiveEffect.Remove for MaxHP must call ClampCurrentHP() — otherwise CurrentHP > MaxHP causes slider >100% fill
 - BossHealthBar must hide on pause (OnGamePaused) and player death (OnPlayerDied); LateUpdate guard ensures hidden when no valid boss
 - Drop prefabs (RoastChicken, Chest, MagnetItem) must use scale (0.08,0.08,1) matching ExpGem/GoldCoin, and have CircleCollider2D
@@ -151,3 +157,5 @@
 - ResultScreen._persisted guard prevents double-persistence of gold/stats; must reset _persisted=false in Retry/ReturnToMenu
 - GoldManager.ApplyPermanentUpgrades() called at end of PlayerStats.InitializeFromCharacterData() — must be after base stats set
 - ExtraLife revive in TakeDamage() returns 50% MaxHP and skips OnPlayerDied — do not add death-side effects assuming every death fires OnPlayerDied
+- DropTableData SO holds all drop gameplay values — DropManager reads from it, not its own [SerializeField]; DropBase.SetMagnetConfig() used when spawning magnet drops from SO
+- SpatialGrid.QueryNearest() must call Reconcile() before querying — same as QueryInRadius(), ensures stale cells are updated

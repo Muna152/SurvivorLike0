@@ -57,6 +57,13 @@ public class DropBase : MonoBehaviour
         _value = value;
     }
 
+    /// <summary>Override magnet settings from DropTableData when spawning.</summary>
+    public void SetMagnetConfig(float duration, float pickupBoost)
+    {
+        _magnetDuration = duration;
+        _magnetPickupBoost = pickupBoost;
+    }
+
     private void Update()
     {
         if (_collected || _cachedPlayer == null || _cachedPlayerStats == null) return;

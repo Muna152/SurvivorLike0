@@ -9,6 +9,9 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class DropManager : Singleton<DropManager>
 {
+    [Header("Drop Table")]
+    [SerializeField] private DropTableData _dropTable;
+
     [Header("Drop Prefabs")]
     [SerializeField] private GameObject _expGemPrefab;
     [SerializeField] private GameObject _goldCoinPrefab;
@@ -16,28 +19,13 @@ public class DropManager : Singleton<DropManager>
     [SerializeField] private GameObject _chestPrefab;
     [SerializeField] private GameObject _magnetPrefab;
 
-    [Header("Drop Rates")]
-    [Range(0f, 1f)] [SerializeField] private float _expGemChance = 0.8f;
-    [Range(0f, 1f)] [SerializeField] private float _healthChance = 0.05f;
-    [Range(0f, 1f)] [SerializeField] private float _chestChance = 0.02f;
-    [Range(0f, 1f)] [SerializeField] private float _magnetChance = 0.03f;
-
-    [Header("EXP Gem Tiers")]
-    [SerializeField] private int _expGemSmallValue = 1;
-    [SerializeField] private int _expGemMediumValue = 5;
-    [SerializeField] private int _expGemLargeValue = 20;
-    [SerializeField] private float _expGemMediumThreshold = 8f;  // Minutes for medium gems
-    [SerializeField] private float _expGemLargeThreshold = 18f;  // Minutes for large gems
-
-    [Header("Performance")]
-    [SerializeField] private int _maxSpawnsPerFrame = 6;
-    [SerializeField] private float _mergeRadius = 2.5f;
-
     private struct PendingDrop
     {
         public DropBase.DropType Type;
         public Vector2 Position;
         public int Value;
+        public float MagnetDuration;
+        public float MagnetPickupBoost;
     }
 
     private readonly List<PendingDrop> _pending = new List<PendingDrop>(64);
@@ -85,40 +73,41 @@ public class DropManager : Singleton<DropManager>
     /// <summary>Queue drops at the given position. Merges nearby EXP/Gold requests.</summary>
     public void SpawnDrops(Vector2 position, int expValue, int goldValue, bool isElite = false, bool isBoss = false)
     {
+        var t = _dropTable;
+        if (t == null) return;
+
         Vector2 offset = Random.insideUnitCircle * 0.5f;
         Vector2 spawnPos = position + offset;
 
         // Determine EXP gem tier based on game time
         float minutes = GameManager.HasInstance ? GameManager.Instance.ElapsedTime / 60f : 0f;
-        int expGemValue = _expGemSmallValue;
-        if (minutes >= _expGemLargeThreshold || isBoss)
-            expGemValue = _expGemLargeValue;
-        else if (minutes >= _expGemMediumThreshold || isElite)
-            expGemValue = _expGemMediumValue;
+        int expGemValue = t.expGemSmallValue;
+        if (minutes >= t.expGemLargeThreshold || isBoss)
+            expGemValue = t.expGemLargeValue;
+        else if (minutes >= t.expGemMediumThreshold || isElite)
+            expGemValue = t.expGemMediumValue;
 
-        // Scale EXP value by gem tier multiplier
-        int tierMultiplier = expGemValue; // small=1, medium=5, large=20
-        int scaledExpValue = expValue * tierMultiplier;
+        int scaledExpValue = expValue * expGemValue;
 
         // EXP gem — merge with nearby pending gem
-        if (_expGemPrefab != null && Random.value <= _expGemChance)
+        if (_expGemPrefab != null && Random.value <= t.expGemChance)
         {
             EnqueueOrMerge(DropBase.DropType.ExpGem, spawnPos, scaledExpValue);
         }
 
         // Health — rare, no merging needed
-        if (_healthPrefab != null && Random.value <= _healthChance)
+        if (_healthPrefab != null && Random.value <= t.healthChance)
         {
             _pending.Add(new PendingDrop
             {
                 Type = DropBase.DropType.Health,
                 Position = spawnPos + Random.insideUnitCircle * 0.3f,
-                Value = 30
+                Value = t.healthValue
             });
         }
 
         // Chest — drops from elite/boss only
-        if (_chestPrefab != null && (isElite || isBoss) && Random.value <= _chestChance)
+        if (_chestPrefab != null && (isElite || isBoss) && Random.value <= t.chestChance)
         {
             _pending.Add(new PendingDrop
             {
@@ -129,13 +118,15 @@ public class DropManager : Singleton<DropManager>
         }
 
         // Magnet — rare drop
-        if (_magnetPrefab != null && Random.value <= _magnetChance)
+        if (_magnetPrefab != null && Random.value <= t.magnetChance)
         {
             _pending.Add(new PendingDrop
             {
                 Type = DropBase.DropType.Magnet,
                 Position = spawnPos + Random.insideUnitCircle * 0.4f,
-                Value = 1
+                Value = 1,
+                MagnetDuration = t.magnetDuration,
+                MagnetPickupBoost = t.magnetPickupBoost
             });
         }
 
@@ -148,7 +139,7 @@ public class DropManager : Singleton<DropManager>
 
     private void EnqueueOrMerge(DropBase.DropType type, Vector2 pos, int value)
     {
-        float mergeSq = _mergeRadius * _mergeRadius;
+        float mergeSq = _dropTable != null ? _dropTable.mergeRadius * _dropTable.mergeRadius : 6.25f;
 
         for (int i = 0; i < _pending.Count; i++)
         {
@@ -181,10 +172,11 @@ public class DropManager : Singleton<DropManager>
     {
         if (_pending.Count == 0) return;
 
+        int maxSpawns = _dropTable != null ? _dropTable.maxSpawnsPerFrame : 6;
         int spawned = 0;
         int startIdx = 0;
 
-        while (startIdx < _pending.Count && spawned < _maxSpawnsPerFrame)
+        while (startIdx < _pending.Count && spawned < maxSpawns)
         {
             PendingDrop drop = _pending[startIdx];
 
@@ -194,6 +186,12 @@ public class DropManager : Singleton<DropManager>
             {
                 dropObj.transform.position = drop.Position;
                 dropObj.SetValue(drop.Value);
+
+                // Apply magnet config from drop table
+                if (drop.Type == DropBase.DropType.Magnet)
+                {
+                    dropObj.SetMagnetConfig(drop.MagnetDuration, drop.MagnetPickupBoost);
+                }
             }
 
             // Remove by swapping with last (O(1) removal)

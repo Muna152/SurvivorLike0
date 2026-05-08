@@ -29,6 +29,16 @@ public class PlayerController : MonoBehaviour
 
         _rb.velocity = dir * _stats.MoveSpeed;
 
+        // Clamp position to map boundaries (camera already clamps, player was missing)
+        float mapHalf = MapManager.CurrentMapHalfSize;
+        if (mapHalf > 0f)
+        {
+            var pos = _rb.position;
+            pos.x = Mathf.Clamp(pos.x, -mapHalf, mapHalf);
+            pos.y = Mathf.Clamp(pos.y, -mapHalf, mapHalf);
+            _rb.position = pos;
+        }
+
         if (dir.sqrMagnitude > 0.01f)
         {
             _lastDirection = dir;
