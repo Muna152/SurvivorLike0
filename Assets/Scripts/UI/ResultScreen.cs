@@ -57,7 +57,7 @@ public class ResultScreen : MonoBehaviour
         Show(true);
     }
 
-    private void Show(bool victory)
+    public void Show(bool victory)
     {
         _canvasGroup.alpha = 1f;
         _canvasGroup.blocksRaycasts = true;

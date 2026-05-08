@@ -45,7 +45,7 @@
 - ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI (hides on pause/player death, LateUpdate guard), EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff); DropTableData SO for all drop values/rates
-- ✅ UI: HUD (slider value clamped to MaxHP, 💰 gold text), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character + gold persistence with _persisted guard), PauseMenu (4-button layout: Resume full-width top row, Restart/Codex/Menu second row; fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic), UpgradeShopUI (5 permanent upgrades, shop button in MainMenuUI)
+- ✅ UI: HUD (slider value clamped to MaxHP, 💰 gold text), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character + gold persistence with _persisted guard; Show() public for give-up flow), PauseMenu (4-button layout: Resume full-width top row, Restart/Codex/GiveUp second row; GiveUp→ResultScreen(game over)→return to menu; fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic), UpgradeShopUI (5 permanent upgrades, shop button in MainMenuUI)
 - ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; PlayerController position clamping; CurrentMapHalfSize static accessor; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
@@ -63,7 +63,7 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f, Reconcile() on all query paths
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 9/26
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 10/26
 - Game flow: MainMenuUI → 创建/选择存档 → 🛒 商店(永久升级) → CharacterSelectUI → StartGame(character) → Playing → GameOver → Gold/Stats persisted → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
@@ -81,13 +81,14 @@
 - T4.3: VFX system (hit/attack/death/pickup effects)
 - T4.4: Numerical balance (weapons/enemies/XP/evolution costs)
 - T4.5: Performance optimization (pool audit, LOD, layers, batching, GC)
-- T4.6: Bug fixes & polish — 4/7 done ✅ (boundary clamp, spatial reconcile, heal event, DropTableData SO)
+- T4.6: Bug fixes & polish — 5/7 done ✅ (boundary clamp, spatial reconcile, heal event, DropTableData SO, give-up button)
 
 ### T4.6 Bug Fix Details ✅ (4/7)
 - T4.6.1a Player boundary: PlayerController position clamped to MapManager.CurrentMapHalfSize
 - T4.6.1b SpatialGrid QueryNearest: added Reconcile() call for correct nearest-enemy lookup
 - T4.6.1c Heal event: only fires OnPlayerHealed when actual HP change occurs
 - T4.6.1d DropTableData SO: extracted all hardcoded drop values into ScriptableObject
+- T4.6.1e Give-up button: PauseMenu "回到菜单"→"放弃", GiveUp() hides pause→EndGame(false)→ResultScreen.Show(false) for settlement then return to menu
 
 ### Key Design Decisions (T4.1)
 - GoldManager/StatsTracker as static classes — consistent with SaveSlotManager pattern
@@ -153,7 +154,7 @@
 - PassiveEffect.Remove for MaxHP must call ClampCurrentHP() — otherwise CurrentHP > MaxHP causes slider >100% fill
 - BossHealthBar must hide on pause (OnGamePaused) and player death (OnPlayerDied); LateUpdate guard ensures hidden when no valid boss
 - Drop prefabs (RoastChicken, Chest, MagnetItem) must use scale (0.08,0.08,1) matching ExpGem/GoldCoin, and have CircleCollider2D
-- PauseMenu buttons must not share identical anchor rects; ResumeBtn full-width on top row, other buttons in separate row below
+- PauseMenu buttons must not share identical anchor rects; ResumeBtn full-width on top row, other buttons in separate row below; "放弃" button calls GiveUp() which shows ResultScreen instead of direct scene reload
 - ResultScreen._persisted guard prevents double-persistence of gold/stats; must reset _persisted=false in Retry/ReturnToMenu
 - GoldManager.ApplyPermanentUpgrades() called at end of PlayerStats.InitializeFromCharacterData() — must be after base stats set
 - ExtraLife revive in TakeDamage() returns 50% MaxHP and skips OnPlayerDied — do not add death-side effects assuming every death fires OnPlayerDied

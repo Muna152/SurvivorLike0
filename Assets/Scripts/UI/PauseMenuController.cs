@@ -86,21 +86,16 @@ public class PauseMenuController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private void ReturnToMenu()
+    private void GiveUp()
     {
-        Time.timeScale = 1f;
-        GameEvents.ClearAll();
-
-        if (PoolManager.HasInstance)
-            PoolManager.Instance.ClearAll();
+        Hide();
 
         if (GameManager.HasInstance)
-        {
-            GameManager.Instance.PendingAutoStart = null;
-            GameManager.Instance.ReturnToMenu();
-        }
+            GameManager.Instance.EndGame(false);
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        var resultScreen = FindObjectOfType<ResultScreen>();
+        if (resultScreen != null)
+            resultScreen.Show(false);
     }
 
     private void ShowCodex()
@@ -207,16 +202,16 @@ public class PauseMenuController : MonoBehaviour
         codexBtn.colors = codexColors;
         codexBtn.onClick.AddListener(ShowCodex);
 
-        // Return to menu button
-        var menuBtn = CreateButton(panelObj.transform, "MenuBtn", "回到菜单",
+        // Give up button
+        var giveUpBtn = CreateButton(panelObj.transform, "GiveUpBtn", "放弃",
             new Vector2(0.70f, 0.86f), new Vector2(0.95f, 0.91f));
-        var menuImg = menuBtn.GetComponent<Image>();
-        if (menuImg != null) menuImg.color = new Color(0.5f, 0.15f, 0.15f, 0.9f);
-        var menuColors = menuBtn.colors;
-        menuColors.highlightedColor = new Color(0.7f, 0.25f, 0.25f);
-        menuColors.pressedColor = new Color(0.4f, 0.1f, 0.1f);
-        menuBtn.colors = menuColors;
-        menuBtn.onClick.AddListener(ReturnToMenu);
+        var giveUpImg = giveUpBtn.GetComponent<Image>();
+        if (giveUpImg != null) giveUpImg.color = new Color(0.55f, 0.2f, 0.1f, 0.9f);
+        var giveUpColors = giveUpBtn.colors;
+        giveUpColors.highlightedColor = new Color(0.75f, 0.3f, 0.15f);
+        giveUpColors.pressedColor = new Color(0.4f, 0.15f, 0.05f);
+        giveUpBtn.colors = giveUpColors;
+        giveUpBtn.onClick.AddListener(GiveUp);
 
         // Weapon section header + count
         CreateLabel(panelObj.transform, "WeaponHeader", "── 武器 ──", 24, new Color(1f, 0.85f, 0.3f),
