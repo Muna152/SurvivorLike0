@@ -27,6 +27,7 @@ public class PauseMenuController : MonoBehaviour
     private void Awake()
     {
         BuildUI();
+        UINavUtil.DisableAll(transform);
         Hide();
     }
 

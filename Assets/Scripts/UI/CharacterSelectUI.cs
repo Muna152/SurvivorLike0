@@ -26,6 +26,7 @@ public class CharacterSelectUI : MonoBehaviour
     private void Awake()
     {
         BuildUI();
+        UINavUtil.DisableAll(transform);
         Hide(); // Start hidden, will be shown in Start() if in Menu state
     }
 

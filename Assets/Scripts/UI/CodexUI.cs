@@ -19,6 +19,7 @@ public class CodexUI : MonoBehaviour
     private void Awake()
     {
         BuildUI();
+        UINavUtil.DisableAll(transform);
         Hide();
     }
 

@@ -27,6 +27,7 @@ public class BossHealthBar : MonoBehaviour
     private void Awake()
     {
         BuildUI();
+        UINavUtil.DisableAll(transform);
         _panel.SetActive(false);
     }
 

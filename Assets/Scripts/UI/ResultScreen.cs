@@ -39,6 +39,9 @@ public class ResultScreen : MonoBehaviour
         if (_menuButton != null)
             _menuButton.onClick.AddListener(ReturnToMenu);
 
+        // Disable keyboard navigation on all Selectables
+        UINavUtil.DisableAll(transform);
+
         Hide();
     }
 

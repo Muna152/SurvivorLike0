@@ -31,6 +31,7 @@ public class MainMenuUI : MonoBehaviour
     {
         _hudCanvas = GetComponentInParent<Canvas>()?.gameObject;
         BuildUI();
+        UINavUtil.DisableAll(transform);
 
         // Only show the menu if the game is in Menu state.
         // If the game is already Playing (e.g., auto-start after restart),

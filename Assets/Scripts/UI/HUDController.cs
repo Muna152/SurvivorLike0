@@ -78,6 +78,9 @@ public class HUDController : MonoBehaviour
         GameEvents.OnPlayerHealed += _onHealedHandler;
         GameEvents.OnPlayerLevelUp += _onLevelUpHandler;
 
+        // Disable keyboard navigation on all HUD Selectables (Sliders, Buttons)
+        UINavUtil.DisableAll(transform);
+
         // Initial refresh
         RefreshHP();
         RefreshEXP();

@@ -39,6 +39,9 @@ public class UpgradeUI : MonoBehaviour
             _skipButton.onClick.AddListener(OnSkipClicked);
         }
 
+        // Disable keyboard navigation on all Selectables in this panel
+        UINavUtil.DisableAll(transform);
+
         Hide();
     }
 

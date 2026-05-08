@@ -38,6 +38,7 @@ public class UpgradeCard : MonoBehaviour
         {
             _button.onClick.RemoveAllListeners();
             _button.onClick.AddListener(OnClicked);
+            UINavUtil.DisableAll(_button.transform);
         }
     }
 
