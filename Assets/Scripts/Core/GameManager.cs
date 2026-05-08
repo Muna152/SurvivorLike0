@@ -127,6 +127,7 @@ public class GameManager : Singleton<GameManager>
         _currentState = GameState.Menu;
         ResetTimeScale();
         ElapsedTime = 0f;
+        SelectedCharacter = null;
         Debug.Log("[GameManager] Returned to menu.");
     }
 
