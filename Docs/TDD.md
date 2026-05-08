@@ -46,6 +46,8 @@ GameManager (单局生命周期)
 ├── TimeManager (游戏时间与难度曲线)
 └── UnlockManager (角色解锁管理, slot-aware)
 SaveSlotManager (静态工具类, 非MonoBehaviour, PlayerPrefs-based)
+GoldManager (静态工具类, 非MonoBehaviour, PlayerPrefs-based, 金币+永久升级)
+StatsTracker (静态工具类, 非MonoBehaviour, PlayerPrefs-based, 统计追踪)
 ```
 
 ### 2.3 设计模式
@@ -662,7 +664,9 @@ Assets/
 │   │   ├── SpatialGrid.cs             # 空间分区网格
 │   │   ├── GameEvents.cs              # 事件总线
 │   │   ├── Singleton.cs               # 单例基类
-│   │   └── WeightedRandom.cs          # 加权随机工具
+│   │   ├── WeightedRandom.cs          # 加权随机工具
+│   │   ├── GoldManager.cs             # 金币+永久升级管理 (静态工具类)
+│   │   └── StatsTracker.cs            # 统计数据追踪 (静态工具类)
 │   │
 │   ├── Player/                        # 玩家系统
 │   │   ├── PlayerController.cs        # 移动控制
@@ -705,7 +709,8 @@ Assets/
 │   │   ├── MainMenuUI.cs             # 主菜单 + 存档管理面板
 │   │   ├── CharacterSelectUI.cs       # 角色选择界面
 │   │   ├── PauseMenuController.cs     # 暂停菜单
-│   │   └── ResultScreen.cs           # 结算界面
+│   │   ├── ResultScreen.cs           # 结算界面
+│   │   ├── UpgradeShopUI.cs          # 永久升级商店 (编程式UI, CanvasGroup驱动)
 │   │
 │   └── Data/                          # 数据定义
 │       ├── WeaponData.cs              # 武器数据SO
@@ -938,7 +943,76 @@ public class MainMenuUI : MonoBehaviour
 }
 ```
 
-### 8.4 未来扩展（JSON存档）
+### 8.4 金币系统 (GoldManager)
+
+**纯静态工具类（非 MonoBehaviour），基于 PlayerPrefs 管理每存档金币余额和永久升级。**
+
+```csharp
+public static class GoldManager
+{
+    // 金币管理 (键: Save_{slot}_Gold)
+    public static int GetGold(int slot);
+    public static void AddGold(int slot, int amount);     // ResultScreen 调用
+    public static bool SpendGold(int slot, int amount);   // 商店购买
+    
+    // 永久升级 (5种, 键: Save_{slot}_Upgrade_{type})
+    public enum PermanentUpgradeType { HPBonus, MoveSpeedBonus, DamageBonus, PickupRangeBonus, ExtraLife }
+    public static int GetUpgradeLevel(int slot, PermanentUpgradeType type);
+    public static bool PurchaseUpgrade(int slot, PermanentUpgradeType type);  // 扣金+升级
+    public static void ApplyPermanentUpgrades(PlayerStats stats);             // 游戏开始时注入
+    public static void ClearSlotData(int slot);                               // 删除存档时清理
+    
+    // 费用表 (GDD 9.2): HP/移速 50/100/200/400/800, 伤害 100/200/400/800/1600,
+    //                   拾取 30/60/120/240/480, 额外生命 500/1000/2000
+}
+```
+
+**关键交互**：
+- `PlayerStats.InitializeFromCharacterData()` 末尾调用 `GoldManager.ApplyPermanentUpgrades(this)` 注入永久加成
+- `PlayerStats.TakeDamage()` 中 ExtraLife 在 `OnPlayerDied` 前拦截，复活回50%HP
+- `ResultScreen.Show()` 中调用 `GoldManager.AddGold()` 持久化局内金币（`_persisted` 防重入）
+- `HUDController` 监听 `OnGoldChanged` 事件刷新金币文字（change-detected，无每帧字符串分配）
+
+### 8.5 统计追踪 (StatsTracker)
+
+**纯静态工具类（非 MonoBehaviour），基于 PlayerPrefs 管理每存档累计统计。**
+
+```csharp
+public static class StatsTracker
+{
+    // 统计项 (键: Save_{slot}_Stat_{statName})
+    public static int GetTotalKills(int slot);
+    public static void AddTotalKills(int slot, int count);
+    public static int GetTotalGames(int slot);
+    public static void IncrementTotalGames(int slot);
+    public static float GetBestSurvivalTime(int slot);
+    public static void UpdateBestTime(int slot, float time);
+    public static int GetTotalGoldEarned(int slot);
+    public static void AddTotalGoldEarned(int slot, int amount);
+    public static void ClearSlotStats(int slot);  // 删除存档时清理
+}
+```
+
+**数据流**：`ResultScreen.Show()` → `StatsTracker.AddTotalKills/IncrementTotalGames/UpdateBestTime/AddTotalGoldEarned`（`_persisted` 防重入）。`SaveSlotManager.DeleteSlot()` 调用 `ClearSlotStats()`。
+
+### 8.6 永久升级商店 (UpgradeShopUI)
+
+**编程式UI（CanvasGroup驱动显隐），由 MainMenuUI 按需 AddComponent 创建。**
+
+```csharp
+public class UpgradeShopUI : MonoBehaviour
+{
+    // 5个升级行: 名称 + 描述 + 等级指示器(■□□□□) + 费用 + 购买按钮
+    // 金币余额显示在顶部
+    // 购买通过 GoldManager.PurchaseUpgrade(), 成功后自动刷新
+    // 监听 OnPermanentUpgradePurchased 事件自动刷新
+    // 关闭按钮 → CanvasGroup hide
+}
+```
+
+**交互流**：MainMenuUI "🛒 商店"按钮 → `OnOpenShop()` → 创建/显示 UpgradeShopUI → 购买升级 → GoldManager 扣金+升级 → OnPermanentUpgradePurchased 事件 → UI 刷新
+
+### 8.7 未来扩展（JSON存档）
 
 当前实现基于 PlayerPrefs，适合小数据量。未来可扩展为 JSON 序列化：
 [Serializable]
@@ -973,4 +1047,4 @@ public class SaveManager
 
 ---
 
-*文档版本: v1.2 | 最后更新: 2026-05-06*
+*文档版本: v1.3 | 最后更新: 2026-05-08*

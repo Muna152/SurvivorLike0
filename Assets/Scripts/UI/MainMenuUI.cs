@@ -13,6 +13,8 @@ public class MainMenuUI : MonoBehaviour
     private InputField _inputField;
     private Text _statusText;
     private Button _startButton;
+    private Button _shopButton;
+    private UpgradeShopUI _shopUI;
 
     // Per-slot row references for dynamic refresh
     private readonly Text[] _slotNameTexts = new Text[SaveSlotManager.MAX_SLOTS];
@@ -111,6 +113,17 @@ public class MainMenuUI : MonoBehaviour
 #else
         Application.Quit();
 #endif
+    }
+
+    private void OnOpenShop()
+    {
+        if (!SaveSlotManager.HasActiveSlot) return;
+
+        if (_shopUI == null)
+        {
+            _shopUI = gameObject.AddComponent<UpgradeShopUI>();
+        }
+        _shopUI.Show();
     }
 
     private void OnBackToMenu()
@@ -241,6 +254,10 @@ public class MainMenuUI : MonoBehaviour
         {
             _startButton.interactable = SaveSlotManager.HasActiveSlot;
         }
+        if (_shopButton != null)
+        {
+            _shopButton.interactable = SaveSlotManager.HasActiveSlot;
+        }
     }
 
     private void SetStatus(string message)
@@ -294,9 +311,15 @@ public class MainMenuUI : MonoBehaviour
             new Color(0.8f, 0.5f, 0.1f, 0.9f));
         _startButton.onClick.AddListener(OnStartGame);
 
+        // Shop button
+        _shopButton = CreateMenuButton(rootObj.transform, "ShopBtn", "🛒 商店",
+            new Vector2(0.3f, 0.30f), new Vector2(0.7f, 0.40f),
+            new Color(0.2f, 0.55f, 0.3f, 0.9f));
+        _shopButton.onClick.AddListener(OnOpenShop);
+
         // Quit Game button
         var quitBtn = CreateMenuButton(rootObj.transform, "QuitBtn", "✕ 退出游戏",
-            new Vector2(0.3f, 0.30f), new Vector2(0.7f, 0.40f),
+            new Vector2(0.3f, 0.18f), new Vector2(0.7f, 0.28f),
             new Color(0.5f, 0.15f, 0.15f, 0.9f));
         quitBtn.onClick.AddListener(OnQuitGame);
 

@@ -807,27 +807,31 @@
 - **验收**: 编译通过；3栏位创建/删除/切换可用；解锁状态按存档隔离；切换存档后角色解锁状态正确
 
 #### T4.1.2 实现金币系统
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.1.1, T3.5.4
-- **产物**: `Scripts/Core/GoldManager.cs`
-- **验收**: 局内金币收集 → 局外可查看余额；跨局持久化
+- **产物**: `Scripts/Core/GoldManager.cs`, 更新 `Scripts/Core/GameEvents.cs`, 更新 `Scripts/Player/PlayerStats.cs`, 更新 `Scripts/UI/ResultScreen.cs`, 更新 `Scripts/UI/HUDController.cs`
+- **说明**: GoldManager 为纯静态工具类（非 MonoBehaviour），基于 PlayerPrefs 管理每存档金币余额。包含 PermanentUpgradeType 枚举（HPBonus/MoveSpeedBonus/DamageBonus/PickupRangeBonus/ExtraLife）、5种升级费用表（GDD 9.2）、PurchaseUpgrade()/ApplyPermanentUpgrades(PlayerStats) 方法。PlayerStats 新增 ExtraLives 属性，TakeDamage() 中额外生命在 OnPlayerDied 前拦截（复活回50%HP）。GameEvents 新增 OnGoldChanged/OnPermanentUpgradePurchased 事件。ResultScreen 调用 GoldManager.AddGold() 持久化局内金币（_persisted 防重入）。HUDController 新增金币文字 💰（change-detected 刷新，无每帧字符串分配）。
+- **验收**: 局内金币收集→局外可查看余额；跨局持久化；HUD实时显示金币
 
 #### T4.1.3 实现永久升级商店
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.1.2
-- **产物**: `Scripts/UI/UpgradeShopUI.cs`, `Scripts/Data/PermanentUpgradeData.cs`
+- **产物**: `Scripts/UI/UpgradeShopUI.cs`, 更新 `Scripts/UI/MainMenuUI.cs`
+- **说明**: UpgradeShopUI 为编程式UI（CanvasGroup驱动显隐），展示5个升级行（名称/描述/等级指示器■□□□□/费用/购买按钮）。购买通过 GoldManager.PurchaseUpgrade()，购买后自动刷新并触发 OnPermanentUpgradePurchased 事件。MainMenuUI 新增绿色"🛒 商店"按钮（仅激活存档时可交互），点击时创建/显示 UpgradeShopUI。
 - **验收**: 大厅中可花费金币购买永久加成（HP/移速/伤害/拾取/额外生命）；费用递增
 
 #### T4.1.4 实现解锁系统
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.1.1, T3.1.4
-- **产物**: 更新 `Scripts/Core/UnlockManager.cs`（存档集成）
-- **验收**: 角色和武器解锁状态持久化；新游戏可使用已解锁角色
+- **产物**: 已在 T3.1.4 / T4.1.1 中完成（UnlockManager + SaveSlotManager 集成）
+- **说明**: 验证确认 UnlockManager 已完整实现存档隔离的解锁持久化，SaveSlotManager.DeleteSlot() 已调用 UnlockManager.ClearSlotData()、GoldManager.ClearSlotData()、StatsTracker.ClearSlotStats()。
+- **验收**: 角色和武器解锁状态持久化；新游戏可使用已解锁角色；删除存档清理所有关联数据
 
 #### T4.1.5 实现统计数据追踪
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.1.1
-- **产物**: `Scripts/Core/StatsTracker.cs`
+- **产物**: `Scripts/Core/StatsTracker.cs`, 更新 `Scripts/Data/SaveSlotManager.cs`
+- **说明**: StatsTracker 为纯静态工具类（非 MonoBehaviour），基于 PlayerPrefs 管理每存档累计统计。追踪 TotalKills/TotalGames/BestSurvivalTime/TotalGoldEarned，键格式 `Save_{slot}_Stat_{statName}`。ResultScreen 在 Show() 时调用各更新方法（_persisted 防重入）。SaveSlotManager.DeleteSlot() 调用 ClearSlotStats(index) 清理。
 - **验收**: 追踪总击杀数/总游戏次数/最长存活时间/总金币等；跨局持久化
 
 ### T4.A 音效资产生成（Phase 4）
@@ -1018,13 +1022,13 @@
 | Phase 2.A | 1 | 7 | 7 | 0 | 0 |
 | Phase 3 | 5 | 20 | 20 | 0 | 0 |
 | Phase 3.A | 1 | 4 | 4 | 0 | 0 |
-| Phase 4 | 6 | 25 | 1 | 0 | 24 |
+| Phase 4 | 6 | 25 | 5 | 0 | 20 |
 | Phase 4.A | 1 | 3 | 0 | 0 | 3 |
-| **合计** | **31** | **145** | **114** | **0** | **31** |
+| **合计** | **31** | **145** | **118** | **0** | **27** |
 
 ---
 
-*文档版本: v2.1 | 最后更新: 2026-05-06*
+*文档版本: v2.2 | 最后更新: 2026-05-08*
 
 ## 游戏体验优化日志
 

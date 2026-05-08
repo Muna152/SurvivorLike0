@@ -19,6 +19,9 @@ public class HUDController : MonoBehaviour
     [Header("Timer")]
     [SerializeField] private Text _timerText;
 
+    [Header("Gold")]
+    private Text _goldText;
+
     [Header("Weapon Bar")]
     [SerializeField] private Transform _weaponBarContainer;
     [SerializeField] private GameObject _weaponSlotPrefab;
@@ -31,6 +34,7 @@ public class HUDController : MonoBehaviour
     private float _lastMaxHPDisplay = -1f;
     private int _lastLevel = -1;
     private int _lastTimerSec = -1;
+    private int _lastGold = -1;
 
     // Cached delegates to allow proper unsubscribe
     private System.Action<int> _onDamagedHandler;
@@ -45,6 +49,25 @@ public class HUDController : MonoBehaviour
 
         _stats = FindObjectOfType<PlayerStats>();
         _weaponManager = FindObjectOfType<PlayerWeaponManager>();
+
+        // Create gold text programmatically (next to timer area)
+        if (_goldText == null && _timerText != null)
+        {
+            var goldObj = new GameObject("GoldText");
+            goldObj.transform.SetParent(_timerText.transform.parent, false);
+            var goldRect = goldObj.AddComponent<RectTransform>();
+            goldRect.anchorMin = new Vector2(0f, 1f);
+            goldRect.anchorMax = new Vector2(1f, 1f);
+            goldRect.pivot = new Vector2(1f, 1f);
+            goldRect.anchoredPosition = new Vector2(-10f, -40f);
+            goldRect.sizeDelta = new Vector2(200f, 30f);
+            _goldText = goldObj.AddComponent<Text>();
+            _goldText.fontSize = 18;
+            _goldText.color = new Color(1f, 0.85f, 0.3f);
+            _goldText.alignment = TextAnchor.MiddleRight;
+            _goldText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _goldText.text = "💰 0";
+        }
 
         // Create cached delegate instances so unsubscribe works correctly
         _onDamagedHandler = _ => RefreshHP();
@@ -72,6 +95,9 @@ public class HUDController : MonoBehaviour
     {
         // Only refresh timer every frame (cheap int compare)
         RefreshTimer();
+
+        // Refresh gold only if changed
+        RefreshGoldIfNeeded();
 
         // Refresh HP/EXP only if values changed (avoids string allocation every frame)
         RefreshHPIfNeeded();
@@ -183,6 +209,17 @@ public class HUDController : MonoBehaviour
         if (min < 10) _timerText.color = Color.white;
         else if (min < 20) _timerText.color = Color.yellow;
         else _timerText.color = Color.red;
+    }
+
+    private void RefreshGoldIfNeeded()
+    {
+        if (_stats == null || _goldText == null) return;
+
+        int gold = _stats.Gold;
+        if (gold == _lastGold) return;
+
+        _lastGold = gold;
+        _goldText.text = $"💰 {gold}";
     }
 
     private void RefreshWeaponBar()

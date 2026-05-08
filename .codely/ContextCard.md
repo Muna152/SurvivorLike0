@@ -21,9 +21,9 @@
 
 ## Patterns
 - Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager, UnlockManager
-- Static utility: SaveSlotManager (no MonoBehaviour, pure PlayerPrefs)
+- Static utility: SaveSlotManager, GoldManager, StatsTracker (no MonoBehaviour, pure PlayerPrefs)
 - ObjectPool<T> w/ prewarm & HashSet tracking
-- GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, OnGamePaused/Resumed, etc.)
+- GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, OnGamePaused/Resumed, OnGoldChanged, OnPermanentUpgradePurchased, etc.)
 - WeaponBase abstract → Projectile|Orbital|Area|Auxiliary; WeaponData.spreadAngle drives fan spacing
 - BossEnemy abstract → ExecuteAttack, OnPhaseChanged; Destroy-on-death (not pooled)
 - Factory: WeaponData.WeaponType → component creation
@@ -39,19 +39,22 @@
 - UnlockCondition: SurviveTime|KillCount|HealAmount|ReachLevel|KillElites
 
 ## Systems
-- ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking, magnet buff (timer-based PickupRange boost)
+- ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking, magnet buff (timer-based PickupRange boost), ExtraLives (revive at 50% HP before OnPlayerDied)
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
 - ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage; Bat moveSpeed=2.2
 - ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI (hides on pause/player death, LateUpdate guard), EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff)
-- ✅ UI: HUD (slider value clamped to MaxHP), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character), PauseMenu (4-button layout: Resume full-width top row, Restart/Codex/Menu second row; fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic)
+- ✅ UI: HUD (slider value clamped to MaxHP, 💰 gold text), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character + gold persistence with _persisted guard), PauseMenu (4-button layout: Resume full-width top row, Restart/Codex/Menu second row; fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic), UpgradeShopUI (5 permanent upgrades, shop button in MainMenuUI)
 - ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
 - ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ per-slot PlayerPrefs
 - ✅ Main Menu: MainMenuUI w/ Start/Quit buttons, save slot management panel (3 slots, create/delete/switch)
 - ✅ Save System: SaveSlotManager (static, PlayerPrefs-based), slot-isolated unlock data
+- ✅ Gold System: GoldManager (static, PlayerPrefs-based), per-slot gold + 5 permanent upgrades (HPBonus/MoveSpeedBonus/DamageBonus/PickupRangeBonus/ExtraLife), cost tables from GDD 9.2, ApplyPermanentUpgrades(PlayerStats) at game start
+- ✅ Stats Tracker: StatsTracker (static, PlayerPrefs-based), per-slot TotalKills/TotalGames/BestSurvivalTime/TotalGoldEarned
+- ✅ Upgrade Shop: UpgradeShopUI (programmatic, CanvasGroup), 5 upgrade rows with level indicators, shop button in MainMenuUI
 
 ## Perf Budget
 - Max 500 enemies on-screen | 6 weapon limit | Weapon max level 8
@@ -60,9 +63,31 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 0/26
-- Game flow: MainMenuUI → 创建/选择存档 → CharacterSelectUI → StartGame(character) → Playing → GameOver → Unlock check → Retry/Menu
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 5/26
+- Game flow: MainMenuUI → 创建/选择存档 → 🛒 商店(永久升级) → CharacterSelectUI → StartGame(character) → Playing → GameOver → Gold/Stats persisted → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
+
+## Phase 4 Progress
+- T4.1 存档与元进度: 5/5 ✅
+  - T4.1.1 SaveSlotManager: 3-slot PlayerPrefs, slot-isolated unlocks
+  - T4.1.2 GoldManager: static, per-slot gold + permanent upgrades (5 types, GDD 9.2 costs)
+  - T4.1.3 UpgradeShopUI: programmatic, 5 upgrade rows, MainMenuUI shop button
+  - T4.1.4 Unlock system: verified complete (UnlockManager + SaveSlotManager integration)
+  - T4.1.5 StatsTracker: TotalKills/TotalGames/BestSurvivalTime/TotalGoldEarned per slot
+
+### Remaining Phase 4 Tasks (21 items)
+- T4.A: Audio asset generation (3 BGM + 12 SFX)
+- T4.2: Audio system integration (AudioManager + hooks)
+- T4.3: VFX system (hit/attack/death/pickup effects)
+- T4.4: Numerical balance (weapons/enemies/XP/evolution costs)
+- T4.5: Performance optimization (pool audit, LOD, layers, batching, GC)
+- T4.6: Bug fixes & polish (edge cases, UI, animations, tutorial)
+
+### Key Design Decisions (T4.1)
+- GoldManager/StatsTracker as static classes — consistent with SaveSlotManager pattern
+- ExtraLife revive intercepts TakeDamage before OnPlayerDied — prevents ResultScreen on revive
+- ResultScreen _persisted guard — ensures gold/stats saved once per session
+- UpgradeShopUI programmatic — consistent with all other UI in project
 
 ## Phase 3 Complete ✅
 - T3.1 多角色系统: 5/5 ✅
@@ -123,3 +148,6 @@
 - BossHealthBar must hide on pause (OnGamePaused) and player death (OnPlayerDied); LateUpdate guard ensures hidden when no valid boss
 - Drop prefabs (RoastChicken, Chest, MagnetItem) must use scale (0.08,0.08,1) matching ExpGem/GoldCoin, and have CircleCollider2D
 - PauseMenu buttons must not share identical anchor rects; ResumeBtn full-width on top row, other buttons in separate row below
+- ResultScreen._persisted guard prevents double-persistence of gold/stats; must reset _persisted=false in Retry/ReturnToMenu
+- GoldManager.ApplyPermanentUpgrades() called at end of PlayerStats.InitializeFromCharacterData() — must be after base stats set
+- ExtraLife revive in TakeDamage() returns 50% MaxHP and skips OnPlayerDied — do not add death-side effects assuming every death fires OnPlayerDied

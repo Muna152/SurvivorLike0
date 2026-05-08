@@ -27,6 +27,7 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private int _gold;
     [SerializeField] private float _totalHealed;
     [SerializeField] private int _eliteKillCount;
+    [SerializeField] private int _extraLives;
 
     // Magnet buff state
     private float _magnetBuffTimer;
@@ -45,6 +46,7 @@ public class PlayerStats : MonoBehaviour
     public int Gold => _gold;
     public float TotalHealed => _totalHealed;
     public int EliteKillCount => _eliteKillCount;
+    public int ExtraLives { get => _extraLives; set => _extraLives = value; }
 
     /// <summary>EXP needed to reach the next level (quadratic curve).</summary>
     public float EXPToNextLevel => 5 + 3 * _level * _level;
@@ -72,6 +74,9 @@ public class PlayerStats : MonoBehaviour
         ProjectileBonus = character.projectileBonus;
 
         _currentHP = MaxHP;
+
+        // Apply permanent upgrades from meta-progression
+        GoldManager.ApplyPermanentUpgrades(this);
     }
 
     // ── HP ────────────────────────────────────────────────────
@@ -84,6 +89,14 @@ public class PlayerStats : MonoBehaviour
 
         if (_currentHP <= 0f)
         {
+            // Check extra lives (permanent upgrade revival)
+            if (_extraLives > 0)
+            {
+                _extraLives--;
+                _currentHP = MaxHP * 0.5f;
+                return;
+            }
+
             _currentHP = 0f;
             GameEvents.InvokePlayerDied();
         }
@@ -123,7 +136,11 @@ public class PlayerStats : MonoBehaviour
 
     public void AddKill() => _killCount++;
     public void AddEliteKill() => _eliteKillCount++;
-    public void AddGold(int amount) => _gold += amount;
+    public void AddGold(int amount)
+    {
+        _gold += amount;
+        GameEvents.InvokeOnGoldChanged(_gold);
+    }
 
     // ── Passive Items ────────────────────────────────────────
 

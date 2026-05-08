@@ -60,6 +60,13 @@ public static class GameEvents
     /// <summary>Fire when a character is unlocked. Parameter = character id.</summary>
     public static event Action<string> OnCharacterUnlocked;
 
+    // ── Meta-Progression Events ────────────────────────────────
+    /// <summary>Fire when the player picks up gold in-game. Parameter = current session gold.</summary>
+    public static event Action<int> OnGoldChanged;
+
+    /// <summary>Fire when a permanent upgrade is purchased in the shop.</summary>
+    public static event Action OnPermanentUpgradePurchased;
+
     // ── Invoke Helpers ─────────────────────────────────────────
     // Centralised invoke points so we never miss null-checks.
     // Also makes it easy to add logging / analytics later.
@@ -77,6 +84,8 @@ public static class GameEvents
     public static void InvokeBossDied(BossEnemy boss) => OnBossDied?.Invoke(boss);
     public static void InvokeBossHealthChanged(BossEnemy boss) => OnBossHealthChanged?.Invoke(boss);
     public static void InvokeCharacterUnlocked(string characterId) => OnCharacterUnlocked?.Invoke(characterId);
+    public static void InvokeOnGoldChanged(int currentGold) => OnGoldChanged?.Invoke(currentGold);
+    public static void InvokeOnPermanentUpgradePurchased() => OnPermanentUpgradePurchased?.Invoke();
     public static void InvokeGamePaused() => OnGamePaused?.Invoke();
     public static void InvokeGameResumed() => OnGameResumed?.Invoke();
 
@@ -98,6 +107,8 @@ public static class GameEvents
         OnBossDied = null;
         OnBossHealthChanged = null;
         OnCharacterUnlocked = null;
+        OnGoldChanged = null;
+        OnPermanentUpgradePurchased = null;
         OnGamePaused = null;
         OnGameResumed = null;
     }

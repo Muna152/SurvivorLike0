@@ -121,6 +121,10 @@ public static class SaveSlotManager
         // Clear unlock data for this slot
         ClearSlotUnlockData(index);
 
+        // Clear gold, permanent upgrades, and stats for this slot
+        GoldManager.ClearSlotData(index);
+        StatsTracker.ClearSlotStats(index);
+
         // Clear slot name
         PlayerPrefs.DeleteKey(GetSlotNameKey(index));
 

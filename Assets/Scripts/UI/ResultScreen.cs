@@ -21,6 +21,7 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private Button _menuButton;
 
     private CanvasGroup _canvasGroup;
+    private bool _persisted;
 
     private void Awake()
     {
@@ -112,6 +113,17 @@ public class ResultScreen : MonoBehaviour
                 _unlockText.text = names.ToString();
             }
         }
+
+        // Persist gold and stats to active save slot (once per game session)
+        if (!_persisted && stats != null && gm != null && SaveSlotManager.HasActiveSlot)
+        {
+            _persisted = true;
+            GoldManager.AddGold(stats.Gold);
+            StatsTracker.AddTotalKills(stats.KillCount);
+            StatsTracker.IncrementTotalGames();
+            StatsTracker.UpdateBestTime(gm.ElapsedTime);
+            StatsTracker.AddTotalGoldEarned(stats.Gold);
+        }
     }
 
     private void Hide()
@@ -124,6 +136,7 @@ public class ResultScreen : MonoBehaviour
     private void Retry()
     {
         Time.timeScale = 1f;
+        _persisted = false;
         GameEvents.ClearAll();
         EnemyBase.ResetStatics();
 
@@ -144,6 +157,7 @@ public class ResultScreen : MonoBehaviour
     private void ReturnToMenu()
     {
         Time.timeScale = 1f;
+        _persisted = false;
         GameEvents.ClearAll();
 
         if (PoolManager.HasInstance)
