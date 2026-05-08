@@ -81,15 +81,17 @@
 - T4.3: VFX system (hit/attack/death/pickup effects)
 - T4.4: Numerical balance (weapons/enemies/XP/evolution costs)
 - T4.5: Performance optimization (pool audit, LOD, layers, batching, GC)
-- T4.6: Bug fixes & polish — 6/7 done ✅ (boundary clamp, spatial reconcile, heal event, DropTableData SO, give-up button, kill/heal/gold tracking fixes)
+- T4.6: Bug fixes & polish — 8/9 done ✅ (boundary clamp, spatial reconcile, heal event, DropTableData SO, give-up button, kill/heal/gold tracking fixes, SelectedCharacter leak, weapon instant-fire)
 
-### T4.6 Bug Fix Details ✅ (4/7)
+### T4.6 Bug Fix Details ✅ (6/9)
 - T4.6.1a Player boundary: PlayerController position clamped to MapManager.CurrentMapHalfSize
 - T4.6.1b SpatialGrid QueryNearest: added Reconcile() call for correct nearest-enemy lookup
 - T4.6.1c Heal event: only fires OnPlayerHealed when actual HP change occurs
 - T4.6.1d DropTableData SO: extracted all hardcoded drop values into ScriptableObject
 - T4.6.1e Give-up button: PauseMenu "回到菜单"→"放弃", GiveUp() hides pause→EndGame(false)→ResultScreen.Show(false) for settlement then return to menu
 - T4.6.1f Kill/heal/gold tracking: EnemyBase.Die() now calls AddKill()/AddEliteKill() via static _cachedPlayerStats; BossEnemy.Die() also tracks kills + fires OnEnemyDied; DropManager sets DropType explicitly via SetType() at spawn time
+- T4.6.1g SelectedCharacter leak: GameManager.ReturnToMenu() now clears SelectedCharacter to prevent stale character data from equipping previous weapon on scene reload
+- T4.6.1h Weapon instant-fire: WeaponBase.Initialize() now sets _cooldownTimer to first-level cooldown instead of 0, preventing newly equipped weapons from firing on the first frame
 
 ### Key Design Decisions (T4.1)
 - GoldManager/StatsTracker as static classes — consistent with SaveSlotManager pattern
@@ -157,6 +159,8 @@
 - Drop prefabs (RoastChicken, Chest, MagnetItem) must use scale (0.08,0.08,1) matching ExpGem/GoldCoin, and have CircleCollider2D
 - PauseMenu buttons must not share identical anchor rects; ResumeBtn full-width on top row, other buttons in separate row below; "放弃" button calls GiveUp() which shows ResultScreen instead of direct scene reload
 - ResultScreen._persisted guard prevents double-persistence of gold/stats; must reset _persisted=false in Retry/ReturnToMenu
+- GameManager.ReturnToMenu() must clear SelectedCharacter=null to prevent stale character's starting weapon leaking into next run via PlayerWeaponManager.Start() fallback
+- WeaponBase.Initialize() must set _cooldownTimer to first-level cooldown (not 0) to prevent newly equipped weapons from instantly firing
 - GoldManager.ApplyPermanentUpgrades() called at end of PlayerStats.InitializeFromCharacterData() — must be after base stats set
 - ExtraLife revive in TakeDamage() returns 50% MaxHP and skips OnPlayerDied — do not add death-side effects assuming every death fires OnPlayerDied
 - DropTableData SO holds all drop gameplay values — DropManager reads from it, not its own [SerializeField]; DropBase.SetMagnetConfig() used when spawning magnet drops from SO

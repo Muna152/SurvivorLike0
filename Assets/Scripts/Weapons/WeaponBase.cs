@@ -22,7 +22,9 @@ public abstract class WeaponBase : MonoBehaviour
         _data = data;
         _playerStats = stats;
         _currentLevel = 1;
-        _cooldownTimer = 0f;
+        // Start with cooldown so newly equipped weapons don't fire on the first frame
+        var ld = CurrentLevelData;
+        _cooldownTimer = ld != null ? ld.cooldown * stats.CooldownMultiplier : 0f;
     }
 
     public virtual void Upgrade()
