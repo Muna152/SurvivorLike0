@@ -180,14 +180,14 @@ public class PauseMenuController : MonoBehaviour
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0, -50),
             TextAnchor.UpperCenter);
 
-        // Resume button
+        // Resume button (full-width, top row — most prominent)
         var resumeBtn = CreateButton(panelObj.transform, "ResumeBtn", "继续游戏",
-            new Vector2(0.3f, 0.92f), new Vector2(0.7f, 0.97f));
+            new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.97f));
         resumeBtn.onClick.AddListener(Resume);
 
         // Restart button
         var restartBtn = CreateButton(panelObj.transform, "RestartBtn", "重新开始",
-            new Vector2(0.05f, 0.86f), new Vector2(0.45f, 0.91f));
+            new Vector2(0.05f, 0.86f), new Vector2(0.30f, 0.91f));
         var restartImg = restartBtn.GetComponent<Image>();
         if (restartImg != null) restartImg.color = new Color(0.6f, 0.4f, 0.1f, 0.9f);
         var restartColors = restartBtn.colors;
@@ -196,20 +196,9 @@ public class PauseMenuController : MonoBehaviour
         restartBtn.colors = restartColors;
         restartBtn.onClick.AddListener(Restart);
 
-        // Return to menu button
-        var menuBtn = CreateButton(panelObj.transform, "MenuBtn", "回到菜单",
-            new Vector2(0.55f, 0.86f), new Vector2(0.95f, 0.91f));
-        var menuImg = menuBtn.GetComponent<Image>();
-        if (menuImg != null) menuImg.color = new Color(0.5f, 0.15f, 0.15f, 0.9f);
-        var menuColors = menuBtn.colors;
-        menuColors.highlightedColor = new Color(0.7f, 0.25f, 0.25f);
-        menuColors.pressedColor = new Color(0.4f, 0.1f, 0.1f);
-        menuBtn.colors = menuColors;
-        menuBtn.onClick.AddListener(ReturnToMenu);
-
         // Codex button
         var codexBtn = CreateButton(panelObj.transform, "CodexBtn", "📖 图鉴",
-            new Vector2(0.3f, 0.92f), new Vector2(0.7f, 0.97f));
+            new Vector2(0.35f, 0.86f), new Vector2(0.65f, 0.91f));
         var codexImg = codexBtn.GetComponent<Image>();
         if (codexImg != null) codexImg.color = new Color(0.3f, 0.3f, 0.55f, 0.9f);
         var codexColors = codexBtn.colors;
@@ -217,6 +206,17 @@ public class PauseMenuController : MonoBehaviour
         codexColors.pressedColor = new Color(0.2f, 0.2f, 0.4f);
         codexBtn.colors = codexColors;
         codexBtn.onClick.AddListener(ShowCodex);
+
+        // Return to menu button
+        var menuBtn = CreateButton(panelObj.transform, "MenuBtn", "回到菜单",
+            new Vector2(0.70f, 0.86f), new Vector2(0.95f, 0.91f));
+        var menuImg = menuBtn.GetComponent<Image>();
+        if (menuImg != null) menuImg.color = new Color(0.5f, 0.15f, 0.15f, 0.9f);
+        var menuColors = menuBtn.colors;
+        menuColors.highlightedColor = new Color(0.7f, 0.25f, 0.25f);
+        menuColors.pressedColor = new Color(0.4f, 0.1f, 0.1f);
+        menuBtn.colors = menuColors;
+        menuBtn.onClick.AddListener(ReturnToMenu);
 
         // Weapon section header + count
         CreateLabel(panelObj.transform, "WeaponHeader", "── 武器 ──", 24, new Color(1f, 0.85f, 0.3f),

@@ -45,7 +45,7 @@
 - ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI (hides on pause/player death, LateUpdate guard), EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff)
-- ✅ UI: HUD (slider value clamped to MaxHP), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character), PauseMenu (+Codex button, fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic)
+- ✅ UI: HUD (slider value clamped to MaxHP), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character), PauseMenu (4-button layout: Resume full-width top row, Restart/Codex/Menu second row; fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic)
 - ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
@@ -79,7 +79,7 @@
   - CameraFollow: orthographic clamping within map bounds
   - Obstacles: SpriteRenderer+BoxCollider2D, random rotation/scale, 10-unit clear radius from center; scaleMultiplier=0.04f, sortingOrder=-2 (below characters)
 - T3.4 完整UI: 3/3 ✅ (T3.4.1 MainMenu done earlier)
-  - T3.4.3 PauseMenu: +Codex button (ShowCodex→CodexUI.Show)
+  - T3.4.3 PauseMenu: Resume full-width top row, Restart/Codex/Menu split second row (fixed CodexBtn overlapping ResumeBtn)
   - T3.4.4 ResultScreen: 9 stats (level/elites/healed/character + original 5), programmatic rebuild
   - T3.4.5 CodexUI: CanvasGroup overlay, Weapons/Characters tabs, WeaponData/CharacterData browsing, ScrollRect
 - T3.5 更多掉落: 5/5 ✅
@@ -122,3 +122,4 @@
 - PassiveEffect.Remove for MaxHP must call ClampCurrentHP() — otherwise CurrentHP > MaxHP causes slider >100% fill
 - BossHealthBar must hide on pause (OnGamePaused) and player death (OnPlayerDied); LateUpdate guard ensures hidden when no valid boss
 - Drop prefabs (RoastChicken, Chest, MagnetItem) must use scale (0.08,0.08,1) matching ExpGem/GoldCoin, and have CircleCollider2D
+- PauseMenu buttons must not share identical anchor rects; ResumeBtn full-width on top row, other buttons in separate row below
