@@ -49,6 +49,13 @@ public static class GameEvents
     /// <summary>Fire when a boss takes damage (for health bar). Parameter = the boss.</summary>
     public static event Action<BossEnemy> OnBossHealthChanged;
 
+    // ── Game State Events ──────────────────────────────────────
+    /// <summary>Fire when the game is paused.</summary>
+    public static event Action OnGamePaused;
+
+    /// <summary>Fire when the game is resumed from pause.</summary>
+    public static event Action OnGameResumed;
+
     // ── Unlock Events ──────────────────────────────────────────
     /// <summary>Fire when a character is unlocked. Parameter = character id.</summary>
     public static event Action<string> OnCharacterUnlocked;
@@ -70,6 +77,8 @@ public static class GameEvents
     public static void InvokeBossDied(BossEnemy boss) => OnBossDied?.Invoke(boss);
     public static void InvokeBossHealthChanged(BossEnemy boss) => OnBossHealthChanged?.Invoke(boss);
     public static void InvokeCharacterUnlocked(string characterId) => OnCharacterUnlocked?.Invoke(characterId);
+    public static void InvokeGamePaused() => OnGamePaused?.Invoke();
+    public static void InvokeGameResumed() => OnGameResumed?.Invoke();
 
     /// <summary>
     /// Remove all subscribers. Useful when returning to the main menu or between runs.
@@ -89,5 +98,7 @@ public static class GameEvents
         OnBossDied = null;
         OnBossHealthChanged = null;
         OnCharacterUnlocked = null;
+        OnGamePaused = null;
+        OnGameResumed = null;
     }
 }

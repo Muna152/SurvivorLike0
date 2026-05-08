@@ -23,7 +23,7 @@
 - Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager, UnlockManager
 - Static utility: SaveSlotManager (no MonoBehaviour, pure PlayerPrefs)
 - ObjectPool<T> w/ prewarm & HashSet tracking
-- GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, etc.)
+- GameEvents static bus (OnEnemyDied, OnPlayerLevelUp, OnDifficultyChanged, OnGamePaused/Resumed, etc.)
 - WeaponBase abstract → Projectile|Orbital|Area|Auxiliary; WeaponData.spreadAngle drives fan spacing
 - BossEnemy abstract → ExecuteAttack, OnPhaseChanged; Destroy-on-death (not pooled)
 - Factory: WeaponData.WeaponType → component creation
@@ -42,10 +42,10 @@
 - ✅ Player: WASD+Rigidbody2D, stats (HP/EXP/level/multipliers), 6 weapon slots, TotalHealed/EliteKillCount tracking, magnet buff (timer-based PickupRange boost)
 - ✅ Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive
 - ✅ Enemies: chase AI, spawner time-scaling, elite 5min (count ramps per wave), mage; Bat moveSpeed=2.2
-- ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI, EnemySpawner timed boss spawn (10/20/30 min)
+- ✅ Bosses: BossEnemy base (multi-phase, health bar integration, destroy-on-death), 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossProjectile/BossShockwave, BossHealthBar UI (hides on pause/player death, LateUpdate guard), EnemySpawner timed boss spawn (10/20/30 min)
 - ✅ Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive; PassiveUpgradeOption preview uses actual PlayerStats (not hardcoded defaults)
 - ✅ Drops: EXP/Gold/Health/Chest/Magnet, vacuum mechanic, DropManager (deferred queue, 6/frame budget, EXP/Gold merge, scene-reload safe); EXP gem tiering (time-based: small→medium≥8min→large≥18min); Chest from elite/boss; Magnet rare drop (10s buff)
-- ✅ UI: HUD, UpgradeUI, BossHealthBar, ResultScreen (9 stats incl. level/elites/healed/character), PauseMenu (+Codex button), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic)
+- ✅ UI: HUD (slider value clamped to MaxHP), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character), PauseMenu (+Codex button, fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic)
 - ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
@@ -86,7 +86,7 @@
   - DropType.Magnet + Chest; DropBase.Collect() handles magnet→PlayerStats.ApplyMagnetEffect
   - PlayerStats: magnet buff timer (10s PickupRange boost, auto-revert)
   - DropManager: chest (elite/boss only), magnet (rare), EXP gem tiering (small 1×/medium 5× at ≥8min/large 20× at ≥18min)
-  - 3 new prefabs: RoastChicken, Chest, MagnetItem
+  - 3 new prefabs: RoastChicken, Chest, MagnetItem (all scale 0.08, CircleCollider2D trigger)
 - T3.4.1 MainMenu + T4.1.1 Save: done earlier (partial, tracked in Phase 4)
 
 ## Phase 2 Complete ✅
@@ -119,3 +119,6 @@
 - MainMenuUI.Awake() must check GameManager.CurrentState — if already Playing (auto-start after restart), skip Show() to avoid timeScale=0 / HUD hidden
 - DropManager (DontDestroyOnLoad) must re-register pools + clear _pending on sceneLoaded, since Awake() only runs once
 - Heal() must fire OnPlayerHealed event; HUDController.RefreshHPIfNeeded() must use float comparison (not int cast) to catch fractional HP changes
+- PassiveEffect.Remove for MaxHP must call ClampCurrentHP() — otherwise CurrentHP > MaxHP causes slider >100% fill
+- BossHealthBar must hide on pause (OnGamePaused) and player death (OnPlayerDied); LateUpdate guard ensures hidden when no valid boss
+- Drop prefabs (RoastChicken, Chest, MagnetItem) must use scale (0.08,0.08,1) matching ExpGem/GoldCoin, and have CircleCollider2D

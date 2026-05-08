@@ -88,6 +88,7 @@ public class GameManager : Singleton<GameManager>
 
         _currentState = GameState.Paused;
         Time.timeScale = 0f;
+        GameEvents.InvokeGamePaused();
         Debug.Log("[GameManager] Game paused.");
     }
 
@@ -98,6 +99,7 @@ public class GameManager : Singleton<GameManager>
 
         _currentState = GameState.Playing;
         Time.timeScale = 1f;
+        GameEvents.InvokeGameResumed();
         Debug.Log("[GameManager] Game resumed.");
     }
 

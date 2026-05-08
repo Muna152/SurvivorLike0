@@ -96,6 +96,12 @@ public class PlayerStats : MonoBehaviour
         GameEvents.InvokePlayerHealed(amount);
     }
 
+    /// <summary>Clamp CurrentHP to [0, MaxHP]. Call after MaxHP decreases.</summary>
+    public void ClampCurrentHP()
+    {
+        _currentHP = Mathf.Clamp(_currentHP, 0f, MaxHP);
+    }
+
     // ── EXP / Level ──────────────────────────────────────────
 
     public void AddEXP(int amount)

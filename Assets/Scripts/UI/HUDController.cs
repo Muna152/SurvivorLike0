@@ -85,7 +85,7 @@ public class HUDController : MonoBehaviour
         if (_hpSlider != null)
         {
             _hpSlider.maxValue = _stats.MaxHP;
-            _hpSlider.value = _stats.CurrentHP;
+            _hpSlider.value = Mathf.Min(_stats.CurrentHP, _stats.MaxHP);
         }
 
         if (_hpText != null)
@@ -111,7 +111,7 @@ public class HUDController : MonoBehaviour
         if (_hpSlider != null)
         {
             _hpSlider.maxValue = maxHp;
-            _hpSlider.value = hp;
+            _hpSlider.value = Mathf.Min(hp, maxHp);
         }
 
         if (_hpText != null)

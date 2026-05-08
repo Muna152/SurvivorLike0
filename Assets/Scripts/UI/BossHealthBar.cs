@@ -16,9 +16,13 @@ public class BossHealthBar : MonoBehaviour
     private Image _fillImage;
 
     private BossEnemy _currentBoss;
+    private bool _isPaused;
     private System.Action<BossEnemy> _onBossSpawnedHandler;
     private System.Action<BossEnemy> _onBossDiedHandler;
     private System.Action<BossEnemy> _onBossHealthChangedHandler;
+    private System.Action _onGamePausedHandler;
+    private System.Action _onGameResumedHandler;
+    private System.Action _onPlayerDiedHandler;
 
     private void Awake()
     {
@@ -31,10 +35,16 @@ public class BossHealthBar : MonoBehaviour
         _onBossSpawnedHandler = OnBossSpawned;
         _onBossDiedHandler = OnBossDied;
         _onBossHealthChangedHandler = OnBossHealthChanged;
+        _onGamePausedHandler = OnGamePaused;
+        _onGameResumedHandler = OnGameResumed;
+        _onPlayerDiedHandler = OnPlayerDied;
 
         GameEvents.OnBossSpawned += _onBossSpawnedHandler;
         GameEvents.OnBossDied += _onBossDiedHandler;
         GameEvents.OnBossHealthChanged += _onBossHealthChangedHandler;
+        GameEvents.OnGamePaused += _onGamePausedHandler;
+        GameEvents.OnGameResumed += _onGameResumedHandler;
+        GameEvents.OnPlayerDied += _onPlayerDiedHandler;
     }
 
     private void OnDisable()
@@ -42,6 +52,9 @@ public class BossHealthBar : MonoBehaviour
         GameEvents.OnBossSpawned -= _onBossSpawnedHandler;
         GameEvents.OnBossDied -= _onBossDiedHandler;
         GameEvents.OnBossHealthChanged -= _onBossHealthChangedHandler;
+        GameEvents.OnGamePaused -= _onGamePausedHandler;
+        GameEvents.OnGameResumed -= _onGameResumedHandler;
+        GameEvents.OnPlayerDied -= _onPlayerDiedHandler;
     }
 
     private void BuildUI()
@@ -145,7 +158,8 @@ public class BossHealthBar : MonoBehaviour
         _currentBoss = boss;
         _bossNameText.text = boss.BossName;
         _hpSlider.value = 1f;
-        _panel.SetActive(true);
+        if (!_isPaused)
+            _panel.SetActive(true);
         UpdateHPDisplay();
     }
 
@@ -156,6 +170,36 @@ public class BossHealthBar : MonoBehaviour
             _currentBoss = null;
             _panel.SetActive(false);
         }
+    }
+
+    private void OnPlayerDied()
+    {
+        _currentBoss = null;
+        _isPaused = false;
+        if (_panel != null)
+            _panel.SetActive(false);
+    }
+
+    private void LateUpdate()
+    {
+        // Defensive: ensure panel is hidden when no valid boss exists
+        // Handles edge cases like boss destroyed without Die() firing
+        if (_panel != null && _panel.activeSelf && _currentBoss == null)
+            _panel.SetActive(false);
+    }
+
+    private void OnGamePaused()
+    {
+        _isPaused = true;
+        if (_panel != null)
+            _panel.SetActive(false);
+    }
+
+    private void OnGameResumed()
+    {
+        _isPaused = false;
+        if (_panel != null && _currentBoss != null)
+            _panel.SetActive(true);
     }
 
     private void OnBossHealthChanged(BossEnemy boss)

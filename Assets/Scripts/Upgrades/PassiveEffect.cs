@@ -91,6 +91,7 @@ public static class PassiveEffect
                 break;
             case PassiveData.StatType.MaxHP:
                 stats.MaxHP -= bonus;
+                stats.ClampCurrentHP();
                 break;
         }
     }
