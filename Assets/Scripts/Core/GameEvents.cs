@@ -24,6 +24,9 @@ public static class GameEvents
     /// <summary>Fire when an enemy takes damage. Parameter = the enemy that was hit.</summary>
     public static event Action<EnemyBase> OnEnemyHit;
 
+    /// <summary>Fire when an enemy takes damage. Parameters = the enemy + damage amount.</summary>
+    public static event Action<EnemyBase, int> OnEnemyDamaged;
+
     /// <summary>Fire when an enemy dies. Parameter = the enemy that died.</summary>
     public static event Action<EnemyBase> OnEnemyDied;
 
@@ -79,6 +82,7 @@ public static class GameEvents
     public static void InvokePlayerDied() => OnPlayerDied?.Invoke();
     public static void InvokePlayerLevelUp(int newLevel) => OnPlayerLevelUp?.Invoke(newLevel);
     public static void InvokeEnemyHit(EnemyBase enemy) => OnEnemyHit?.Invoke(enemy);
+    public static void InvokeEnemyDamaged(EnemyBase enemy, int damage) => OnEnemyDamaged?.Invoke(enemy, damage);
     public static void InvokeEnemyDied(EnemyBase enemy) => OnEnemyDied?.Invoke(enemy);
     public static void InvokeEnemySpawned(EnemyBase enemy) => OnEnemySpawned?.Invoke(enemy);
     public static void InvokeDropCollected(DropBase drop) => OnDropCollected?.Invoke(drop);
@@ -103,6 +107,7 @@ public static class GameEvents
         OnPlayerDied = null;
         OnPlayerLevelUp = null;
         OnEnemyHit = null;
+        OnEnemyDamaged = null;
         OnEnemyDied = null;
         OnEnemySpawned = null;
         OnDropCollected = null;

@@ -147,6 +147,7 @@ public class EnemyBase : MonoBehaviour
         _currentHP -= damage;
 
         GameEvents.InvokeEnemyHit(this);
+        GameEvents.InvokeEnemyDamaged(this, damage);
 
         if (_sr != null)
         {

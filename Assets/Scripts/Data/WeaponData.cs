@@ -24,6 +24,10 @@ public class WeaponData : ScriptableObject
     [Tooltip("Sound effect played when this weapon attacks.")]
     public AudioClip sfxClip;
 
+    [Header("VFX")]
+    [Tooltip("Visual effect type played when this weapon attacks.")]
+    public VFXType vfxType = VFXType.None;
+
     [Header("Level Data")]
     public int maxLevel = 8;
     public LevelData[] levelData;
@@ -55,6 +59,20 @@ public class WeaponData : ScriptableObject
         None,
         HealingAura,
         DamagePuddle
+    }
+
+    /// <summary>
+    /// Visual effect type for weapon attacks.
+    /// </summary>
+    public enum VFXType
+    {
+        None,
+        Slash,
+        Trail,
+        Explosion,
+        Glow,
+        Splash,
+        Impact
     }
 }
 

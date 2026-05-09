@@ -20,6 +20,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 1113768890781713028, guid: 8c428d0bcc41a5249911aef9c7784975, type: 3}
   spreadAngle: 10
   sfxClip: {fileID: 8300000, guid: 35ce21e84f9ed6246a09dc485f8fa920, type: 3}
+  vfxType: 2
   maxLevel: 8
   levelData:
   - damage: 8

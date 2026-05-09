@@ -887,28 +887,32 @@
 ### T4.3 特效系统
 
 #### T4.3.1 实现受击特效
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.5
-- **产物**: `Prefabs/VFX/HitEffect.prefab`, 更新 `Scripts/Player/PlayerHitbox.cs`
-- **验收**: 玩家受击时显示红色闪烁/数字
+- **产物**: `Resources/VFX/HitEffect.prefab`, `Scripts/VFX/VFXBase.cs`, `Scripts/VFX/DamageNumber.cs`, `Scripts/VFX/VFXManager.cs`, 更新 `Scripts/Core/GameEvents.cs`（新增 OnEnemyDamaged 事件）
+- **说明**: VFXManager (Singleton) 订阅 GameEvents 自动触发 VFX：OnPlayerDamaged→HitEffect + 红色伤害数字，OnEnemyDamaged→白色伤害数字，OnEnemyDied→EnemyDeath 爆炸特效，OnDropCollected→ExpPickup 吸收光效，OnPlayerLevelUp→LevelUp 金色爆发，OnWeaponEvolved→EvolveEffect 紫金进化特效。VFXBase 为通用动画组件（缩放+透明度插值），DamageNumber 使用 TextMesh 世界空间浮动数字。所有 VFX 通过 ObjectPool 池化。
+- **验收**: 玩家受击时显示红色闪烁+伤害数字；敌人受击显示白色伤害数字
 
 #### T4.3.2 实现武器攻击特效
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.5
-- **产物**: `Prefabs/VFX/SwordSlash.prefab`, `KnifeTrail.prefab`, `EnergyExplosion.prefab`, `HolyGlow.prefab`, `WaterSplash.prefab`, `ShieldImpact.prefab`
+- **产物**: `Resources/VFX/SlashVFX.prefab`, `TrailVFX.prefab`, `ExplosionVFX.prefab`, `GlowVFX.prefab`, `SplashVFX.prefab`, `ImpactVFX.prefab`; 更新 `Scripts/Data/WeaponData.cs`（新增 VFXType 枚举 + vfxType 字段），更新 `Scripts/Weapons/WeaponBase.cs`（Attack 后触发 VFX）
+- **说明**: WeaponData.VFXType 枚举（None/Slash/Trail/Explosion/Glow/Splash/Impact）；WeaponBase.Update() 在 Attack() 后调用 VFXManager.PlayWeaponVFX(_data.vfxType, _playerPosition)；12 个 WeaponData SO 已分配对应 VFXType（飞剑/圣剑→Slash，飞刀/无限飞刀→Trail，能量球/虚空黑洞→Explosion，圣光/天使之歌→Glow，圣水/亡灵洪流→Splash，旋转盾/审判之轮→Impact）
 - **验收**: 各武器攻击时有对应视觉效果
 
 #### T4.3.3 实现敌人死亡特效
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.5
-- **产物**: `Prefabs/VFX/EnemyDeath.prefab`, 更新 `Scripts/Enemies/EnemyBase.cs`
+- **产物**: `Resources/VFX/EnemyDeath.prefab`, 更新 `Scripts/Enemies/EnemyBase.cs`（TakeDamage 触发 OnEnemyDamaged）
+- **说明**: VFXManager 订阅 OnEnemyDied 事件，敌人死亡时在敌人位置播放橙色爆炸消散特效（EnemyDeath VFX：0.5s 从0.5缩放到2.5 + 橙色渐隐）；GameEvents 新增 OnEnemyDamaged(EnemyBase, int) 事件用于伤害数字
 - **验收**: 敌人死亡时播放消散/爆炸特效
 
 #### T4.3.4 实现经验拾取特效
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.5
-- **产物**: `Prefabs/VFX/ExpPickupEffect.prefab`, 更新 `Scripts/Drops/DropBase.cs`
-- **验收**: 拾取经验宝石时显示吸收光效
+- **产物**: `Resources/VFX/ExpPickup.prefab`, `Resources/VFX/LevelUp.prefab`, `Resources/VFX/EvolveEffect.prefab`
+- **说明**: VFXManager 订阅 OnDropCollected 事件，拾取时在掉落物位置播放绿色星光吸收特效（ExpPickup VFX：0.35s 星形缩放+渐隐）；同时 LevelUp 和 EvolveEffect 也由事件自动触发
+- **验收**: 拾取经验宝石时显示吸收光效；升级/进化时显示对应特效
 
 ### T4.4 数值平衡
 
@@ -1054,13 +1058,13 @@
 | Phase 2.A | 1 | 7 | 7 | 0 | 0 |
 | Phase 3 | 5 | 20 | 20 | 0 | 0 |
 | Phase 3.A | 1 | 4 | 4 | 0 | 0 |
-| Phase 4 | 6 | 25 | 9 | 0 | 16 |
+| Phase 4 | 6 | 25 | 13 | 0 | 12 |
 | Phase 4.A | 1 | 3 | 3 | 0 | 0 |
-| **合计** | **31** | **145** | **125** | **0** | **20** |
+| **合计** | **31** | **145** | **129** | **0** | **16** |
 
 ---
 
-*文档版本: v2.4 | 最后更新: 2026-05-09*
+*文档版本: v2.5 | 最后更新: 2026-05-09*
 
 ## 游戏体验优化日志
 

@@ -69,6 +69,8 @@ public abstract class WeaponBase : MonoBehaviour
             Attack();
             if (_data.sfxClip != null && AudioManager.HasInstance)
                 AudioManager.Instance.PlaySFX(_data.sfxClip);
+            if (_data.vfxType != WeaponData.VFXType.None && VFXManager.HasInstance)
+                VFXManager.Instance.PlayWeaponVFX(_data.vfxType, _playerPosition);
             var ld = CurrentLevelData;
             if (ld != null)
                 _cooldownTimer = ld.cooldown * _playerStats.CooldownMultiplier;

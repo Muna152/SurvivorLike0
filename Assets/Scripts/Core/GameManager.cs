@@ -40,6 +40,8 @@ public class GameManager : Singleton<GameManager>
         ResetTimeScale();
         // Ensure AudioManager is created for BGM on startup
         _ = AudioManager.Instance;
+        // Ensure VFXManager is created for VFX on startup
+        _ = VFXManager.Instance;
     }
 
     // ── Lifecycle Methods ───────────────────────────────────────
