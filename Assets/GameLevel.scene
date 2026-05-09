@@ -30851,6 +30851,7 @@ GameObject:
   - component: {fileID: 1021473665}
   - component: {fileID: 1021473667}
   - component: {fileID: 1021473668}
+  - component: {fileID: 1021473669}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: GameManager
@@ -30936,6 +30937,14 @@ MonoBehaviour:
   bgmFadeDuration: 1
   sfxSourceCount: 12
   sfxThrottle: 0.05
+--- !u!81 &1021473669
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1021473664}
+  m_Enabled: 1
 --- !u!1 &1022343189
 GameObject:
   m_ObjectHideFlags: 0

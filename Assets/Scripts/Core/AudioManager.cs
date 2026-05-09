@@ -5,6 +5,7 @@ using System.Collections.Generic;
 /// Manages all audio playback: BGM with crossfade, SFX with pooled sources.
 /// Subscribes to GameEvents for automatic audio triggering.
 /// </summary>
+[RequireComponent(typeof(AudioListener))]
 public class AudioManager : Singleton<AudioManager>
 {
     // ── BGM Clips ─────────────────────────────────────────────
