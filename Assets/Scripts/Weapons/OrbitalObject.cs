@@ -108,21 +108,19 @@ public class OrbitalObject : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Skip if on cooldown
-        if (_hitTimer > 0f) return;
-
         var enemy = other.GetComponent<EnemyBase>();
         if (enemy == null) return;
 
-        // Skip if already hit this enemy
+        // Skip if already hit this enemy within cooldown window
         if (_hitEnemies.Contains(enemy)) return;
 
         // Deal damage
         enemy.TakeDamage(Mathf.RoundToInt(_damage));
 
-        // Add to hit set and start cooldown
+        // Add to hit set; start cooldown timer on first hit
         _hitEnemies.Add(enemy);
-        _hitTimer = _hitCooldown;
+        if (_hitTimer <= 0f)
+            _hitTimer = _hitCooldown;
     }
 
     public void ResetForReuse()
