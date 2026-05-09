@@ -837,18 +837,21 @@
 ### T4.A 音效资产生成（Phase 4）
 
 #### T4.A.1 生成 BGM 音频
-- **状态**: ⬜
-- **产物**: `Audio/BGM/BattleTheme.mp3`, `MenuTheme.mp3`, `BossTheme.mp3`
+- **状态**: ✅
+- **产物**: `Audio/BGM/BattleTheme.wav`, `Audio/Menu/MenuTheme.wav`, `Audio/BGM/BossTheme.wav`
+- **说明**: 音频生成器输出格式为 WAV（非 MP3），Unity 中均可正常使用
 - **验收**: 3首 BGM 资产存在
 
 #### T4.A.2 生成武器音效
-- **状态**: ⬜
-- **产物**: `Audio/SFX/WeaponSword.wav`, `WeaponKnife.wav`, `WeaponShield.wav`, `WeaponEnergy.wav`, `WeaponHoly.wav`, `WeaponWater.wav`
+- **状态**: ✅
+- **产物**: `Audio/SFX/WeaponSword.mp3`, `WeaponKnife.mp3`, `WeaponShield.mp3`, `WeaponEnergy.mp3`, `WeaponHoly.mp3`, `WeaponWater.mp3`
+- **说明**: 武器 SFX 格式为 MP3（非 WAV），Unity 中均可正常使用
 - **验收**: 6种武器音效资产存在
 
 #### T4.A.3 生成敌人与环境音效
-- **状态**: ⬜
-- **产物**: `Audio/SFX/EnemyHit.wav`, `EnemyDie.wav`, `PlayerHit.wav`, `ExpPickup.wav`, `LevelUp.wav`, `Evolve.wav`
+- **状态**: ✅
+- **产物**: `Audio/SFX/EnemyHit.mp3`, `EnemyDie.wav`, `PlayerHit.wav`, `ExpPickup.wav`, `LevelUp.wav`, `Evolve.wav`
+- **说明**: EnemyHit 为 MP3，其余为 WAV，格式混合但不影响 Unity 使用
 - **验收**: 6种音效资产存在
 
 ### T4.2 音效系统集成
@@ -1048,12 +1051,12 @@
 | Phase 3 | 5 | 20 | 20 | 0 | 0 |
 | Phase 3.A | 1 | 4 | 4 | 0 | 0 |
 | Phase 4 | 6 | 25 | 5 | 0 | 20 |
-| Phase 4.A | 1 | 3 | 0 | 0 | 3 |
-| **合计** | **31** | **145** | **118** | **0** | **27** |
+| Phase 4.A | 1 | 3 | 3 | 0 | 0 |
+| **合计** | **31** | **145** | **121** | **0** | **24** |
 
 ---
 
-*文档版本: v2.2 | 最后更新: 2026-05-08*
+*文档版本: v2.3 | 最后更新: 2026-05-09*
 
 ## 游戏体验优化日志
 
