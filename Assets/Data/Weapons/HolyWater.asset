@@ -18,6 +18,8 @@ MonoBehaviour:
   areaSubType: 2
   icon: {fileID: 21300000, guid: 29dd9253b3b59f2459801ed98cc65910, type: 3}
   projectilePrefab: {fileID: 4989992958906792961, guid: 11bffc1a6c8327e43ba338f18a2fc0e5, type: 3}
+  spreadAngle: 30
+  sfxClip: {fileID: 8300000, guid: 21e21d0cfb97fdf4486442155b1c40b1, type: 3}
   maxLevel: 8
   levelData:
   - damage: 3

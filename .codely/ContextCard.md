@@ -36,6 +36,7 @@
 - DropBase: vacuum after 2.5s, collect on contact
 - UpgradeOption: Evolution|WeaponUpgrade|NewWeapon|Passive
 - IWeightedRandom: weighted selection for drops/spawns
+- AudioManager: PlayBGM(clip, fadeTime)/StopBGM(fadeTime)/PlaySFX(clip, volumeScale); PlayMenuBGM/PlayBattleBGM/PlayBossBGM convenience methods; bgmVolume/sfxVolume controls
 - UnlockCondition: SurviveTime|KillCount|HealAmount|ReachLevel|KillElites
 
 ## Systems
@@ -48,6 +49,7 @@
 - ✅ UI: HUD (slider value clamped to MaxHP, 💰 gold text), UpgradeUI, BossHealthBar (pause/death-aware), ResultScreen (9 stats incl. level/elites/healed/character + gold persistence with _persisted guard; Show() public for give-up flow), PauseMenu (4-button layout: Resume full-width top row, Restart/Codex/GiveUp second row; GiveUp→ResultScreen(game over)→return to menu; fires OnGamePaused/Resumed), CodexUI (CanvasGroup overlay, Weapons/Characters tabs, programmatic), UpgradeShopUI (5 permanent upgrades, shop button in MainMenuUI)
 - ✅ Map: MapManager procedural generation (±100 boundary, 50 trees/35 rocks/12 walls/200 fence posts/80 grass); CameraFollow orthographic clamping; PlayerController position clamping; CurrentMapHalfSize static accessor; obstacles scaled to 0.04 (smaller than player), sortingOrder=-2 (below characters/enemies)
 - ✅ Difficulty: DifficultyManager drives HP/Speed/Damage/SpawnInterval multipliers over time
+- ✅ Audio: AudioManager (Singleton), BGM crossfade A/B, SFX 12-source round-robin pool, per-clip throttling; GameEvents-driven (OnBossSpawned/Died→BGM, OnEnemyHit/Died/PlayerDamaged/PlayerLevelUp/WeaponEvolved/DropCollected→SFX); WeaponData.sfxClip for weapon sounds
 - ✅ Unlock: UnlockCondition struct on CharacterData, runtime IsUnlocked() check, slot-aware PlayerPrefs
 - ✅ Character System: 5 characters (Hero/Mage/Knight/Ranger/Priest), CharacterSelectUI, UnlockManager w/ per-slot PlayerPrefs
 - ✅ Main Menu: MainMenuUI w/ Start/Quit buttons, save slot management panel (3 slots, create/delete/switch)
@@ -63,7 +65,7 @@
 - SpatialGrid: O(1) proximity queries, cell size 8f, Reconcile() on all query paths
 
 ## State
-- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 11/26
+- Phase 1: 48/48 ✅ | Phase 2: 45/45 ✅ | Phase 3: 26/26 ✅ (M3 complete) | Phase 4: 15/26
 - Game flow: MainMenuUI → 创建/选择存档 → 🛒 商店(永久升级) → CharacterSelectUI → StartGame(character) → Playing → GameOver → Gold/Stats persisted → Unlock check → Retry/Menu
 - Scene reload: GameManager (DontDestroyOnLoad) survives, PendingAutoStart for retry auto-start
 
@@ -75,9 +77,13 @@
   - T4.1.4 Unlock system: verified complete (UnlockManager + SaveSlotManager integration)
   - T4.1.5 StatsTracker: TotalKills/TotalGames/BestSurvivalTime/TotalGoldEarned per slot
 
-### Remaining Phase 4 Tasks (17 items)
-- T4.A: Audio asset generation (3 BGM + 12 SFX)
-- T4.2: Audio system integration (AudioManager + hooks)
+### Remaining Phase 4 Tasks (13 items)
+- T4.A: Audio asset generation (3 BGM + 12 SFX) ✅
+- T4.2: Audio system integration (AudioManager + hooks) ✅
+  - AudioManager: Singleton, BGM crossfade (A/B dual AudioSource), SFX pool (12 sources, round-robin), per-clip throttling (0.05s), GameEvents subscriptions
+  - BGM hooks: GameManager.StartGame()→BattleTheme, ReturnToMenu()→MenuTheme, OnBossSpawned→BossTheme, OnBossDied→BattleTheme
+  - Weapon SFX: WeaponData.sfxClip field, WeaponBase.Update() plays after Attack(); 12 weapons assigned (6 base + 6 evolution)
+  - Enemy/Environment SFX: New OnEnemyHit event, EnemyBase.TakeDamage()→InvokeEnemyHit; AudioManager subscribes to OnEnemyHit/OnEnemyDied/OnPlayerDamaged/OnPlayerLevelUp/OnWeaponEvolved/OnDropCollected
 - T4.3: VFX system (hit/attack/death/pickup effects)
 - T4.4: Numerical balance (weapons/enemies/XP/evolution costs)
 - T4.5: Performance optimization (pool audit, LOD, layers, batching, GC)
@@ -145,7 +151,7 @@
 - CodexUI: CanvasGroup overlay, programmatic construction (no prefab), Resources.FindObjectsOfTypeAll for data
 
 ## Known Issues
-- MainMenuUI not serialized in scene; HUDController.Start() auto-creates it via AddComponent if missing
+- GameManager.Awake() touches AudioManager.Instance to ensure early creation; AudioManager.Start() checks GameManager.CurrentState == Menu to play MenuTheme on startup
 
 ## Pitfalls
 - GameEvents.ClearAll() in StartGame() wiped UpgradeManager/HUDController/ResultScreen event subscriptions → removed, scene reload handles cleanup
@@ -164,6 +170,10 @@
 - GoldManager.ApplyPermanentUpgrades() called at end of PlayerStats.InitializeFromCharacterData() — must be after base stats set
 - ExtraLife revive in TakeDamage() returns 50% MaxHP and skips OnPlayerDied — do not add death-side effects assuming every death fires OnPlayerDied
 - DropTableData SO holds all drop gameplay values — DropManager reads from it, not its own [SerializeField]; DropBase.SetMagnetConfig() used when spawning magnet drops from SO
+- AudioManager SFX throttle (0.05s) prevents same AudioClip from playing more than ~20x/sec; critical for EnemyHit with many weapons hitting many enemies simultaneously
+- AudioManager BGM crossfade uses Time.unscaledDeltaTime — continues during pause (timeScale=0), which is desired for smooth music transitions
+- WeaponData.sfxClip is played from WeaponBase.Update() after Attack() — all weapon subclasses inherit this automatically; no need to add SFX calls per subclass
+- GameEvents.OnEnemyHit fires from EnemyBase.TakeDamage() — AudioManager subscribes and plays EnemyHit SFX with throttling; BossEnemy inherits this via base.TakeDamage()
 - SpatialGrid.QueryNearest() must call Reconcile() before querying — same as QueryInRadius(), ensures stale cells are updated
 - EnemyBase._cachedPlayerStats is set alongside _cachedPlayer in SetPlayerReference(); used in Die() for kill tracking; must be cleared in ResetStatics()
 - BossEnemy.Die() does NOT call base.Die() — it handles ActiveEnemies/kill/spawn/destroy independently; must fire OnEnemyDied itself

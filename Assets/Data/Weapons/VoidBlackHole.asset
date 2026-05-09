@@ -15,8 +15,11 @@ MonoBehaviour:
   weaponName: VoidBlackHole
   description: "\u865A\u7A7A\u9ED1\u6D1E\uFF0C\u5438\u5F15\u5E76\u6301\u7EED\u4F24\u5BB3\u8303\u56F4\u5185\u654C\u4EBA\uFF0C\u8FDB\u5316\u81EA\u80FD\u91CF\u7403"
   weaponType: 2
+  areaSubType: 0
   icon: {fileID: 21300000, guid: f29f7a9d02f85404e837e71e9fdaad90, type: 3}
   projectilePrefab: {fileID: 5051175906632999313, guid: fdaecae917a2f7c409bd1b0b92f283dd, type: 3}
+  spreadAngle: 30
+  sfxClip: {fileID: 8300000, guid: b60cc42639b3196468d54cdf22279881, type: 3}
   maxLevel: 8
   levelData:
   - damage: 8

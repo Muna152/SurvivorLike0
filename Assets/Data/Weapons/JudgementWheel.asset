@@ -15,8 +15,11 @@ MonoBehaviour:
   weaponName: JudgementWheel
   description: "\u5BA1\u5224\u4E4B\u8F6E\uFF0C\u5927\u8303\u56F4\u9AD8\u901F\u65CB\u8F6C\u653B\u51FB\uFF0C\u8FDB\u5316\u81EA\u65CB\u8F6C\u76FE"
   weaponType: 1
+  areaSubType: 0
   icon: {fileID: 21300000, guid: ae442babf32ad8748807e4d4f074ac72, type: 3}
   projectilePrefab: {fileID: 3108513691253847640, guid: 0c5e0834777923d45b330bc5fa473f8e, type: 3}
+  spreadAngle: 30
+  sfxClip: {fileID: 8300000, guid: 384eddbebae0bea4b822b517079f2994, type: 3}
   maxLevel: 8
   levelData:
   - damage: 18

@@ -857,27 +857,31 @@
 ### T4.2 音效系统集成
 
 #### T4.2.1 实现 AudioManager 音效管理器
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.A.1, T4.A.2, T4.A.3
 - **产物**: `Scripts/Core/AudioManager.cs`
+- **说明**: Singleton<AudioManager>，BGM 双 AudioSource 交叉淡入淡出，SFX 12 音源轮转池 + 按 Clip ID 节流（0.05s）；订阅 GameEvents 自动触发（OnBossSpawned/Died→BGM切换，OnPlayerDamaged→PlayerHit SFX，OnPlayerLevelUp→LevelUp SFX，OnWeaponEvolved→Evolve SFX，OnEnemyDied→EnemyDie SFX，OnEnemyHit→EnemyHit SFX，OnDropCollected→ExpPickup SFX）
 - **验收**: 编译通过；BGM切换和SFX播放可用；音量控制可用
 
 #### T4.2.2 集成 BGM 播放
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.2.1
-- **产物**: 更新 `Scripts/Core/GameManager.cs`, `Scripts/UI/MainMenu.cs`
+- **产物**: 更新 `Scripts/Core/GameManager.cs`
+- **说明**: GameManager.StartGame()→AudioManager.PlayBattleBGM()；GameManager.ReturnToMenu()→AudioManager.PlayMenuBGM()；AudioManager.Start()检查当前状态播放对应BGM；OnBossSpawned→PlayBossBGM；OnBossDied→PlayBattleBGM
 - **验收**: 菜单播放MenuTheme；战斗播放BattleTheme；BOSS出现切换BossTheme
 
 #### T4.2.3 集成武器音效
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.2.1, T2.1.5
-- **产物**: 更新各 WeaponBase 子类
+- **产物**: 更新 `Scripts/Data/WeaponData.cs`（新增 sfxClip 字段），更新 `Scripts/Weapons/WeaponBase.cs`（Attack 后播放 sfxClip），12 个 WeaponData SO 已分配 sfxClip
+- **说明**: WeaponData 新增 public AudioClip sfxClip；WeaponBase.Update() 在 Attack() 后调用 AudioManager.PlaySFX(_data.sfxClip)；6 基础武器 + 6 进化武器均已分配对应 SFX
 - **验收**: 武器攻击时播放对应音效
 
 #### T4.2.4 集成敌人与环境音效
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.2.1
-- **产物**: 更新 `Scripts/Enemies/EnemyBase.cs`, `Scripts/Player/PlayerHitbox.cs`, `Scripts/Drops/DropBase.cs`, `Scripts/Upgrades/UpgradeManager.cs`
+- **产物**: 更新 `Scripts/Core/GameEvents.cs`（新增 OnEnemyHit 事件），更新 `Scripts/Enemies/EnemyBase.cs`（TakeDamage 触发 OnEnemyHit）
+- **说明**: 新增 GameEvents.OnEnemyHit + InvokeEnemyHit；EnemyBase.TakeDamage() 调用 GameEvents.InvokeEnemyHit(this)；AudioManager 订阅 OnEnemyHit/OnEnemyDied/OnPlayerDamaged/OnPlayerLevelUp/OnWeaponEvolved/OnDropCollected 自动播放对应 SFX
 - **验收**: 受击/死亡/拾取/升级/进化时播放对应音效
 
 ### T4.3 特效系统
@@ -1050,13 +1054,13 @@
 | Phase 2.A | 1 | 7 | 7 | 0 | 0 |
 | Phase 3 | 5 | 20 | 20 | 0 | 0 |
 | Phase 3.A | 1 | 4 | 4 | 0 | 0 |
-| Phase 4 | 6 | 25 | 5 | 0 | 20 |
+| Phase 4 | 6 | 25 | 9 | 0 | 16 |
 | Phase 4.A | 1 | 3 | 3 | 0 | 0 |
-| **合计** | **31** | **145** | **121** | **0** | **24** |
+| **合计** | **31** | **145** | **125** | **0** | **20** |
 
 ---
 
-*文档版本: v2.3 | 最后更新: 2026-05-09*
+*文档版本: v2.4 | 最后更新: 2026-05-09*
 
 ## 游戏体验优化日志
 

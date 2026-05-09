@@ -15,9 +15,11 @@ MonoBehaviour:
   weaponName: Knife
   description: Throws multiple knives in a spread pattern. Fast attack speed.
   weaponType: 0
-  spreadAngle: 10
+  areaSubType: 0
   icon: {fileID: 21300000, guid: 8d0f8a1d9916a9048b5c1979108603ce, type: 3}
   projectilePrefab: {fileID: 1113768890781713028, guid: 8c428d0bcc41a5249911aef9c7784975, type: 3}
+  spreadAngle: 10
+  sfxClip: {fileID: 8300000, guid: 35ce21e84f9ed6246a09dc485f8fa920, type: 3}
   maxLevel: 8
   levelData:
   - damage: 8

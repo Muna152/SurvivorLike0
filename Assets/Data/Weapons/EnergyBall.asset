@@ -15,9 +15,11 @@ MonoBehaviour:
   weaponName: Energy Ball
   description: Fires explosive energy balls that deal area damage on impact.
   weaponType: 0
-  spreadAngle: 30
+  areaSubType: 0
   icon: {fileID: 21300000, guid: 32e34500db358624d8159d36067fe9ce, type: 3}
   projectilePrefab: {fileID: 8078605584280591088, guid: dd366fb81a4dd704b9d27fc4e943350f, type: 3}
+  spreadAngle: 30
+  sfxClip: {fileID: 8300000, guid: b60cc42639b3196468d54cdf22279881, type: 3}
   maxLevel: 8
   levelData:
   - damage: 15

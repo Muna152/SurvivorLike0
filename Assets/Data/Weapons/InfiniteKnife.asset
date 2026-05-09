@@ -15,9 +15,11 @@ MonoBehaviour:
   weaponName: InfiniteKnife
   description: "\u65E0\u9650\u98DE\u5200\uFF0C\u6781\u9AD8\u5F39\u6570\u5FEB\u901F\u6295\u5C04\uFF0C\u8FDB\u5316\u81EA\u98DE\u5200"
   weaponType: 0
-  spreadAngle: 10
+  areaSubType: 0
   icon: {fileID: 21300000, guid: 5a54a1ca87137a54095ee8c6c40c8e5a, type: 3}
   projectilePrefab: {fileID: 5376098624023356069, guid: ad25ac1ebc0f6d942989cb47f956cbe1, type: 3}
+  spreadAngle: 10
+  sfxClip: {fileID: 8300000, guid: 35ce21e84f9ed6246a09dc485f8fa920, type: 3}
   maxLevel: 8
   levelData:
   - damage: 6

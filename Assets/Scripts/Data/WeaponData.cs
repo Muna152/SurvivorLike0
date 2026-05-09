@@ -20,6 +20,10 @@ public class WeaponData : ScriptableObject
     [Tooltip("Angle in degrees between each projectile in a fan spread.")]
     public float spreadAngle = 30f;
 
+    [Header("Audio")]
+    [Tooltip("Sound effect played when this weapon attacks.")]
+    public AudioClip sfxClip;
+
     [Header("Level Data")]
     public int maxLevel = 8;
     public LevelData[] levelData;

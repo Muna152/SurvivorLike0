@@ -15,8 +15,11 @@ MonoBehaviour:
   weaponName: Spinning Shield
   description: Orbiting shields that damage enemies on contact. Continuous area damage.
   weaponType: 1
+  areaSubType: 0
   icon: {fileID: 21300000, guid: 945728e853f6fee4fa271b3b1452025f, type: 3}
   projectilePrefab: {fileID: 7535913578508487029, guid: 9cdc7a451cf74f04fb20aeecc1e8dedf, type: 3}
+  spreadAngle: 30
+  sfxClip: {fileID: 8300000, guid: 384eddbebae0bea4b822b517079f2994, type: 3}
   maxLevel: 8
   levelData:
   - damage: 5

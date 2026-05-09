@@ -146,6 +146,8 @@ public class EnemyBase : MonoBehaviour
     {
         _currentHP -= damage;
 
+        GameEvents.InvokeEnemyHit(this);
+
         if (_sr != null)
         {
             if (!_flashing) _originalColor = _sr.color;

@@ -38,6 +38,8 @@ public class GameManager : Singleton<GameManager>
     {
         base.Awake();
         ResetTimeScale();
+        // Ensure AudioManager is created for BGM on startup
+        _ = AudioManager.Instance;
     }
 
     // ── Lifecycle Methods ───────────────────────────────────────
@@ -79,6 +81,9 @@ public class GameManager : Singleton<GameManager>
         }
 
         Debug.Log($"[GameManager] Game started with character: {(SelectedCharacter != null ? SelectedCharacter.characterName : "none")}");
+
+        if (AudioManager.HasInstance)
+            AudioManager.Instance.PlayBattleBGM();
     }
 
     /// <summary>Pause the game.</summary>
@@ -128,6 +133,10 @@ public class GameManager : Singleton<GameManager>
         ResetTimeScale();
         ElapsedTime = 0f;
         SelectedCharacter = null;
+
+        if (AudioManager.HasInstance)
+            AudioManager.Instance.PlayMenuBGM();
+
         Debug.Log("[GameManager] Returned to menu.");
     }
 

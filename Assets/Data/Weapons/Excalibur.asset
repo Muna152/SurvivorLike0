@@ -15,9 +15,11 @@ MonoBehaviour:
   weaponName: Excalibur
   description: "\u795E\u5723\u5DE8\u5251\uFF0C\u9AD8\u4F24\u5BB3\u7A7F\u900F\u6295\u5C04\uFF0C\u8FDB\u5316\u81EA\u98DE\u5251"
   weaponType: 0
-  spreadAngle: 15
+  areaSubType: 0
   icon: {fileID: 21300000, guid: 6a0fe8e68c6af954bb71fa3453952edd, type: 3}
   projectilePrefab: {fileID: 3290470946336253369, guid: 42a59bf11b1d5eb41a0cee7b51a21d65, type: 3}
+  spreadAngle: 15
+  sfxClip: {fileID: 8300000, guid: 31feab2d5feaa3847a6dd67ebc3b206a, type: 3}
   maxLevel: 8
   levelData:
   - damage: 15
