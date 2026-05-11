@@ -17,6 +17,12 @@ public abstract class WeaponBase : MonoBehaviour
     public int CurrentLevel => _currentLevel;
     public int MaxLevel => _data != null ? _data.maxLevel : 1;
 
+    /// <summary>
+    /// Whether to play SFX/VFX on each cooldown cycle.
+    /// Orbital and other always-on weapons should override to return false.
+    /// </summary>
+    protected virtual bool PlayAttackEffects => true;
+
     public virtual void Initialize(WeaponData data, PlayerStats stats)
     {
         _data = data;
@@ -67,10 +73,13 @@ public abstract class WeaponBase : MonoBehaviour
         if (_cooldownTimer <= 0f)
         {
             Attack();
-            if (_data.sfxClip != null && AudioManager.HasInstance)
-                AudioManager.Instance.PlaySFX(_data.sfxClip);
-            if (_data.vfxType != WeaponData.VFXType.None && VFXManager.HasInstance)
-                VFXManager.Instance.PlayWeaponVFX(_data.vfxType, _playerPosition);
+            if (PlayAttackEffects)
+            {
+                if (_data.sfxClip != null && AudioManager.HasInstance)
+                    AudioManager.Instance.PlaySFX(_data.sfxClip);
+                if (_data.vfxType != WeaponData.VFXType.None && VFXManager.HasInstance)
+                    VFXManager.Instance.PlayWeaponVFX(_data.vfxType, _playerPosition);
+            }
             var ld = CurrentLevelData;
             if (ld != null)
                 _cooldownTimer = ld.cooldown * _playerStats.CooldownMultiplier;

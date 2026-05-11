@@ -15,6 +15,8 @@ public class OrbitalWeapon : WeaponBase
     private float _damage;
     private string _poolKey;
 
+    protected override bool PlayAttackEffects => false;
+
     protected override void Attack()
     {
         // Orbital weapons don't "attack" in the traditional sense.
