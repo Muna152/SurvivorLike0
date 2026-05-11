@@ -52,6 +52,7 @@ public class PlayerWeaponManager : MonoBehaviour
         var stats = GetComponent<PlayerStats>();
         weapon.Initialize(data, stats);
         _weapons.Add(weapon);
+        GameEvents.InvokeWeaponChanged();
         return weapon;
     }
 
@@ -61,6 +62,7 @@ public class PlayerWeaponManager : MonoBehaviour
         if (index >= 0 && index < _weapons.Count)
         {
             _weapons[index].Upgrade();
+            GameEvents.InvokeWeaponChanged();
         }
     }
 
@@ -85,6 +87,7 @@ public class PlayerWeaponManager : MonoBehaviour
         var weapon = _weapons[idx];
         _weapons.RemoveAt(idx);
         Destroy(weapon.gameObject);
+        GameEvents.InvokeWeaponChanged();
         return true;
     }
 
@@ -133,6 +136,9 @@ public class PlayerWeaponManager : MonoBehaviour
 
             Debug.Log($"Weapon evolved: {data.weaponName} → {evolvedName}");
         }
+
+        if (evolved.Count > 0)
+            GameEvents.InvokeWeaponChanged();
 
         return evolved;
     }

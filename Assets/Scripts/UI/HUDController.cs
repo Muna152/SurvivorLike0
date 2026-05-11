@@ -40,6 +40,7 @@ public class HUDController : MonoBehaviour
     private System.Action<int> _onDamagedHandler;
     private System.Action<float> _onHealedHandler;
     private System.Action<int> _onLevelUpHandler;
+    private System.Action _onWeaponChangedHandler;
 
     private void Start()
     {
@@ -73,10 +74,12 @@ public class HUDController : MonoBehaviour
         _onDamagedHandler = _ => RefreshHP();
         _onHealedHandler = _ => RefreshHP();
         _onLevelUpHandler = _ => OnLevelUp();
+        _onWeaponChangedHandler = () => RefreshWeaponBar();
 
         GameEvents.OnPlayerDamaged += _onDamagedHandler;
         GameEvents.OnPlayerHealed += _onHealedHandler;
         GameEvents.OnPlayerLevelUp += _onLevelUpHandler;
+        GameEvents.OnWeaponChanged += _onWeaponChangedHandler;
 
         // Disable keyboard navigation on all HUD Selectables (Sliders, Buttons)
         UINavUtil.DisableAll(transform);
@@ -85,6 +88,7 @@ public class HUDController : MonoBehaviour
         RefreshHP();
         RefreshEXP();
         RefreshTimer();
+        RefreshWeaponBar();
     }
 
     private void OnDestroy()
@@ -92,6 +96,7 @@ public class HUDController : MonoBehaviour
         GameEvents.OnPlayerDamaged -= _onDamagedHandler;
         GameEvents.OnPlayerHealed -= _onHealedHandler;
         GameEvents.OnPlayerLevelUp -= _onLevelUpHandler;
+        GameEvents.OnWeaponChanged -= _onWeaponChangedHandler;
     }
 
     private void Update()
@@ -229,15 +234,21 @@ public class HUDController : MonoBehaviour
     {
         if (_weaponBarContainer == null || _weaponManager == null) return;
 
+        // Use DestroyImmediate to ensure old slots are removed before creating new ones,
+        // since Destroy() is deferred and childCount would be wrong if called again
+        // within the same frame (e.g. OnWeaponChanged fired during EquipWeapon).
         for (int i = _weaponBarContainer.childCount - 1; i >= 0; i--)
         {
-            Destroy(_weaponBarContainer.GetChild(i).gameObject);
+            DestroyImmediate(_weaponBarContainer.GetChild(i).gameObject);
         }
 
         foreach (var weapon in _weaponManager.EquippedWeapons)
         {
             var slotObj = Instantiate(_weaponSlotPrefab, _weaponBarContainer);
-            var icon = slotObj.GetComponentInChildren<Image>();
+
+            // Find the "Icon" child Image (skip the slot's own background Image)
+            var iconTransform = slotObj.transform.Find("Icon");
+            var icon = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
             var text = slotObj.GetComponentInChildren<Text>();
 
             if (icon != null && weapon.Data.icon != null)
