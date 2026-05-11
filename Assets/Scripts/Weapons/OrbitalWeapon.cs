@@ -47,7 +47,7 @@ public class OrbitalWeapon : WeaponBase
             {
                 _orbitalCount = (int)ld.projectileCount;
                 _orbitalRadius = ld.area > 0 ? ld.area : 2.5f;
-                _rotationSpeed = 120f; // degrees per second
+                _rotationSpeed = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.orbitalRotationSpeed : 120f;
                 _damage = ld.damage * stats.DamageMultiplier;
             }
         }

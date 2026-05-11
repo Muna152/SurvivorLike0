@@ -48,7 +48,7 @@ public class ProjectileWeapon : WeaponBase
         int count = ld.projectileCount + _playerStats.ProjectileBonus;
 
         // Spatial grid lookup — O(k) where k = enemies in nearby cells instead of O(n)
-        const float queryRadius = 50f;
+        float queryRadius = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.projectileSearchRadius : 50f;
         EnemyBase nearest = SpatialGrid.QueryNearest(_playerPosition, queryRadius);
 
         if (nearest == null) return;

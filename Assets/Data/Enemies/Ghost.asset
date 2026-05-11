@@ -15,10 +15,10 @@ MonoBehaviour:
   enemyName: Ghost
   prefab: {fileID: 6979107834428412615, guid: 45d6085d0bbf7034ea4a55ab8d9b5154, type: 3}
   icon: {fileID: 0}
-  baseHP: 8
-  moveSpeed: 2.5
+  baseHP: 12
+  moveSpeed: 2.2
   damage: 6
-  expValue: 4
+  expValue: 3
   goldValue: 2
   spawnWeight: 1.2
   minSpawnTime: 480

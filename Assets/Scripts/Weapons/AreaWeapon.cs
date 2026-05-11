@@ -11,11 +11,22 @@ public abstract class AreaWeapon : WeaponBase
     protected GameObject _currentArea;
     protected float _areaRadius;
     protected float _duration;
-    protected float _tickInterval = 0.5f;
+    protected float _tickInterval = -1f; // -1 = not yet initialized from config
     protected float _tickTimer;
     protected bool _isHealing;
     protected bool _followsPlayer = true;
     protected Vector2 _areaOrigin;
+
+    /// <summary>Tick interval — lazily loaded from GameBalanceConfig if not overridden.</summary>
+    protected float TickInterval
+    {
+        get
+        {
+            if (_tickInterval < 0f)
+                _tickInterval = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.areaWeaponTickInterval : 0.5f;
+            return _tickInterval;
+        }
+    }
 
     public override void Initialize(WeaponData data, PlayerStats stats)
     {
@@ -73,7 +84,7 @@ public abstract class AreaWeapon : WeaponBase
         }
 
         SetupAreaEffect();
-        _tickTimer = _tickInterval;
+        _tickTimer = TickInterval;
     }
 
     protected virtual void RefreshAreaEffect()
@@ -230,7 +241,7 @@ public abstract class AreaWeapon : WeaponBase
             if (_tickTimer <= 0f)
             {
                 ApplyAreaEffect();
-                _tickTimer = _tickInterval;
+                _tickTimer = TickInterval;
             }
 
             // Check duration

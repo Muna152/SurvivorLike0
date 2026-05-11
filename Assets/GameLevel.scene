@@ -31204,10 +31204,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c879848a3df027d48be0aeee474b7270, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hpGrowthRate: 0.1
-  _spawnAccelRate: 0.15
-  _damageGrowthRate: 0.05
-  _speedGrowthRate: 0.02
+  _hpGrowthRate: 0.08
+  _spawnAccelRate: 0.12
+  _damageGrowthRate: 0.03
+  _speedGrowthRate: 0.015
   _lastWholeMinute: 0
 --- !u!114 &1021473668
 MonoBehaviour:
@@ -57222,7 +57222,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 460, y: 27.600037}
+  m_AnchoredPosition: {x: 460, y: 27.600098}
   m_SizeDelta: {x: 100, y: 24}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!1 &1856766025

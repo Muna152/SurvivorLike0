@@ -15,10 +15,10 @@ MonoBehaviour:
   enemyName: Skeleton
   prefab: {fileID: 2693384263389038719, guid: c193b6431d3d1e34082345912843ec7b, type: 3}
   icon: {fileID: 21300000, guid: 8fe10c00830ce9e44a01286959718206, type: 3}
-  baseHP: 10
+  baseHP: 12
   moveSpeed: 1.5
   damage: 5
-  expValue: 1
+  expValue: 2
   goldValue: 1
   spawnWeight: 10
   minSpawnTime: 0

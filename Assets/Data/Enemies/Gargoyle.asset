@@ -15,10 +15,10 @@ MonoBehaviour:
   enemyName: Gargoyle
   prefab: {fileID: 5057072542038401533, guid: 008dfb9d1cd4eb2439f01a1c6b461d91, type: 3}
   icon: {fileID: 0}
-  baseHP: 50
+  baseHP: 65
   moveSpeed: 1.8
-  damage: 15
-  expValue: 15
-  goldValue: 5
+  damage: 12
+  expValue: 8
+  goldValue: 3
   spawnWeight: 0.5
   minSpawnTime: 720

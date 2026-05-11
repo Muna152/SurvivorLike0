@@ -16,7 +16,7 @@ MonoBehaviour:
   passiveName: "\u7FC5\u8180"
   description: "\u7FBD\u7FFC\u52A0\u62A4\uFF0C\u589E\u52A0\u6295\u5C04\u7269\u6570\u91CF"
   icon: {fileID: 21300000, guid: a3e5fa0702c36ec49bc82745609ffd13, type: 3}
-  maxLevel: 5
+  maxLevel: 3
   effectPerLevel: 1
   affectedStat: 8
   requiredForEvolutionWeaponId: 

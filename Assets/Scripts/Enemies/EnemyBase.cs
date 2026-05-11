@@ -95,13 +95,18 @@ public class EnemyBase : MonoBehaviour
     public virtual void SetElite()
     {
         _isElite = true;
-        _currentHP *= 5f;
-        _eliteDamageMultiplier = 2f;
 
-        // Scale up slightly (only 1.05x for elite enemies)
-        transform.localScale = transform.localScale * 1.05f;
+        var cfg = GameBalanceConfig.Instance;
+        float hpMult = cfg != null ? cfg.eliteHpMultiplier : 5f;
+        _eliteDamageMultiplier = cfg != null ? cfg.eliteDamageMultiplier : 2f;
+        float scaleMult = cfg != null ? cfg.eliteScaleMultiplier : 1.05f;
+        float speedMult = cfg != null ? cfg.eliteSpeedMultiplier : 1.2f;
 
-        // Change color
+        _currentHP *= hpMult;
+        _moveSpeed *= speedMult;
+
+        transform.localScale = transform.localScale * scaleMult;
+
         if (_sr != null)
         {
             _sr.color = new Color(1f, 0.5f, 0f); // Orange tint
@@ -181,9 +186,10 @@ public class EnemyBase : MonoBehaviour
         if (DropManager.Instance != null && _data != null)
         {
             // Elite enemies drop more experience and gold
-            int expMultiplier = _isElite ? 10 : 1;
-            int goldMultiplier = _isElite ? 5 : 1;
-            DropManager.Instance.SpawnDrops(transform.position, _data.expValue * expMultiplier, _data.goldValue * goldMultiplier, _isElite, false);
+            var cfg = GameBalanceConfig.Instance;
+            int expMul = _isElite ? (cfg != null ? cfg.eliteExpMultiplier : 10) : 1;
+            int goldMul = _isElite ? (cfg != null ? cfg.eliteGoldMultiplier : 5) : 1;
+            DropManager.Instance.SpawnDrops(transform.position, _data.expValue * expMul, _data.goldValue * goldMul, _isElite, false);
         }
 
         // Pool's resetAction handles ResetForReuse — don't call it here

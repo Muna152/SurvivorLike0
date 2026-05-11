@@ -23,62 +23,62 @@ MonoBehaviour:
   vfxType: 5
   maxLevel: 8
   levelData:
-  - damage: 3
-    cooldown: 6
+  - damage: 5
+    cooldown: 5
     area: 2.5
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 4
-  - damage: 4
-    cooldown: 6
-    area: 2.9
+  - damage: 7
+    cooldown: 4.5
+    area: 2.8
+    projectileCount: 0
+    pierce: 0
+    speed: 0
+    duration: 4.5
+  - damage: 9
+    cooldown: 4
+    area: 3
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 5
-  - damage: 5
-    cooldown: 6
+  - damage: 12
+    cooldown: 3.5
     area: 3.3
     projectileCount: 0
     pierce: 0
     speed: 0
+    duration: 5.5
+  - damage: 15
+    cooldown: 3
+    area: 3.6
+    projectileCount: 0
+    pierce: 0
+    speed: 0
     duration: 6
-  - damage: 6
-    cooldown: 6
-    area: 3.7
+  - damage: 18
+    cooldown: 2.8
+    area: 4
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 7
-  - damage: 7
-    cooldown: 5
-    area: 4.1
-    projectileCount: 0
-    pierce: 0
-    speed: 0
-    duration: 8
-  - damage: 8
-    cooldown: 5
+    duration: 6.5
+  - damage: 22
+    cooldown: 2.5
     area: 4.5
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 9
-  - damage: 9
-    cooldown: 5
-    area: 4.9
+    duration: 7
+  - damage: 27
+    cooldown: 2
+    area: 5
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 10
-  - damage: 10
-    cooldown: 4
-    area: 5.3
-    projectileCount: 0
-    pierce: 0
-    speed: 0
-    duration: 11
+    duration: 8
   canEvolve: 1
   requiredPassiveId: bone
   evolvedWeapon: {fileID: 11400000, guid: 3f003a4ac1dc6744dae6ecbfd735a0b6, type: 2}

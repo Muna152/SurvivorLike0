@@ -8,10 +8,10 @@ using UnityEngine;
 public class DifficultyManager : Singleton<DifficultyManager>
 {
     [Header("Scaling Coefficients")]
-    [SerializeField] private float _hpGrowthRate = 0.1f;           // +10% HP per minute
-    [SerializeField] private float _spawnAccelRate = 0.15f;       // spawn interval divisor growth per minute
-    [SerializeField] private float _damageGrowthRate = 0.05f;     // +5% enemy damage per minute
-    [SerializeField] private float _speedGrowthRate = 0.02f;      // +2% enemy move speed per minute
+    [SerializeField] private float _hpGrowthRate = 0.08f;          // +8% HP per minute
+    [SerializeField] private float _spawnAccelRate = 0.12f;       // spawn interval divisor growth per minute
+    [SerializeField] private float _damageGrowthRate = 0.03f;     // +3% enemy damage per minute
+    [SerializeField] private float _speedGrowthRate = 0.015f;     // +1.5% enemy move speed per minute
 
     [Header("State (Read-only)")]
     [SerializeField] private int _lastWholeMinute;

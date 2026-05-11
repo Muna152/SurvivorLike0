@@ -15,9 +15,9 @@ MonoBehaviour:
   enemyName: DeathBoss
   prefab: {fileID: 2267065534214919610, guid: 99de6048ca7c60146bb270d099c198ea, type: 3}
   icon: {fileID: 21300000, guid: e149ee81566d32d43ae23a2ed08f11a1, type: 3}
-  baseHP: 5000
+  baseHP: 8000
   moveSpeed: 2
-  damage: 5
+  damage: 15
   expValue: 0
   goldValue: 0
   spawnWeight: 0

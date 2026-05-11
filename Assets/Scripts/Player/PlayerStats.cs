@@ -49,7 +49,7 @@ public class PlayerStats : MonoBehaviour
     public int ExtraLives { get => _extraLives; set => _extraLives = value; }
 
     /// <summary>EXP needed to reach the next level (quadratic curve).</summary>
-    public float EXPToNextLevel => 5 + 3 * _level * _level;
+    public float EXPToNextLevel => 5 + 2 * _level * _level;
 
     private void Awake()
     {
@@ -93,7 +93,8 @@ public class PlayerStats : MonoBehaviour
             if (_extraLives > 0)
             {
                 _extraLives--;
-                _currentHP = MaxHP * 0.5f;
+                float revivePct = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.extraLifeReviveHpPercent : 0.5f;
+                _currentHP = MaxHP * revivePct;
                 return;
             }
 

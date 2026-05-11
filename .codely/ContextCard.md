@@ -34,12 +34,23 @@
 - Event-driven UI | Cached refs | Reusable lists | Min GC
 
 ## State
-- Phase 1-3: ✅ | Phase 4: 19/26
+- Phase 1-3: ✅ | Phase 4: 24/26
 - Game flow: MainMenuUI → Save slot → Shop → CharacterSelect → StartGame → Playing → GameOver → Gold/Stats persisted → Retry/Menu
 - Scene reload: DontDestroyOnLoad singletons survive; GameManager resets via ReturnToMenu()
 
+## Balance Pass (2026-05-11)
+- XP公式: 5+2×Lv² (原5+3×Lv²) → 30min可达Lv28-32
+- 飞刀大幅削弱(8→5基础, 8→7弹Lv8); 旋转盾增强(5→8基础); 圣水大幅增强(3→5基础, 6→5s CD); 圣光增强(持续5→9s)
+- 进化武器全部重做(Lv1≈原Lv8×1.5-1.8, Lv8≈原Lv8×2.5-3.0)
+- 被动对齐GDD: Wing +8%/级(0.24flat), Feather 3级每级+1弹(maxLevel=3, effectPerLevel=1.0), Heart +12HP, Magnet +1.25拾取
+- 敌人HP小幅上调, 伤害下调; Boss HP+60%, 伤害+4-10倍(骷髅王800/8, 暗夜领主3000/12, 死神8000/15)
+- DifficultyManager缩放降低: HP +8%/min, 伤害+3%/min, 生成+12%/min, 速度+1.5%/min
+- 掉落率提升: 烤鸡0.1→2%, 宝箱0.5→1.5%, 磁铁0.2→1%, EXP 80→75%
+- 永久升级: 伤害费用减半(50-800), 拾取降低(20-320), 额外生命降低(300-1200)
+- GameBalanceConfig SO (Resources/) 集中管理: 精英倍率(HP×5/Dmg×2), Boss缩放/阶段转换, AreaWeapon tick间隔, Orbital旋转速度/命中冷却, Projectile搜索/范围, 额外生命复活HP%, Spawner参数
+
 ## Remaining Phase 4 Tasks
-- T4.4 数值平衡 (weapons/enemies/XP/evolution costs + playtesting)
+- T4.4.6 数值平衡 playtest 迭代
 - T4.5 性能优化 (pool audit, LOD, layers, batching, GC, profiler, 500 enemies@60FPS)
 - T4.6 收尾 (remaining: UI adaptation, animation transitions, tutorial system)
 

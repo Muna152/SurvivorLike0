@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5600a5b0868ca5e4e89437478fc640c9, type: 3}
+  m_Name: GameBalanceConfig
+  m_EditorClassIdentifier: 
+  eliteHpMultiplier: 5
+  eliteDamageMultiplier: 2
+  eliteScaleMultiplier: 1.05
+  eliteSpeedMultiplier: 1.2
+  eliteExpMultiplier: 10
+  eliteGoldMultiplier: 5
+  bossScaleMultiplier: 2
+  bossAttackInterval: 3
+  bossAttackIntervalPhaseMultiplier: 0.8
+  bossExpMultiplier: 50
+  bossGoldMultiplier: 20
+  bossPhaseTransitionDuration: 0.5
+  minSpawnDistance: 15
+  maxSpawnDistance: 25
+  maxEnemiesOnScreen: 500
+  eliteWaveInterval: 300
+  bossSpawnDistance: 18
+  baseBatchSize: 3
+  batchGrowthRate: 0.8
+  maxBatchSize: 15
+  eliteWaveMinCount: 5
+  eliteWaveMaxCount: 10
+  eliteWaveCap: 20
+  eliteWaveBonusPerWave: 2
+  areaWeaponTickInterval: 0.5
+  areaWeaponDamageRadiusBuffer: 0.15
+  orbitalRotationSpeed: 120
+  orbitalHitCooldown: 0.15
+  projectileMaxRange: 30
+  projectileSearchRadius: 50
+  extraLifeReviveHpPercent: 0.5
+  regenTickInterval: 1
+  dropAttractSpeed: 15
+  dropCollectRadius: 0.5
+  dropVacuumSpeedMultiplier: 2
+  dropVacuumEaseRate: 2.5
+  dropVacuumDelay: 2.5
+  dropVacuumRange: 8

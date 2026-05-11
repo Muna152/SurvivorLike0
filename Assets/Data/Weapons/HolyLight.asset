@@ -32,53 +32,53 @@ MonoBehaviour:
     duration: 5
   - damage: 7
     cooldown: 0.5
-    area: 3.5
+    area: 3.3
+    projectileCount: 0
+    pierce: 0
+    speed: 0
+    duration: 5.5
+  - damage: 9
+    cooldown: 0.5
+    area: 3.6
     projectileCount: 0
     pierce: 0
     speed: 0
     duration: 6
-  - damage: 9
+  - damage: 12
     cooldown: 0.5
     area: 4
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 7
-  - damage: 11
+    duration: 6.5
+  - damage: 15
     cooldown: 0.5
     area: 4.5
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 8
-  - damage: 13
+    duration: 7
+  - damage: 18
     cooldown: 0.5
     area: 5
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 9
-  - damage: 15
+    duration: 7.5
+  - damage: 22
     cooldown: 0.5
     area: 5.5
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 10
-  - damage: 17
+    duration: 8
+  - damage: 27
     cooldown: 0.5
     area: 6
     projectileCount: 0
     pierce: 0
     speed: 0
-    duration: 11
-  - damage: 19
-    cooldown: 0.5
-    area: 6.5
-    projectileCount: 0
-    pierce: 0
-    speed: 0
-    duration: 12
+    duration: 9
   canEvolve: 1
   requiredPassiveId: heart
   evolvedWeapon: {fileID: 11400000, guid: 00915ec129bd206418bae7990ac985ab, type: 2}

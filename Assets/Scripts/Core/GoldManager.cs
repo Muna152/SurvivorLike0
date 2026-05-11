@@ -32,9 +32,9 @@ public static class GoldManager
     {
         new[] { 50, 100, 200, 400, 800 },       // HPBonus
         new[] { 50, 100, 200, 400, 800 },       // MoveSpeedBonus
-        new[] { 100, 200, 400, 800, 1600 },     // DamageBonus
-        new[] { 30, 60, 120, 240, 480 },        // PickupRangeBonus
-        new[] { 500, 1000, 2000 }                // ExtraLife
+        new[] { 50, 100, 200, 400, 800 },       // DamageBonus
+        new[] { 20, 40, 80, 160, 320 },         // PickupRangeBonus
+        new[] { 300, 600, 1200 }                 // ExtraLife
     };
 
     private static readonly string[] UpgradeNames =

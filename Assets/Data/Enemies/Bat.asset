@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Bat
   prefab: {fileID: 5836391112768287560, guid: 0f2e85c5186918c4d87a07ae5e1802b4, type: 3}
   icon: {fileID: 0}
-  baseHP: 5
+  baseHP: 6
   moveSpeed: 2.2
   damage: 3
   expValue: 2

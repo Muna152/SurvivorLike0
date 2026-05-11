@@ -23,60 +23,60 @@ MonoBehaviour:
   vfxType: 2
   maxLevel: 8
   levelData:
-  - damage: 8
+  - damage: 5
     cooldown: 0.8
-    area: 0.5
-    projectileCount: 1
-    pierce: 1
-    speed: 10
-    duration: 0
-  - damage: 11
-    cooldown: 0.75
     area: 0.5
     projectileCount: 2
     pierce: 1
-    speed: 10.5
+    speed: 10
     duration: 0
-  - damage: 14
+  - damage: 6
+    cooldown: 0.75
+    area: 0.5
+    projectileCount: 3
+    pierce: 1
+    speed: 10
+    duration: 0
+  - damage: 7
     cooldown: 0.7
     area: 0.5
     projectileCount: 3
     pierce: 1
     speed: 11
     duration: 0
-  - damage: 17
-    cooldown: 0.65000004
-    area: 0.5
-    projectileCount: 4
-    pierce: 1
-    speed: 11.5
-    duration: 0
-  - damage: 20
+  - damage: 8
     cooldown: 0.6
     area: 0.5
-    projectileCount: 5
-    pierce: 1
-    speed: 12
+    projectileCount: 4
+    pierce: 2
+    speed: 11
     duration: 0
-  - damage: 23
-    cooldown: 0.55
-    area: 0.5
-    projectileCount: 6
-    pierce: 1
-    speed: 12.5
-    duration: 0
-  - damage: 26
+  - damage: 10
     cooldown: 0.5
     area: 0.5
-    projectileCount: 7
-    pierce: 1
+    projectileCount: 5
+    pierce: 2
+    speed: 12
+    duration: 0
+  - damage: 12
+    cooldown: 0.45
+    area: 0.5
+    projectileCount: 5
+    pierce: 2
+    speed: 12
+    duration: 0
+  - damage: 14
+    cooldown: 0.4
+    area: 0.5
+    projectileCount: 6
+    pierce: 3
     speed: 13
     duration: 0
-  - damage: 29
-    cooldown: 0.45000002
+  - damage: 17
+    cooldown: 0.3
     area: 0.5
-    projectileCount: 8
-    pierce: 1
+    projectileCount: 7
+    pierce: 3
     speed: 13.5
     duration: 0
   canEvolve: 1

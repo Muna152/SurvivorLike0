@@ -15,10 +15,10 @@ MonoBehaviour:
   enemyName: SkeletonKing
   prefab: {fileID: 1371857822552940222, guid: b549e92767dbd7140a1164850a2abbbf, type: 3}
   icon: {fileID: 21300000, guid: 582b70e6c1229534083c281b16e60044, type: 3}
-  baseHP: 500
+  baseHP: 800
   moveSpeed: 1.5
-  damage: 2
-  expValue: 100
-  goldValue: 50
+  damage: 8
+  expValue: 50
+  goldValue: 30
   spawnWeight: 0
   minSpawnTime: 600

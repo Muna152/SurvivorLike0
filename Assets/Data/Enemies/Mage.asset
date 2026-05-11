@@ -15,10 +15,10 @@ MonoBehaviour:
   enemyName: Mage
   prefab: {fileID: 8095204050528813794, guid: 9e00104616b61134893112c114cb7dfa, type: 3}
   icon: {fileID: 0}
-  baseHP: 15
+  baseHP: 18
   moveSpeed: 1.2
-  damage: 12
-  expValue: 8
-  goldValue: 3
+  damage: 10
+  expValue: 5
+  goldValue: 2
   spawnWeight: 1
   minSpawnTime: 300

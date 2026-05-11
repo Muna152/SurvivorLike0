@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e059f43d291abcc42aa2408ebed86afb, type: 3}
   m_Name: DropTableData
   m_EditorClassIdentifier: 
-  expGemChance: 0.8
-  healthChance: 0.001
-  chestChance: 0.005
-  magnetChance: 0.002
+  expGemChance: 0.75
+  healthChance: 0.02
+  chestChance: 0.015
+  magnetChance: 0.01
   expGemSmallValue: 1
   expGemMediumValue: 5
   expGemLargeValue: 20

@@ -23,62 +23,62 @@ MonoBehaviour:
   vfxType: 3
   maxLevel: 8
   levelData:
-  - damage: 8
-    cooldown: 0.4
-    area: 4
-    projectileCount: 0
+  - damage: 12
+    cooldown: 0.5
+    area: 4.5
+    projectileCount: 1
     pierce: 0
     speed: 0
     duration: 5
-  - damage: 11
-    cooldown: 0.37
-    area: 4.3
-    projectileCount: 0
-    pierce: 1
-    speed: 0.5
+  - damage: 15
+    cooldown: 0.45
+    area: 4.8
+    projectileCount: 1
+    pierce: 0
+    speed: 0
     duration: 5.5
-  - damage: 14
-    cooldown: 0.34
-    area: 4.6
-    projectileCount: 0
-    pierce: 2
-    speed: 1
+  - damage: 18
+    cooldown: 0.4
+    area: 5
+    projectileCount: 1
+    pierce: 0
+    speed: 0
     duration: 6
-  - damage: 17
-    cooldown: 0.31
-    area: 4.9
-    projectileCount: 1
-    pierce: 3
-    speed: 1.5
+  - damage: 22
+    cooldown: 0.35
+    area: 5.3
+    projectileCount: 2
+    pierce: 0
+    speed: 0
     duration: 6.5
-  - damage: 20
-    cooldown: 0.28
-    area: 5.2
-    projectileCount: 1
-    pierce: 4
-    speed: 2
-    duration: 7
-  - damage: 23
-    cooldown: 0.25
-    area: 5.5
-    projectileCount: 1
-    pierce: 5
-    speed: 2.5
-    duration: 7.5
   - damage: 26
-    cooldown: 0.22000001
+    cooldown: 0.3
+    area: 5.5
+    projectileCount: 2
+    pierce: 0
+    speed: 0
+    duration: 7
+  - damage: 32
+    cooldown: 0.25
     area: 5.8
     projectileCount: 2
-    pierce: 6
-    speed: 3
-    duration: 8
-  - damage: 29
-    cooldown: 0.19000001
-    area: 6.1
+    pierce: 0
+    speed: 0
+    duration: 7.5
+  - damage: 38
+    cooldown: 0.2
+    area: 6
     projectileCount: 2
-    pierce: 7
-    speed: 3.5
-    duration: 8.5
+    pierce: 0
+    speed: 0
+    duration: 8
+  - damage: 45
+    cooldown: 0.15
+    area: 6.5
+    projectileCount: 3
+    pierce: 0
+    speed: 0
+    duration: 9
   canEvolve: 0
   requiredPassiveId: 
   evolvedWeapon: {fileID: 0}

@@ -12,7 +12,16 @@ public class OrbitalObject : MonoBehaviour
     private float _rotationSpeed;
     private float _damage;
     private float _currentAngle;
-    private float _hitCooldown = 0.15f;
+    private float _hitCooldown = -1f;
+    private float HitCooldown
+    {
+        get
+        {
+            if (_hitCooldown < 0f)
+                _hitCooldown = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.orbitalHitCooldown : 0.15f;
+            return _hitCooldown;
+        }
+    }
     private float _hitTimer;
     private HashSet<EnemyBase> _hitEnemies;
 
@@ -120,7 +129,7 @@ public class OrbitalObject : MonoBehaviour
         // Add to hit set; start cooldown timer on first hit
         _hitEnemies.Add(enemy);
         if (_hitTimer <= 0f)
-            _hitTimer = _hitCooldown;
+            _hitTimer = HitCooldown;
     }
 
     public void ResetForReuse()

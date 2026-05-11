@@ -11,7 +11,16 @@ public class Projectile : MonoBehaviour
     private int _damage;
     private int _pierce;
     private int _hitCount;
-    private float _maxRange = 30f;
+    private float _maxRange = -1f;
+    private float MaxRange
+    {
+        get
+        {
+            if (_maxRange < 0f)
+                _maxRange = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.projectileMaxRange : 30f;
+            return _maxRange;
+        }
+    }
     private Vector2 _origin;
     private float _damageMultiplier = 1f;
     private Rigidbody2D _rb;
@@ -52,7 +61,7 @@ public class Projectile : MonoBehaviour
         // Move via position (Dynamic RB with Continuous detection handles collision)
         _rb.MovePosition(_rb.position + _direction * _speed * Time.fixedDeltaTime);
 
-        if ((_rb.position - _origin).sqrMagnitude > _maxRange * _maxRange)
+        if ((_rb.position - _origin).sqrMagnitude > MaxRange * MaxRange)
         {
             ReturnToPool();
         }

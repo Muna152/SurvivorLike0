@@ -42,7 +42,8 @@ public abstract class BossEnemy : EnemyBase
         _phaseTransitioning = false;
 
         // Boss scale — larger than regular enemies
-        transform.localScale = Vector3.one * 2f;
+        float bossScale = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.bossScaleMultiplier : 2f;
+        transform.localScale = Vector3.one * bossScale;
 
         GameEvents.InvokeBossSpawned(this);
     }
@@ -150,7 +151,8 @@ public abstract class BossEnemy : EnemyBase
         }
 
         // Brief invulnerability during transition
-        this.InvokeDelayed(0.5f, () =>
+        float transDuration = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.bossPhaseTransitionDuration : 0.5f;
+        this.InvokeDelayed(transDuration, () =>
         {
             _phaseTransitioning = false;
             if (_sr != null) _sr.color = Color.white;
@@ -162,7 +164,8 @@ public abstract class BossEnemy : EnemyBase
         });
 
         // Increase aggression in later phases
-        _attackInterval = Mathf.Max(1f, _attackInterval * 0.8f);
+        float phaseMultiplier = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.bossAttackIntervalPhaseMultiplier : 0.8f;
+        _attackInterval = Mathf.Max(1f, _attackInterval * phaseMultiplier);
     }
 
     // ── Abstract / Virtual Attack Methods ───────────────────────
