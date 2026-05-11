@@ -16,6 +16,7 @@ public class DamageNumber : MonoBehaviour
     private TextMesh _tm;
     private float _timer;
     private bool _playing;
+    private int _currentAmount;
     private string _poolKey;
 
     private void Awake()
@@ -24,21 +25,44 @@ public class DamageNumber : MonoBehaviour
         _poolKey = "DamageNumber";
     }
 
+    public bool IsPlaying => _playing;
+    public int CurrentAmount => _currentAmount;
+    public float ElapsedTime => _timer;
+
     /// <summary>
     /// Show a damage number at the given position.
     /// </summary>
-    /// <param name="position">World position to spawn at</param>
-    /// <param name="amount">Damage amount to display</param>
-    /// <param name="color">Text color (white=normal, yellow=critical, red=player)</param>
     public void Show(Vector3 position, int amount, Color color)
     {
         transform.position = position + new Vector3(Random.Range(-0.3f, 0.3f), 0.5f, 0f);
+        _currentAmount = amount;
         _tm.text = amount.ToString();
         _tm.color = color;
         _timer = 0f;
         _playing = true;
         transform.localScale = Vector3.one * _startScale;
         gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Add damage to an already-playing number, updating text in place.
+    /// </summary>
+    public void Accumulate(int additionalDamage, Vector3 newPosition)
+    {
+        _currentAmount += additionalDamage;
+        _tm.text = _currentAmount.ToString();
+        // Pop scale back up and extend life slightly
+        float t = Mathf.Clamp01(_timer / _duration);
+        transform.localScale = Vector3.one * Mathf.Lerp(_startScale, _startScale * 0.9f, t);
+        _timer = Mathf.Max(0f, _timer - 0.15f);
+        // Keep alpha full (undo any fade)
+        Color c = _tm.color;
+        c.a = 1f;
+        _tm.color = c;
+        // Follow enemy position horizontally
+        Vector3 pos = transform.position;
+        pos.x = newPosition.x + Random.Range(-0.3f, 0.3f);
+        transform.position = pos;
     }
 
     private void Update()

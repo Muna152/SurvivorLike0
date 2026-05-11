@@ -33,10 +33,15 @@
 - SpatialGrid O(1) queries (cell=8f, Reconcile() on all query paths)
 - Event-driven UI | Cached refs | Reusable lists | Min GC
 
+## Data Architecture
+- **Assets/Data/** = Content definitions (one SO per entity): Weapons/, Enemies/, Bosses/, Characters/, Passives/
+- **Assets/Resources/GameBalanceConfig.asset** = ALL system tuning params (single SO): difficulty scaling, elite/boss multipliers, drop rates, spawner params, weapon behavior, drop physics
+- DropTableData merged into GameBalanceConfig; DifficultyManager reads from GameBalanceConfig (no scene [SerializeField] for scaling rates)
+- EnemySpawner reads elite/spawner params from GameBalanceConfig
+
 ## State
 - Phase 1-3: ✅ | Phase 4: 24/26
-- Game flow: MainMenuUI → Save slot → Shop → CharacterSelect → StartGame → Playing → GameOver → Gold/Stats persisted → Retry/Menu
-- Scene reload: DontDestroyOnLoad singletons survive; GameManager resets via ReturnToMenu()
+- Game flow: MainMenuUI → Save slot → Shop → CharacterSelect → StartGame → Playing → GameOver → Gold/Stats persisted → Retry/Menu- Scene reload: DontDestroyOnLoad singletons survive; GameManager resets via ReturnToMenu()
 
 ## Balance Pass (2026-05-11)
 - XP公式: 5+2×Lv² (原5+3×Lv²) → 30min可达Lv28-32
@@ -47,7 +52,7 @@
 - DifficultyManager缩放降低: HP +8%/min, 伤害+3%/min, 生成+12%/min, 速度+1.5%/min
 - 掉落率提升: 烤鸡0.1→2%, 宝箱0.5→1.5%, 磁铁0.2→1%, EXP 80→75%
 - 永久升级: 伤害费用减半(50-800), 拾取降低(20-320), 额外生命降低(300-1200)
-- GameBalanceConfig SO (Resources/) 集中管理: 精英倍率(HP×5/Dmg×2), Boss缩放/阶段转换, AreaWeapon tick间隔, Orbital旋转速度/命中冷却, Projectile搜索/范围, 额外生命复活HP%, Spawner参数
+- GameBalanceConfig SO (Resources/) 集中管理: 难度缩放(HP/Dmg/Speed/Spawn), 精英倍率(HP×8/Dmg×2/EXP×5), Boss缩放/阶段转换, AreaWeapon tick间隔, Orbital旋转速度/命中冷却, Projectile搜索/范围, 掉落率(EXP75%/烤鸡2%/宝箱1.5%/磁铁1%), EXP宝石分级(1/5/20, 8min/18min阈值), 回血30HP, 磁铁10s/+5拾取, 额外生命复活HP%, Spawner参数, 掉落物理(吸附/真空/合并)
 
 ## Remaining Phase 4 Tasks
 - T4.4.6 数值平衡 playtest 迭代

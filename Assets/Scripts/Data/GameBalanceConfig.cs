@@ -20,6 +20,16 @@ public class GameBalanceConfig : ScriptableObject
         }
     }
 
+    [Header("Difficulty Scaling")]
+    [Tooltip("Enemy HP growth rate per minute (+8% = 0.08)")]
+    public float hpGrowthRate = 0.08f;
+    [Tooltip("Spawn interval acceleration rate per minute")]
+    public float spawnAccelRate = 0.12f;
+    [Tooltip("Enemy damage growth rate per minute (+3% = 0.03)")]
+    public float damageGrowthRate = 0.03f;
+    [Tooltip("Enemy move speed growth rate per minute (+1.5% = 0.015)")]
+    public float speedGrowthRate = 0.015f;
+
     [Header("Elite Enemy")]
     [Tooltip("HP multiplier applied when an enemy becomes elite")]
     public float eliteHpMultiplier = 5f;
@@ -97,6 +107,32 @@ public class GameBalanceConfig : ScriptableObject
     public float extraLifeReviveHpPercent = 0.5f;
     [Tooltip("HP regeneration tick interval (seconds)")]
     public float regenTickInterval = 1f;
+
+    [Header("Drop Rates")]
+    [Tooltip("Chance to drop EXP gem on enemy kill")]
+    [Range(0f, 1f)] public float expGemChance = 0.75f;
+    [Tooltip("Chance to drop health item on enemy kill")]
+    [Range(0f, 1f)] public float healthDropChance = 0.02f;
+    [Tooltip("Chance to drop chest on elite/boss kill")]
+    [Range(0f, 1f)] public float chestDropChance = 0.015f;
+    [Tooltip("Chance to drop magnet item on enemy kill")]
+    [Range(0f, 1f)] public float magnetDropChance = 0.01f;
+
+    [Header("EXP Gem Tiers")]
+    public int expGemSmallValue = 1;
+    public int expGemMediumValue = 5;
+    public int expGemLargeValue = 20;
+    [Tooltip("Game minutes to start dropping medium gems")] public float expGemMediumThreshold = 8f;
+    [Tooltip("Game minutes to start dropping large gems")] public float expGemLargeThreshold = 18f;
+
+    [Header("Health & Magnet Drops")]
+    public int healthRestoreAmount = 30;
+    public float magnetDropDuration = 10f;
+    public float magnetDropPickupBoost = 5f;
+
+    [Header("Drop Performance")]
+    public int maxDropsPerFrame = 6;
+    public float dropMergeRadius = 2.5f;
 
     [Header("Drop Physics")]
     [Tooltip("Speed at which drops move toward player when attracted")]

@@ -64,7 +64,7 @@ public class DropBase : MonoBehaviour
         _poolKey = type.ToString();
     }
 
-    /// <summary>Override magnet settings from DropTableData when spawning.</summary>
+    /// <summary>Override magnet settings from GameBalanceConfig when spawning.</summary>
     public void SetMagnetConfig(float duration, float pickupBoost)
     {
         _magnetDuration = duration;

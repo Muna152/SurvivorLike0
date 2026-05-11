@@ -6,12 +6,10 @@ using UnityEngine.SceneManagement;
 /// Singleton drop manager: queues drop requests and spawns them
 /// over multiple frames to avoid mass-instantiation spikes.
 /// Nearby EXP/Gold drops are merged to reduce total object count.
+/// All tuning values read from GameBalanceConfig (Resources/GameBalanceConfig).
 /// </summary>
 public class DropManager : Singleton<DropManager>
 {
-    [Header("Drop Table")]
-    [SerializeField] private DropTableData _dropTable;
-
     [Header("Drop Prefabs")]
     [SerializeField] private GameObject _expGemPrefab;
     [SerializeField] private GameObject _goldCoinPrefab;
@@ -73,41 +71,41 @@ public class DropManager : Singleton<DropManager>
     /// <summary>Queue drops at the given position. Merges nearby EXP/Gold requests.</summary>
     public void SpawnDrops(Vector2 position, int expValue, int goldValue, bool isElite = false, bool isBoss = false)
     {
-        var t = _dropTable;
-        if (t == null) return;
+        var cfg = GameBalanceConfig.Instance;
+        if (cfg == null) return;
 
         Vector2 offset = Random.insideUnitCircle * 0.5f;
         Vector2 spawnPos = position + offset;
 
         // Determine EXP gem tier based on game time
         float minutes = GameManager.HasInstance ? GameManager.Instance.ElapsedTime / 60f : 0f;
-        int expGemValue = t.expGemSmallValue;
-        if (minutes >= t.expGemLargeThreshold || isBoss)
-            expGemValue = t.expGemLargeValue;
-        else if (minutes >= t.expGemMediumThreshold || isElite)
-            expGemValue = t.expGemMediumValue;
+        int expGemValue = cfg.expGemSmallValue;
+        if (minutes >= cfg.expGemLargeThreshold || isBoss)
+            expGemValue = cfg.expGemLargeValue;
+        else if (minutes >= cfg.expGemMediumThreshold || isElite)
+            expGemValue = cfg.expGemMediumValue;
 
         int scaledExpValue = expValue * expGemValue;
 
         // EXP gem — merge with nearby pending gem
-        if (_expGemPrefab != null && Random.value <= t.expGemChance)
+        if (_expGemPrefab != null && Random.value <= cfg.expGemChance)
         {
             EnqueueOrMerge(DropBase.DropType.ExpGem, spawnPos, scaledExpValue);
         }
 
         // Health — rare, no merging needed
-        if (_healthPrefab != null && Random.value <= t.healthChance)
+        if (_healthPrefab != null && Random.value <= cfg.healthDropChance)
         {
             _pending.Add(new PendingDrop
             {
                 Type = DropBase.DropType.Health,
                 Position = spawnPos + Random.insideUnitCircle * 0.3f,
-                Value = t.healthValue
+                Value = cfg.healthRestoreAmount
             });
         }
 
         // Chest — drops from elite/boss only
-        if (_chestPrefab != null && (isElite || isBoss) && Random.value <= t.chestChance)
+        if (_chestPrefab != null && (isElite || isBoss) && Random.value <= cfg.chestDropChance)
         {
             _pending.Add(new PendingDrop
             {
@@ -118,15 +116,15 @@ public class DropManager : Singleton<DropManager>
         }
 
         // Magnet — rare drop
-        if (_magnetPrefab != null && Random.value <= t.magnetChance)
+        if (_magnetPrefab != null && Random.value <= cfg.magnetDropChance)
         {
             _pending.Add(new PendingDrop
             {
                 Type = DropBase.DropType.Magnet,
                 Position = spawnPos + Random.insideUnitCircle * 0.4f,
                 Value = 1,
-                MagnetDuration = t.magnetDuration,
-                MagnetPickupBoost = t.magnetPickupBoost
+                MagnetDuration = cfg.magnetDropDuration,
+                MagnetPickupBoost = cfg.magnetDropPickupBoost
             });
         }
 
@@ -139,7 +137,8 @@ public class DropManager : Singleton<DropManager>
 
     private void EnqueueOrMerge(DropBase.DropType type, Vector2 pos, int value)
     {
-        float mergeSq = _dropTable != null ? _dropTable.mergeRadius * _dropTable.mergeRadius : 6.25f;
+        var cfg = GameBalanceConfig.Instance;
+        float mergeSq = cfg != null ? cfg.dropMergeRadius * cfg.dropMergeRadius : 6.25f;
 
         for (int i = 0; i < _pending.Count; i++)
         {
@@ -172,7 +171,8 @@ public class DropManager : Singleton<DropManager>
     {
         if (_pending.Count == 0) return;
 
-        int maxSpawns = _dropTable != null ? _dropTable.maxSpawnsPerFrame : 6;
+        var cfg = GameBalanceConfig.Instance;
+        int maxSpawns = cfg != null ? cfg.maxDropsPerFrame : 6;
         int spawned = 0;
         int startIdx = 0;
 
@@ -188,7 +188,7 @@ public class DropManager : Singleton<DropManager>
                 dropObj.SetValue(drop.Value);
                 dropObj.SetType(drop.Type);
 
-                // Apply magnet config from drop table
+                // Apply magnet config
                 if (drop.Type == DropBase.DropType.Magnet)
                 {
                     dropObj.SetMagnetConfig(drop.MagnetDuration, drop.MagnetPickupBoost);

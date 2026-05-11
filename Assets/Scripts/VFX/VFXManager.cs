@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -8,6 +9,17 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class VFXManager : Singleton<VFXManager>
 {
+    // ── Damage number accumulation (show immediately, merge rapid hits) ──
+    private const float DamageAccumMaxGap = 0.25f; // seconds — beyond this, spawn a new number
+
+    private struct DamageAccum
+    {
+        public DamageNumber activeNumber;
+    }
+
+    private readonly Dictionary<int, DamageAccum> _damageAccum = new Dictionary<int, DamageAccum>();
+    private readonly List<int> _cleanupKeys = new List<int>();
+
     // ── Prefab references (loaded in Awake from Resources) ────
     private GameObject _hitEffectPrefab;
     private GameObject _enemyDeathPrefab;
@@ -74,6 +86,7 @@ public class VFXManager : Singleton<VFXManager>
         _cachedPlayer = null;
         _poolsRegistered = false;
         _damageNumberPoolRegistered = false;
+        _damageAccum.Clear();
         RegisterPools();
     }
 
@@ -170,12 +183,18 @@ public class VFXManager : Singleton<VFXManager>
 
     public void PlayDamageNumber(Vector3 position, int amount, Color color)
     {
-        if (_damageNumberPrefab == null) return;
+        SpawnDamageNumber(position, amount, color);
+    }
+
+    private DamageNumber SpawnDamageNumber(Vector3 position, int amount, Color color)
+    {
+        if (_damageNumberPrefab == null) return null;
         EnsureDamageNumberPool();
 
         var dn = PoolManager.Instance.Get<DamageNumber>("DamageNumber");
         if (dn != null)
             dn.Show(position, amount, color);
+        return dn;
     }
 
     // ── Event Handlers ────────────────────────────────────────
@@ -195,13 +214,28 @@ public class VFXManager : Singleton<VFXManager>
     private void HandleEnemyDamaged(EnemyBase enemy, int damage)
     {
         if (enemy == null) return;
-        PlayDamageNumber(enemy.transform.position, damage, Color.white);
+        int id = enemy.GetInstanceID();
+
+        if (_damageAccum.TryGetValue(id, out var acc) && acc.activeNumber != null && acc.activeNumber.IsPlaying
+            && acc.activeNumber.ElapsedTime < DamageAccumMaxGap)
+        {
+            // Merge into the already-visible number
+            acc.activeNumber.Accumulate(damage, enemy.transform.position);
+        }
+        else
+        {
+            // First hit or gap too long — show a new number
+            var dn = SpawnDamageNumber(enemy.transform.position, damage, Color.white);
+            _damageAccum[id] = new DamageAccum { activeNumber = dn };
+        }
     }
 
     private void HandleEnemyDied(EnemyBase enemy)
     {
         if (enemy == null) return;
         PlayEnemyDeath(enemy.transform.position);
+        // Clean up accumulator so stale references don't linger
+        _damageAccum.Remove(enemy.GetInstanceID());
     }
 
     private void HandleDropCollected(DropBase drop)
@@ -224,6 +258,21 @@ public class VFXManager : Singleton<VFXManager>
     }
 
     // ── Helpers ────────────────────────────────────────────────
+
+    private void Update()
+    {
+        // Clean up stale accumulator entries (DamageNumber finished animating)
+        if (_damageAccum.Count == 0) return;
+        _cleanupKeys.Clear();
+        foreach (var kvp in _damageAccum)
+        {
+            var dn = kvp.Value.activeNumber;
+            if (dn == null || !dn.IsPlaying)
+                _cleanupKeys.Add(kvp.Key);
+        }
+        for (int i = 0; i < _cleanupKeys.Count; i++)
+            _damageAccum.Remove(_cleanupKeys[i]);
+    }
 
     private void SpawnVFX(string poolKey, Vector3 position)
     {

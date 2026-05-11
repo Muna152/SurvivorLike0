@@ -12,11 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5600a5b0868ca5e4e89437478fc640c9, type: 3}
   m_Name: GameBalanceConfig
   m_EditorClassIdentifier: 
-  eliteHpMultiplier: 5
+  hpGrowthRate: 0.08
+  spawnAccelRate: 0.12
+  damageGrowthRate: 0.03
+  speedGrowthRate: 0.015
+  eliteHpMultiplier: 8
   eliteDamageMultiplier: 2
   eliteScaleMultiplier: 1.05
   eliteSpeedMultiplier: 1.2
-  eliteExpMultiplier: 10
+  eliteExpMultiplier: 5
   eliteGoldMultiplier: 5
   bossScaleMultiplier: 2
   bossAttackInterval: 3
@@ -27,15 +31,15 @@ MonoBehaviour:
   minSpawnDistance: 15
   maxSpawnDistance: 25
   maxEnemiesOnScreen: 500
-  eliteWaveInterval: 300
+  eliteWaveInterval: 360
   bossSpawnDistance: 18
   baseBatchSize: 3
   batchGrowthRate: 0.8
   maxBatchSize: 15
-  eliteWaveMinCount: 5
-  eliteWaveMaxCount: 10
+  eliteWaveMinCount: 2
+  eliteWaveMaxCount: 4
   eliteWaveCap: 20
-  eliteWaveBonusPerWave: 2
+  eliteWaveBonusPerWave: 3
   areaWeaponTickInterval: 0.5
   areaWeaponDamageRadiusBuffer: 0.15
   orbitalRotationSpeed: 120
@@ -44,6 +48,20 @@ MonoBehaviour:
   projectileSearchRadius: 50
   extraLifeReviveHpPercent: 0.5
   regenTickInterval: 1
+  expGemChance: 0.75
+  healthDropChance: 0.02
+  chestDropChance: 0.015
+  magnetDropChance: 0.01
+  expGemSmallValue: 1
+  expGemMediumValue: 5
+  expGemLargeValue: 20
+  expGemMediumThreshold: 8
+  expGemLargeThreshold: 18
+  healthRestoreAmount: 30
+  magnetDropDuration: 10
+  magnetDropPickupBoost: 5
+  maxDropsPerFrame: 6
+  dropMergeRadius: 2.5
   dropAttractSpeed: 15
   dropCollectRadius: 0.5
   dropVacuumSpeedMultiplier: 2

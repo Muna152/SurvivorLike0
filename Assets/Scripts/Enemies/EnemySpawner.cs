@@ -12,7 +12,6 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float _minSpawnDistance = 15f;
     [SerializeField] private float _maxSpawnDistance = 25f;
     [SerializeField] private int _maxEnemiesOnScreen = 500;
-    [SerializeField] private float _eliteWaveInterval = 300f; // 5 minutes in seconds
 
     [Header("Boss Spawning")]
     [SerializeField] private EnemyData _skeletonKingData;
@@ -65,11 +64,14 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Elite wave timer
+        float eliteInterval = GameBalanceConfig.Instance != null
+            ? GameBalanceConfig.Instance.eliteWaveInterval
+            : 360f;
         _eliteWaveTimer -= Time.deltaTime;
         if (_eliteWaveTimer <= 0f)
         {
             SpawnEliteWave();
-            _eliteWaveTimer = _eliteWaveInterval;
+            _eliteWaveTimer = eliteInterval;
         }
 
         // Boss spawn checks
@@ -194,8 +196,12 @@ public class EnemySpawner : MonoBehaviour
         }
         if (_availableBuffer.Count == 0) return;
 
-        // Batch size scales with time
-        int batchSize = Mathf.Min(15, Mathf.FloorToInt(3 + 0.8f * minutes));
+        // Batch size scales with time (use config if available)
+        var cfg = GameBalanceConfig.Instance;
+        int baseBatch = cfg != null ? cfg.baseBatchSize : 3;
+        float batchGrowth = cfg != null ? cfg.batchGrowthRate : 0.8f;
+        int maxBatch = cfg != null ? cfg.maxBatchSize : 15;
+        int batchSize = Mathf.Min(maxBatch, Mathf.FloorToInt(baseBatch + batchGrowth * minutes));
         Vector2 playerPos = (Vector2)_player.transform.position;
 
         for (int i = 0; i < batchSize; i++)
@@ -237,9 +243,14 @@ public class EnemySpawner : MonoBehaviour
         }
         if (_availableBuffer.Count == 0) return;
 
-        // Elite count scales with wave number: base 5-10 + 2 per previous wave
-        int waveBonus = DifficultyManager.HasInstance ? DifficultyManager.Instance.EliteWaveCount * 2 : 0;
-        int eliteCount = Mathf.Min(20, Random.Range(5, 11) + waveBonus);
+        // Elite count from config, scaling with wave number
+        var cfg = GameBalanceConfig.Instance;
+        int minCount = cfg != null ? cfg.eliteWaveMinCount : 2;
+        int maxCount = cfg != null ? cfg.eliteWaveMaxCount : 4;
+        int bonusPerWave = cfg != null ? cfg.eliteWaveBonusPerWave : 3;
+        int cap = cfg != null ? cfg.eliteWaveCap : 20;
+        int waveBonus = DifficultyManager.HasInstance ? DifficultyManager.Instance.EliteWaveCount * bonusPerWave : 0;
+        int eliteCount = Mathf.Min(cap, Random.Range(minCount, maxCount + 1) + waveBonus);
         Vector2 playerPos = (Vector2)_player.transform.position;
 
         for (int i = 0; i < eliteCount; i++)

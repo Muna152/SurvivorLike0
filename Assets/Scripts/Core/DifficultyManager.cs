@@ -7,14 +7,7 @@ using UnityEngine;
 /// </summary>
 public class DifficultyManager : Singleton<DifficultyManager>
 {
-    [Header("Scaling Coefficients")]
-    [SerializeField] private float _hpGrowthRate = 0.08f;          // +8% HP per minute
-    [SerializeField] private float _spawnAccelRate = 0.12f;       // spawn interval divisor growth per minute
-    [SerializeField] private float _damageGrowthRate = 0.03f;     // +3% enemy damage per minute
-    [SerializeField] private float _speedGrowthRate = 0.015f;     // +1.5% enemy move speed per minute
-
-    [Header("State (Read-only)")]
-    [SerializeField] private int _lastWholeMinute;
+    private int _lastWholeMinute;
 
     /// <summary>Current elapsed minutes in the run.</summary>
     public float CurrentMinutes => GameManager.HasInstance
@@ -22,16 +15,48 @@ public class DifficultyManager : Singleton<DifficultyManager>
         : 0f;
 
     /// <summary>HP multiplier: baseHP × (1 + hpGrowthRate × minutes).</summary>
-    public float HPMultiplier => 1f + _hpGrowthRate * CurrentMinutes;
+    public float HPMultiplier
+    {
+        get
+        {
+            float rate = GameBalanceConfig.Instance != null
+                ? GameBalanceConfig.Instance.hpGrowthRate : 0.08f;
+            return 1f + rate * CurrentMinutes;
+        }
+    }
 
     /// <summary>Spawn interval multiplier: 1 / (1 + spawnAccelRate × minutes).</summary>
-    public float SpawnIntervalMultiplier => 1f / (1f + _spawnAccelRate * CurrentMinutes);
+    public float SpawnIntervalMultiplier
+    {
+        get
+        {
+            float rate = GameBalanceConfig.Instance != null
+                ? GameBalanceConfig.Instance.spawnAccelRate : 0.12f;
+            return 1f / (1f + rate * CurrentMinutes);
+        }
+    }
 
     /// <summary>Enemy damage multiplier: 1 + damageGrowthRate × minutes.</summary>
-    public float DamageMultiplier => 1f + _damageGrowthRate * CurrentMinutes;
+    public float DamageMultiplier
+    {
+        get
+        {
+            float rate = GameBalanceConfig.Instance != null
+                ? GameBalanceConfig.Instance.damageGrowthRate : 0.03f;
+            return 1f + rate * CurrentMinutes;
+        }
+    }
 
     /// <summary>Enemy move speed multiplier: 1 + speedGrowthRate × minutes.</summary>
-    public float SpeedMultiplier => 1f + _speedGrowthRate * CurrentMinutes;
+    public float SpeedMultiplier
+    {
+        get
+        {
+            float rate = GameBalanceConfig.Instance != null
+                ? GameBalanceConfig.Instance.speedGrowthRate : 0.015f;
+            return 1f + rate * CurrentMinutes;
+        }
+    }
 
     /// <summary>Number of elite waves that have occurred so far.</summary>
     public int EliteWaveCount { get; private set; }

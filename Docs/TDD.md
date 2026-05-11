@@ -696,7 +696,7 @@ Assets/
 │   │
 │   ├── Drops/                         # 掉落物系统
 │   │   ├── DropBase.cs                # 掉落物基类
-│   │   └── DropManager.cs             # 掉落物管理器 (引用 DropTableData SO)
+│   │   └── DropManager.cs             # 掉落物管理器 (读取 GameBalanceConfig)
 │   │
 │   ├── Upgrades/                      # 升级系统
 │   │   ├── UpgradeManager.cs          # 升级管理器
@@ -717,16 +717,19 @@ Assets/
 │       ├── EnemyData.cs               # 敌人数据SO
 │       ├── CharacterData.cs           # 角色数据SO
 │       ├── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
-│       ├── DropTableData.cs           # 掉落表数据SO (掉落率/数值/分级)
+│       ├── GameBalanceConfig.cs       # 全局系统配置SO (集中管理所有调参数值)
 │       ├── SaveSlotManager.cs         # 存档栏位管理 (静态工具类)
 │       └── UnlockManager.cs          # 角色解锁管理 (Singleton, slot-aware)
 │
-├── Data/                              # ScriptableObject 资产
-│   ├── Weapons/
-│   ├── Enemies/
-│   ├── Characters/
-│   ├── Passives/
-│   └── DropTableData.asset            # 全局掉落表 (掉落率/经验分级/磁铁配置)
+├── Data/                              # 内容定义 (ScriptableObject 资产)
+│   ├── Weapons/                       #   WeaponData (6基础+6进化)
+│   ├── Enemies/                       #   EnemyData (6敌人)
+│   ├── Bosses/                        #   EnemyData (3Boss)
+│   ├── Characters/                     #   CharacterData (5角色)
+│   └── Passives/                      #   PassiveData (8被动道具)
+│
+├── Resources/
+│   └── GameBalanceConfig.asset        # 全局系统配置 (唯一SO, 集中管理所有调参数值)
 │
 ├── Prefabs/
 │   ├── Player/
@@ -850,17 +853,30 @@ PassiveData (被动道具)
 └── StatType affectedStat
 ```
 
-### 6.2 数值配置表
+### 6.2 数值配置体系
 
-经验值需求、难度曲线、波次配置等关键数值：
+**设计原则：内容数据 vs 系统配置分离**
 
-| 配置项 | 公式/值 |
-|--------|---------|
-| 升级经验 | `5 + 5 × level²` |
-| 生成间隔 | `baseInterval / (1 + 0.15 × minutes)` |
-| 单次生成数 | `floor(3 + 0.8 × minutes)`，上限15 |
-| 敌人HP缩放 | `baseHP × (1 + 0.1 × minutes)` |
-| 同屏上限 | 500 |
+| 位置 | 职责 | 调整场景 |
+|------|------|----------|
+| `Assets/Data/` | 内容定义 (每个游戏实体一个SO) | 添加新武器/敌人/角色时 |
+| `Assets/Resources/GameBalanceConfig.asset` | 全局系统配置 (唯一SO) | 调整难度/掉落/缩放等数值时 |
+
+**GameBalanceConfig 包含的所有调参数值：**
+
+| 分类 | 字段 | 说明 |
+|------|------|------|
+| **难度缩放** | hpGrowthRate, spawnAccelRate, damageGrowthRate, speedGrowthRate | 每分钟增长率 |
+| **精英** | eliteHpMultiplier, eliteDamageMultiplier, eliteScaleMultiplier, eliteSpeedMultiplier, eliteExpMultiplier, eliteGoldMultiplier | 精英属性倍率 |
+| **Boss** | bossScaleMultiplier, bossAttackInterval, bossAttackIntervalPhaseMultiplier, bossExpMultiplier, bossGoldMultiplier, bossPhaseTransitionDuration | Boss行为参数 |
+| **生成器** | minSpawnDistance, maxSpawnDistance, maxEnemiesOnScreen, eliteWaveInterval, bossSpawnDistance, baseBatchSize, batchGrowthRate, maxBatchSize, eliteWaveMinCount, eliteWaveMaxCount, eliteWaveCap, eliteWaveBonusPerWave | 生成参数 |
+| **掉落率** | expGemChance, healthDropChance, chestDropChance, magnetDropChance | 各类掉落概率 |
+| **经验分级** | expGemSmallValue, expGemMediumValue, expGemLargeValue, expGemMediumThreshold, expGemLargeThreshold | EXP宝石数值与阈值 |
+| **掉落物** | healthRestoreAmount, magnetDropDuration, magnetDropPickupBoost | 回血/磁铁参数 |
+| **掉落性能** | maxDropsPerFrame, dropMergeRadius | 每帧生成上限+合并半径 |
+| **武器** | areaWeaponTickInterval, areaWeaponDamageRadiusBuffer, orbitalRotationSpeed, orbitalHitCooldown, projectileMaxRange, projectileSearchRadius | 各类武器行为参数 |
+| **玩家** | extraLifeReviveHpPercent, regenTickInterval | 额外生命/再生参数 |
+| **掉落物理** | dropAttractSpeed, dropCollectRadius, dropVacuumSpeedMultiplier, dropVacuumEaseRate, dropVacuumDelay, dropVacuumRange | 吸附/拾取物理参数 |
 
 ---
 
