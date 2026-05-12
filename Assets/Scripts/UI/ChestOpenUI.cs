@@ -6,6 +6,7 @@ using UnityEngine.UI;
 /// <summary>
 /// VS-like chest opening UI: pauses the game, plays chest-open animation,
 /// reveals evolution/upgrade result, then resumes.
+/// Uses GameManager.PushPause/PopPause for safe timeScale management.
 /// All animation uses unscaledDeltaTime so it works when timeScale=0.
 /// </summary>
 public class ChestOpenUI : MonoBehaviour
@@ -25,8 +26,10 @@ public class ChestOpenUI : MonoBehaviour
     private GameObject _overlay;
     private GameObject _chestImage;
     private GameObject _burstFlash;
+    private UnityEngine.UI.Image _resultIcon;
     private UnityEngine.UI.Text _resultText;
     private bool _isOpening;
+    private int _pendingChests;
 
     private static ChestOpenUI _instance;
     public static ChestOpenUI Instance
@@ -93,7 +96,7 @@ public class ChestOpenUI : MonoBehaviour
         chestRect.anchorMax = new Vector2(0.5f, 0.5f);
         chestRect.pivot = new Vector2(0.5f, 0.5f);
         chestRect.anchoredPosition = Vector2.zero;
-        var chestSprite = Resources.Load<Sprite>("Sprites/Drops/Chest");
+        var chestSprite = DropManager.HasInstance ? DropManager.Instance.ChestSprite : null;
         var chestImg = _chestImage.AddComponent<UnityEngine.UI.Image>();
         if (chestSprite != null)
             chestImg.sprite = chestSprite;
@@ -112,7 +115,20 @@ public class ChestOpenUI : MonoBehaviour
         flashImg.color = new Color(1f, 1f, 0.8f, 0f);
         _burstFlash.SetActive(false);
 
-        // Result text
+        // Result icon (weapon/item sprite above the text)
+        var iconObj = new GameObject("ResultIcon");
+        iconObj.transform.SetParent(_overlay.transform, false);
+        var iconRect = iconObj.AddComponent<RectTransform>();
+        iconRect.sizeDelta = new Vector2(80, 80);
+        iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.anchoredPosition = new Vector2(0f, -30f);
+        _resultIcon = iconObj.AddComponent<UnityEngine.UI.Image>();
+        _resultIcon.color = Color.white;
+        iconObj.SetActive(false);
+
+        // Result text (below the icon)
         var textObj = new GameObject("ResultText");
         textObj.transform.SetParent(_overlay.transform, false);
         var textRect = textObj.AddComponent<RectTransform>();
@@ -134,7 +150,12 @@ public class ChestOpenUI : MonoBehaviour
 
     private void OnChestCollected()
     {
-        if (_isOpening) return;
+        if (_isOpening)
+        {
+            // Already opening — queue this chest for later
+            _pendingChests++;
+            return;
+        }
         StartCoroutine(ChestOpenSequence());
     }
 
@@ -142,8 +163,8 @@ public class ChestOpenUI : MonoBehaviour
     {
         _isOpening = true;
 
-        // Pause game
-        Time.timeScale = 0f;
+        // Pause game via reference-counted system
+        GameManager.Instance.PushPause();
 
         // Show overlay
         _overlay.SetActive(true);
@@ -155,6 +176,7 @@ public class ChestOpenUI : MonoBehaviour
         _chestImage.SetActive(true);
         SetChestScale(0f);
         _resultText.text = "";
+        _resultIcon.gameObject.SetActive(false);
         _burstFlash.SetActive(false);
 
         _timer = 0f;
@@ -162,7 +184,6 @@ public class ChestOpenUI : MonoBehaviour
         {
             _timer += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(_timer / _chestAppearDuration);
-            // Ease-out back for a slight overshoot
             float scale = EaseOutBack(t);
             SetChestScale(scale);
             yield return null;
@@ -171,6 +192,19 @@ public class ChestOpenUI : MonoBehaviour
 
         // ── Phase 2: Chest Burst ──────────────────────────────
         _phase = Phase.ChestBurst;
+
+        // Determine result BEFORE burst so we know what to reveal
+        bool isEvolution = false;
+        Sprite rewardSprite = null;
+        string resultMessage = DetermineResult(ref isEvolution, out rewardSprite);
+
+        // Play VFX and SFX at the burst moment
+        var player = FindObjectOfType<PlayerController>();
+        if (player != null)
+            VFXManager.Instance.PlayChestOpenEffect(player.transform.position);
+        if (AudioManager.HasInstance)
+            AudioManager.Instance.PlayChestOpenSFX();
+
         _burstFlash.SetActive(true);
 
         _timer = 0f;
@@ -178,9 +212,7 @@ public class ChestOpenUI : MonoBehaviour
         {
             _timer += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(_timer / _chestBurstDuration);
-            // Chest scales up
             SetChestScale(1f + 0.3f * t);
-            // Flash fades out
             SetFlashAlpha(Mathf.Lerp(0.8f, 0f, t));
             yield return null;
         }
@@ -189,21 +221,20 @@ public class ChestOpenUI : MonoBehaviour
         _burstFlash.SetActive(false);
         _chestImage.SetActive(false);
 
-        // ── Determine result ──────────────────────────────────
-        bool isEvolution = false;
-        string resultMessage = DetermineResult(ref isEvolution);
-
-        // Play VFX and SFX
-        var player = FindObjectOfType<PlayerController>();
-        if (player != null)
-        {
-            VFXManager.Instance.PlayChestOpenEffect(player.transform.position);
-        }
-        if (AudioManager.HasInstance)
-            AudioManager.Instance.PlayChestOpenSFX();
-
         // ── Phase 3: Result Show ───────────────────────────────
         _phase = Phase.ResultShow;
+
+        // Show reward icon
+        if (rewardSprite != null)
+        {
+            _resultIcon.sprite = rewardSprite;
+            _resultIcon.gameObject.SetActive(true);
+        }
+        else
+        {
+            _resultIcon.gameObject.SetActive(false);
+        }
+
         _resultText.text = resultMessage;
         _resultText.color = isEvolution ? new Color(1f, 0.85f, 0f) : new Color(0.5f, 1f, 0.8f);
 
@@ -230,18 +261,27 @@ public class ChestOpenUI : MonoBehaviour
         _canvasGroup.blocksRaycasts = false;
         _overlay.SetActive(false);
         _resultText.text = "";
+        _resultIcon.gameObject.SetActive(false);
         _chestImage.SetActive(false);
         _burstFlash.SetActive(false);
         _phase = Phase.Idle;
 
-        // Resume game
-        Time.timeScale = 1f;
+        // Resume game via reference-counted system
+        GameManager.Instance.PopPause();
         _isOpening = false;
+
+        // Process queued chests
+        if (_pendingChests > 0)
+        {
+            _pendingChests--;
+            StartCoroutine(ChestOpenSequence());
+        }
     }
 
-    private string DetermineResult(ref bool isEvolution)
+    private string DetermineResult(ref bool isEvolution, out Sprite rewardSprite)
     {
         isEvolution = false;
+        rewardSprite = null;
         var pwm = FindObjectOfType<PlayerWeaponManager>();
         if (pwm == null) return "";
 
@@ -252,7 +292,11 @@ public class ChestOpenUI : MonoBehaviour
             isEvolution = true;
             var names = new List<string>();
             foreach (var w in evolved)
+            {
                 names.Add(w.Data.weaponName);
+                if (rewardSprite == null && w.Data.icon != null)
+                    rewardSprite = w.Data.icon;
+            }
             return $"✨ 进化: {string.Join(", ", names)} ✨";
         }
 
@@ -260,6 +304,7 @@ public class ChestOpenUI : MonoBehaviour
         var upgraded = pwm.UpgradeRandomWeapon();
         if (upgraded != null)
         {
+            rewardSprite = upgraded.Data.icon;
             return $"⬆ {upgraded.Data.weaponName} Lv{upgraded.CurrentLevel}";
         }
 

@@ -61,7 +61,7 @@ public class VFXBase : MonoBehaviour
     {
         if (!_playing) return;
 
-        _timer += Time.deltaTime;
+        _timer += Time.unscaledDeltaTime;
         float t = Mathf.Clamp01(_timer / _duration);
 
         ApplyFrame(t);

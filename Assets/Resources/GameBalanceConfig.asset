@@ -50,7 +50,7 @@ MonoBehaviour:
   regenTickInterval: 1
   expGemChance: 0.75
   healthDropChance: 0.02
-  chestDropChance: 1
+  chestDropChance: 0.1
   chestBossDropChance: 0.5
   magnetDropChance: 0.01
   expGemSmallValue: 1

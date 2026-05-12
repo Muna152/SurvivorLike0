@@ -34,6 +34,42 @@ public class GameManager : Singleton<GameManager>
     public MonoBehaviour PlayerControllerRef { get; set; }
     public MonoBehaviour EnemySpawnerRef { get; set; }
 
+    // ── Reference-counted pause system ───────────────────────────
+    // Multiple systems (upgrade UI, chest open, pause menu) may each need
+    // timeScale=0.  PushPause / PopPause tracks depth so that no caller
+    // accidentally resumes the game while another still needs it paused.
+    private int _pauseDepth;
+
+    /// <summary>True when any system has pushed a pause.</summary>
+    public bool IsSystemPaused => _pauseDepth > 0;
+
+    /// <summary>
+    /// Request a pause.  Increments the depth counter and sets timeScale=0.
+    /// Every PushPause MUST be paired with a PopPause.
+    /// </summary>
+    public void PushPause()
+    {
+        _pauseDepth++;
+        if (_pauseDepth == 1)
+            Time.timeScale = 0f;
+    }
+
+    /// <summary>
+    /// Release a pause.  Decrements the depth counter; only sets timeScale=1
+    /// when all pauses have been released (depth reaches 0).
+    /// </summary>
+    public void PopPause()
+    {
+        if (_pauseDepth <= 0)
+        {
+            Debug.LogWarning("[GameManager] PopPause called with no matching PushPause.");
+            return;
+        }
+        _pauseDepth--;
+        if (_pauseDepth == 0)
+            Time.timeScale = 1f;
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -94,7 +130,7 @@ public class GameManager : Singleton<GameManager>
         if (_currentState != GameState.Playing) return;
 
         _currentState = GameState.Paused;
-        Time.timeScale = 0f;
+        PushPause();
         GameEvents.InvokeGamePaused();
         Debug.Log("[GameManager] Game paused.");
     }
@@ -105,7 +141,7 @@ public class GameManager : Singleton<GameManager>
         if (_currentState != GameState.Paused) return;
 
         _currentState = GameState.Playing;
-        Time.timeScale = 1f;
+        PopPause();
         GameEvents.InvokeGameResumed();
         Debug.Log("[GameManager] Game resumed.");
     }
@@ -116,6 +152,7 @@ public class GameManager : Singleton<GameManager>
         if (_currentState == GameState.GameOver || _currentState == GameState.Victory) return;
 
         _currentState = victory ? GameState.Victory : GameState.GameOver;
+        _pauseDepth = 0;
         Time.timeScale = 0f;
 
         if (victory)
@@ -132,6 +169,7 @@ public class GameManager : Singleton<GameManager>
     public void ReturnToMenu()
     {
         _currentState = GameState.Menu;
+        _pauseDepth = 0;
         ResetTimeScale();
         ElapsedTime = 0f;
         SelectedCharacter = null;

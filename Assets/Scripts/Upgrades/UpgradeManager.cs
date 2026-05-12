@@ -49,7 +49,7 @@ public class UpgradeManager : MonoBehaviour
     private void ShowUpgrade(List<UpgradeOption> options)
     {
         _currentOptions = options;
-        Time.timeScale = 0f;
+        GameManager.Instance.PushPause();
         OnOptionsGenerated?.Invoke(_currentOptions);
     }
 
@@ -173,7 +173,7 @@ public class UpgradeManager : MonoBehaviour
             return;
         }
 
-        Time.timeScale = 1f;
+        GameManager.Instance.PopPause();
         OnUpgradeComplete?.Invoke();
     }
 }

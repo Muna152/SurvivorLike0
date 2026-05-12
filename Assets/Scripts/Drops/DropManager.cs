@@ -17,6 +17,9 @@ public class DropManager : Singleton<DropManager>
     [SerializeField] private GameObject _chestPrefab;
     [SerializeField] private GameObject _magnetPrefab;
 
+    /// <summary>Chest sprite from the prefab's SpriteRenderer (used by ChestOpenUI).</summary>
+    public Sprite ChestSprite => _chestPrefab != null ? _chestPrefab.GetComponent<SpriteRenderer>()?.sprite : null;
+
     private struct PendingDrop
     {
         public DropBase.DropType Type;
