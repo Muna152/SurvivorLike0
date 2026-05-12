@@ -652,7 +652,8 @@ public class DropBase : MonoBehaviour
                 PlayerStats.Heal(Value);
                 break;
             case DropType.Chest:
-                TryEvolveWeapon();
+                // 不直接处理，触发开箱流程（暂停+动画+进化/升级）
+                GameEvents.InvokeChestCollected();
                 break;
             case DropType.Gold:
                 GoldManager.AddGold(Value);
@@ -661,6 +662,63 @@ public class DropBase : MonoBehaviour
         PoolManager.Return(this);
     }
 }
+```
+
+### 3.10 宝箱开箱系统 (ChestOpenUI)
+
+**参考 Vampire Survivors 的宝箱机制：拾取后暂停游戏 → 播放开箱动画 → 展示结果 → 恢复游戏。**
+
+```csharp
+/// <summary>
+/// 宝箱开箱UI：拾取宝箱时暂停游戏，播放开箱动画，展示进化/升级结果。
+/// 动画使用 unscaledDeltaTime 驱动（timeScale=0时不卡住）。
+/// </summary>
+public class ChestOpenUI : MonoBehaviour
+{
+    // 阶段枚举
+    enum Phase { Idle, ChestAppear, ChestBurst, ResultShow, FadeOut }
+    
+    // 核心流程：
+    // 1. 订阅 GameEvents.OnChestCollected
+    // 2. 收到事件 → Time.timeScale = 0 → 开始 ChestAppear 阶段
+    // 3. ChestAppear(0.3s): 宝箱缩放0→1 + 金色光晕
+    // 4. ChestBurst(0.5s): 宝箱放大到1.3 + 白色闪光 + 粒子爆发
+    // 5. 判定内容：
+    //    a. 有可进化武器 → CheckAndEvolveWeapons() → 显示进化文字
+    //    b. 无进化 → 随机升级一把已装备武器1级 → 显示升级文字
+    //    c. 全满级+无进化 → 给少量金币保底
+    // 6. ResultShow(2.0s): 显示结果文字 + 对应VFX
+    // 7. FadeOut(0.3s): 遮罩淡出 → Time.timeScale = 1
+}
+```
+
+**宝箱收集数据流：**
+
+```
+DropBase.Collect() [Chest类型]
+    ↓
+GameEvents.InvokeChestCollected()
+    ↓
+ChestOpenUI.OnChestCollected()
+    ├── Time.timeScale = 0
+    ├── 播放开箱动画 (unscaledDeltaTime)
+    ├── 判定结果：
+    │   ├── 有进化 → pwm.CheckAndEvolveWeapons() → GameEvents.InvokeWeaponEvolved() → 进化VFX
+    │   ├── 无进化 → pwm.UpgradeRandomWeapon() → 升级文字
+    │   └── 全满级 → PlayerStats.AddGold(保底金币)
+    ├── 显示结果文字
+    └── Time.timeScale = 1
+```
+
+**VFX 集成：**
+- `VFXManager` 新增 `PlayChestOpenEffect(Vector3 position)` — 金色光爆 + 粒子
+- `AudioManager` 新增 chest open SFX — 开箱音效
+- `GameEvents` 新增 `OnChestCollected` 事件
+
+**PlayerWeaponManager 新增方法：**
+```csharp
+/// <summary>随机升级一把未满级的已装备武器。返回被升级的武器，无可用武器返回null。</summary>
+public WeaponBase UpgradeRandomWeapon()
 ```
 
 ---
@@ -715,7 +773,8 @@ Assets/
 │   │   ├── UpgradeManager.cs          # 升级管理器
 │   │   ├── UpgradeOption.cs           # 升级选项基类
 │   │   ├── UpgradeUI.cs              # 升级选择UI (CanvasGroup驱动显隐)
-│   │   └── UpgradeCard.cs            # 升级卡片组件
+│   │   ├── UpgradeCard.cs            # 升级卡片组件
+│   │   └── ChestOpenUI.cs            # 宝箱开箱UI (暂停+动画+结果展示)
 │   │
 │   ├── UI/                            # UI系统
 │   │   ├── HUDController.cs          # 战斗HUD (含EXP文字显示)
@@ -967,7 +1026,7 @@ Resources.Load
 | **精英** | eliteHpMultiplier, eliteDamageMultiplier, eliteScaleMultiplier, eliteSpeedMultiplier, eliteExpMultiplier, eliteGoldMultiplier | 精英属性倍率 |
 | **Boss** | bossScaleMultiplier, bossAttackInterval, bossAttackIntervalPhaseMultiplier, bossExpMultiplier, bossGoldMultiplier, bossPhaseTransitionDuration | Boss行为参数 |
 | **生成器** | minSpawnDistance, maxSpawnDistance, maxEnemiesOnScreen, eliteWaveInterval, bossSpawnDistance, baseBatchSize, batchGrowthRate, maxBatchSize, eliteWaveMinCount, eliteWaveMaxCount, eliteWaveCap, eliteWaveBonusPerWave | 生成参数 |
-| **掉落率** | expGemChance, healthDropChance, chestDropChance, magnetDropChance | 各类掉落概率 |
+| **掉落率** | expGemChance, healthDropChance, chestDropChance, chestBossDropChance, magnetDropChance | 各类掉落概率 |
 | **经验分级** | expGemSmallValue, expGemMediumValue, expGemLargeValue, expGemMediumThreshold, expGemLargeThreshold | EXP宝石数值与阈值 |
 | **掉落物** | healthRestoreAmount, magnetDropDuration, magnetDropPickupBoost | 回血/磁铁参数 |
 | **掉落性能** | maxDropsPerFrame, dropMergeRadius | 每帧生成上限+合并半径 |

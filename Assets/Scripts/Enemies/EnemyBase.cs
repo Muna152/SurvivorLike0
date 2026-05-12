@@ -33,6 +33,14 @@ public class EnemyBase : MonoBehaviour
     protected bool _isElite;
     protected float _eliteDamageMultiplier;
 
+    // LOD state — far enemies update at lower frequency
+    private int _lodFrameOffset;       // Random offset so far enemies don't all update on the same frame
+    private bool _isFarLOD;            // Cached: is this enemy in the far LOD tier?
+    private float _lodAccumulatedDelta; // Accumulated fixedDeltaTime for skipped frames
+    private const float LOD_FAR_DISTANCE = 25f; // Beyond this distance, enemy enters far LOD
+    private const int LOD_FAR_INTERVAL = 5;     // Far enemies update every N FixedFrames
+    private int _lastLODCheckFrame = -1;         // Frame of last distance check
+
     // SpatialGrid integration — stores current cell key for O(1) boundary checks.
     // Also used as "registered" flag: non-zero means the enemy is in the grid.
     public long LastCellKey { get; set; }
@@ -87,6 +95,12 @@ public class EnemyBase : MonoBehaviour
 
         _activeEnemies.Add(this);
         SpatialGrid.Register(this);
+
+        // LOD: random frame offset to stagger far-enemy updates
+        _lodFrameOffset = UnityEngine.Random.Range(0, LOD_FAR_INTERVAL);
+        _isFarLOD = false;
+        _lodAccumulatedDelta = 0f;
+        _lastLODCheckFrame = -1;
     }
 
     /// <summary>
@@ -125,17 +139,53 @@ public class EnemyBase : MonoBehaviour
             _sr.color = _originalColor;
         _flashing = false;
         _flashTimer = 0f;
+
+        _isFarLOD = false;
+        _lodAccumulatedDelta = 0f;
+        _lastLODCheckFrame = -1;
     }
 
     protected virtual void FixedUpdate()
     {
         if (_cachedPlayer == null) return;
-        Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
-        _rb.MovePosition(_rb.position + dir * _moveSpeed * Time.fixedDeltaTime);
+
+        // LOD distance check — re-evaluate every 10 frames to avoid per-frame distance computation
+        int frame = Time.frameCount;
+        if (frame - _lastLODCheckFrame >= 10 || _lastLODCheckFrame < 0)
+        {
+            float distSq = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).sqrMagnitude;
+            _isFarLOD = distSq > LOD_FAR_DISTANCE * LOD_FAR_DISTANCE;
+            _lastLODCheckFrame = frame;
+        }
+
+        if (_isFarLOD)
+        {
+            // Far LOD: only move on assigned frame, accumulate delta otherwise
+            if (frame % LOD_FAR_INTERVAL != _lodFrameOffset)
+            {
+                _lodAccumulatedDelta += Time.fixedDeltaTime;
+                return;
+            }
+
+            // Execute movement with accumulated + current delta
+            float dt = _lodAccumulatedDelta + Time.fixedDeltaTime;
+            _lodAccumulatedDelta = 0f;
+            Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
+            _rb.MovePosition(_rb.position + dir * _moveSpeed * dt);
+        }
+        else
+        {
+            // Near LOD: full update every frame
+            Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
+            _rb.MovePosition(_rb.position + dir * _moveSpeed * Time.fixedDeltaTime);
+        }
     }
 
     protected virtual void Update()
     {
+        // Far LOD enemies skip visual-only updates (hit flash)
+        if (_isFarLOD) return;
+
         if (_flashing)
         {
             _flashTimer -= Time.deltaTime;

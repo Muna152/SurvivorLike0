@@ -17,6 +17,10 @@ public abstract class AreaWeapon : WeaponBase
     protected bool _followsPlayer = true;
     protected Vector2 _areaOrigin;
 
+    // Pooling support
+    private bool _areaPoolRegistered;
+    private string _areaPoolKey;
+
     /// <summary>Tick interval — lazily loaded from GameBalanceConfig if not overridden.</summary>
     protected float TickInterval
     {
@@ -37,6 +41,62 @@ public abstract class AreaWeapon : WeaponBase
         {
             _areaPrefab = data.projectilePrefab;
         }
+
+        RegisterAreaPool();
+    }
+
+    private void RegisterAreaPool()
+    {
+        if (_areaPoolRegistered || _areaPrefab == null) return;
+
+        _areaPoolKey = _areaPrefab.name.Replace("(Clone)", "").Trim();
+
+        if (PoolManager.HasInstance && PoolManager.Instance.HasPool(_areaPoolKey))
+        {
+            _areaPoolRegistered = true;
+            return;
+        }
+
+        var prefab = _areaPrefab;
+        PoolManager.Instance.Register<Transform>(
+            _areaPoolKey,
+            () =>
+            {
+                var obj = Instantiate(prefab);
+                obj.SetActive(false);
+                return obj.transform;
+            },
+            t => t.gameObject.SetActive(false),
+            prewarmCount: 2,
+            maxSize: 5
+        );
+
+        _areaPoolRegistered = true;
+    }
+
+    /// <summary>Get a pooled area zone, or Instantiate as fallback.</summary>
+    private GameObject GetPooledArea(Vector2 position)
+    {
+        GameObject area = null;
+        if (_areaPoolRegistered && PoolManager.HasInstance)
+        {
+            var t = PoolManager.Instance.Get<Transform>(_areaPoolKey);
+            if (t != null) area = t.gameObject;
+        }
+
+        if (area == null)
+        {
+            // Fallback: instantiate directly
+            area = Instantiate(_areaPrefab, position, Quaternion.identity);
+        }
+        else
+        {
+            area.transform.position = position;
+            area.transform.rotation = Quaternion.identity;
+            area.transform.localScale = Vector3.one;
+        }
+
+        return area;
     }
 
     protected override void Attack()
@@ -66,7 +126,7 @@ public abstract class AreaWeapon : WeaponBase
 
         if (_areaPrefab != null)
         {
-            _currentArea = Instantiate(_areaPrefab, _areaOrigin, Quaternion.identity);
+            _currentArea = GetPooledArea(_areaOrigin);
         }
         else
         {
@@ -156,7 +216,6 @@ public abstract class AreaWeapon : WeaponBase
         float spriteVisualSize = sr.sprite.bounds.size.x * fillRatio;
         float scale = diameter / spriteVisualSize;
         _currentArea.transform.localScale = new Vector3(scale, scale, 1f);
-        sr.sortingOrder = 1;
     }
 
     /// <summary>
@@ -218,7 +277,7 @@ public abstract class AreaWeapon : WeaponBase
 
         var sr = obj.AddComponent<SpriteRenderer>();
         sr.sprite = GetCachedCircleSprite(_isHealing);
-        sr.sortingOrder = 1;
+        sr.sortingLayerName = "VFX";
 
         return obj;
     }
@@ -307,7 +366,14 @@ public abstract class AreaWeapon : WeaponBase
     {
         if (_currentArea != null)
         {
-            Destroy(_currentArea);
+            if (_areaPoolRegistered && !string.IsNullOrEmpty(_areaPoolKey) && PoolManager.HasInstance && PoolManager.Instance.HasPool(_areaPoolKey))
+            {
+                PoolManager.Instance.Return(_areaPoolKey, _currentArea.transform);
+            }
+            else
+            {
+                Destroy(_currentArea);
+            }
             _currentArea = null;
         }
     }

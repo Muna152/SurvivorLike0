@@ -20,6 +20,8 @@ public class DarkLord : BossEnemy
     [SerializeField] private float _teleportRange = 8f;
 
     private int _attackPattern;
+    private bool _projectilePoolRegistered;
+    private string _projectilePoolKey;
 
     public override void Initialize(EnemyData data)
     {
@@ -31,6 +33,61 @@ public class DarkLord : BossEnemy
 
         base.Initialize(data);
         _attackPattern = 0;
+        RegisterProjectilePool();
+    }
+
+    private void RegisterProjectilePool()
+    {
+        if (_projectilePoolRegistered || _projectilePrefab == null) return;
+
+        _projectilePoolKey = _projectilePrefab.name.Replace("(Clone)", "").Trim();
+
+        if (PoolManager.HasInstance && PoolManager.Instance.HasPool(_projectilePoolKey))
+        {
+            _projectilePoolRegistered = true;
+            return;
+        }
+
+        var prefab = _projectilePrefab;
+        PoolManager.Instance.Register<BossProjectile>(
+            _projectilePoolKey,
+            () =>
+            {
+                var obj = Instantiate(prefab);
+                obj.SetActive(false);
+                return obj.GetComponent<BossProjectile>();
+            },
+            bp => { bp.ResetForReuse(); bp.gameObject.SetActive(false); },
+            prewarmCount: 20,
+            maxSize: 80
+        );
+
+        _projectilePoolRegistered = true;
+    }
+
+    /// <summary>Get a pooled BossProjectile, or Instantiate as fallback.</summary>
+    private BossProjectile GetPooledProjectile(Vector2 position)
+    {
+        BossProjectile bp = null;
+        if (_projectilePoolRegistered && PoolManager.HasInstance)
+        {
+            bp = PoolManager.Instance.Get<BossProjectile>(_projectilePoolKey);
+        }
+
+        if (bp == null)
+        {
+            // Fallback: instantiate directly
+            GameObject proj = Instantiate(_projectilePrefab, position, Quaternion.identity);
+            bp = proj.GetComponent<BossProjectile>();
+        }
+        else
+        {
+            bp.transform.position = position;
+            bp.transform.rotation = Quaternion.identity;
+            bp.SetPoolKey(_projectilePoolKey);
+        }
+
+        return bp;
     }
 
     protected override void FixedUpdate()
@@ -106,8 +163,7 @@ public class DarkLord : BossEnemy
             float angle = (baseAngle + angleOffset) * Mathf.Deg2Rad;
             Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-            GameObject proj = Instantiate(_projectilePrefab, transform.position, Quaternion.identity);
-            var bp = proj.GetComponent<BossProjectile>();
+            var bp = GetPooledProjectile(transform.position);
             if (bp != null)
             {
                 bp.Initialize(damage, _projectileSpeed, dir);
@@ -129,8 +185,7 @@ public class DarkLord : BossEnemy
             float angle = (360f / count) * i * Mathf.Deg2Rad;
             Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-            GameObject proj = Instantiate(_projectilePrefab, transform.position, Quaternion.identity);
-            var bp = proj.GetComponent<BossProjectile>();
+            var bp = GetPooledProjectile(transform.position);
             if (bp != null)
             {
                 bp.Initialize(damage, _projectileSpeed * 0.8f, dir);

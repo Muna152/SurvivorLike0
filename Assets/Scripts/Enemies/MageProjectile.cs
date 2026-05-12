@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Mage projectile: Fired by Mage enemies at the player.
+/// Pooled via PoolManager — always return to pool instead of Destroy.
 /// </summary>
 public class MageProjectile : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class MageProjectile : MonoBehaviour
     private Vector2 _direction;
     private float _lifetime = 5f;
     private float _lifetimeTimer;
+    private string _poolKey;
 
     public void Initialize(float damage, float speed, Vector2 direction)
     {
@@ -23,6 +25,15 @@ public class MageProjectile : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
+    public void ResetForReuse()
+    {
+        _direction = Vector2.right;
+        _lifetimeTimer = _lifetime;
+    }
+
+    /// <summary>Set the pool key for returning to pool.</summary>
+    public void SetPoolKey(string key) => _poolKey = key;
+
     private void Update()
     {
         // Move projectile
@@ -32,7 +43,7 @@ public class MageProjectile : MonoBehaviour
         _lifetimeTimer -= Time.deltaTime;
         if (_lifetimeTimer <= 0f)
         {
-            Destroy(gameObject);
+            ReturnToPool();
         }
     }
 
@@ -43,6 +54,18 @@ public class MageProjectile : MonoBehaviour
         if (player != null)
         {
             player.TakeDamage(Mathf.RoundToInt(_damage));
+            ReturnToPool();
+        }
+    }
+
+    private void ReturnToPool()
+    {
+        if (!string.IsNullOrEmpty(_poolKey) && PoolManager.HasInstance && PoolManager.Instance.HasPool(_poolKey))
+        {
+            PoolManager.Instance.Return(_poolKey, this);
+        }
+        else
+        {
             Destroy(gameObject);
         }
     }

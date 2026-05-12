@@ -18,6 +18,8 @@ public class DeathBoss : BossEnemy
     [SerializeField] private float _homingStrength = 2f;
 
     private int _attackPattern;
+    private bool _projectilePoolRegistered;
+    private string _projectilePoolKey;
 
     public override void Initialize(EnemyData data)
     {
@@ -29,6 +31,60 @@ public class DeathBoss : BossEnemy
 
         base.Initialize(data);
         _attackPattern = 0;
+        RegisterProjectilePool();
+    }
+
+    private void RegisterProjectilePool()
+    {
+        if (_projectilePoolRegistered || _projectilePrefab == null) return;
+
+        _projectilePoolKey = _projectilePrefab.name.Replace("(Clone)", "").Trim();
+
+        if (PoolManager.HasInstance && PoolManager.Instance.HasPool(_projectilePoolKey))
+        {
+            _projectilePoolRegistered = true;
+            return;
+        }
+
+        var prefab = _projectilePrefab;
+        PoolManager.Instance.Register<BossProjectile>(
+            _projectilePoolKey,
+            () =>
+            {
+                var obj = Instantiate(prefab);
+                obj.SetActive(false);
+                return obj.GetComponent<BossProjectile>();
+            },
+            bp => { bp.ResetForReuse(); bp.gameObject.SetActive(false); },
+            prewarmCount: 30,
+            maxSize: 120
+        );
+
+        _projectilePoolRegistered = true;
+    }
+
+    /// <summary>Get a pooled BossProjectile, or Instantiate as fallback.</summary>
+    private BossProjectile GetPooledProjectile(Vector2 position)
+    {
+        BossProjectile bp = null;
+        if (_projectilePoolRegistered && PoolManager.HasInstance)
+        {
+            bp = PoolManager.Instance.Get<BossProjectile>(_projectilePoolKey);
+        }
+
+        if (bp == null)
+        {
+            GameObject proj = Instantiate(_projectilePrefab, position, Quaternion.identity);
+            bp = proj.GetComponent<BossProjectile>();
+        }
+        else
+        {
+            bp.transform.position = position;
+            bp.transform.rotation = Quaternion.identity;
+            bp.SetPoolKey(_projectilePoolKey);
+        }
+
+        return bp;
     }
 
     protected override void FixedUpdate()
@@ -98,9 +154,11 @@ public class DeathBoss : BossEnemy
             Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
             Vector2 offset = Random.insideUnitCircle * 1f;
-            GameObject proj = Instantiate(_projectilePrefab, (Vector2)transform.position + offset, Quaternion.identity);
-            var tp = proj.AddComponent<TrackingProjectile>();
-            tp.Initialize(damage, _projectileSpeed, dir, _homingStrength, _trackingLifetime);
+            var bp = GetPooledProjectile((Vector2)transform.position + offset);
+            if (bp != null)
+            {
+                bp.InitializeHoming(damage, _projectileSpeed, dir, _homingStrength, _trackingLifetime);
+            }
         }
     }
 
@@ -118,8 +176,7 @@ public class DeathBoss : BossEnemy
             float angle = (360f / count) * i * Mathf.Deg2Rad;
             Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-            GameObject proj = Instantiate(_projectilePrefab, transform.position, Quaternion.identity);
-            var bp = proj.GetComponent<BossProjectile>();
+            var bp = GetPooledProjectile(transform.position);
             if (bp != null)
             {
                 bp.Initialize(damage * 0.5f, _projectileSpeed * 1.5f, dir);
@@ -133,73 +190,5 @@ public class DeathBoss : BossEnemy
 
         // Each phase: fire a spread attack immediately
         SpreadAttack();
-    }
-}
-
-/// <summary>
-/// Homing projectile that tracks the player. Added dynamically to BossProjectile objects.
-/// </summary>
-public class TrackingProjectile : MonoBehaviour
-{
-    private float _damage;
-    private float _speed;
-    private Vector2 _direction;
-    private float _homingStrength;
-    private float _lifetime;
-    private float _lifetimeTimer;
-    private Rigidbody2D _rb;
-
-    public void Initialize(float damage, float speed, Vector2 direction, float homingStrength, float lifetime)
-    {
-        _damage = damage;
-        _speed = speed;
-        _direction = direction.normalized;
-        _homingStrength = homingStrength;
-        _lifetime = lifetime;
-        _lifetimeTimer = lifetime;
-
-        _rb = GetComponent<Rigidbody2D>();
-
-        // Remove BossProjectile component to avoid double movement
-        var bp = GetComponent<BossProjectile>();
-        if (bp != null) Destroy(bp);
-    }
-
-    private void FixedUpdate()
-    {
-        var player = EnemyBase.GetPlayer();
-        if (player != null)
-        {
-            Vector2 toPlayer = ((Vector2)player.transform.position - (Vector2)transform.position).normalized;
-            _direction = Vector2.Lerp(_direction, toPlayer, _homingStrength * Time.fixedDeltaTime).normalized;
-        }
-
-        if (_rb != null)
-            _rb.MovePosition(_rb.position + _direction * _speed * Time.fixedDeltaTime);
-        else
-            transform.Translate(_direction * _speed * Time.fixedDeltaTime);
-    }
-
-    private void Update()
-    {
-        // Rotate to face direction
-        float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
-
-        _lifetimeTimer -= Time.deltaTime;
-        if (_lifetimeTimer <= 0f)
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        var player = other.GetComponent<PlayerStats>();
-        if (player != null)
-        {
-            player.TakeDamage(Mathf.RoundToInt(_damage));
-            Destroy(gameObject);
-        }
     }
 }

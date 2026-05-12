@@ -48,6 +48,10 @@ public class HUDController : MonoBehaviour
         if (GetComponent<MainMenuUI>() == null)
             gameObject.AddComponent<MainMenuUI>();
 
+        // Ensure ChestOpenUI exists on the Canvas for chest opening sequence
+        if (GetComponent<ChestOpenUI>() == null)
+            gameObject.AddComponent<ChestOpenUI>();
+
         _stats = FindObjectOfType<PlayerStats>();
         _weaponManager = FindObjectOfType<PlayerWeaponManager>();
 

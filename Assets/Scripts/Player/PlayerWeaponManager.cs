@@ -11,6 +11,9 @@ public class PlayerWeaponManager : MonoBehaviour
     private const int MaxWeapons = 6;
     private readonly List<WeaponBase> _weapons = new List<WeaponBase>();
 
+    // Cached list for evolution queries (avoids GC on level-up)
+    private readonly List<WeaponBase> _evolutionReadyBuffer = new List<WeaponBase>(6);
+
     public IReadOnlyList<WeaponBase> EquippedWeapons => _weapons;
 
     private void Start()
@@ -140,12 +143,13 @@ public class PlayerWeaponManager : MonoBehaviour
         return evolved;
     }
 
-    /// <summary>Get all weapons that can currently evolve (max level + required passive owned).</summary>
+    /// <summary>Get all weapons that can currently evolve (max level + required passive owned).
+    /// Returns a cached list — caller must not store the reference across frames.</summary>
     public List<WeaponBase> GetEvolutionReadyWeapons()
     {
-        var ready = new List<WeaponBase>();
+        _evolutionReadyBuffer.Clear();
         var stats = GetComponent<PlayerStats>();
-        if (stats == null) return ready;
+        if (stats == null) return _evolutionReadyBuffer;
 
         foreach (var weapon in _weapons)
         {
@@ -158,10 +162,29 @@ public class PlayerWeaponManager : MonoBehaviour
             if (requiredPassive == null) continue;
             if (!stats.HasPassive(requiredPassive)) continue;
 
-            ready.Add(weapon);
+            _evolutionReadyBuffer.Add(weapon);
         }
 
-        return ready;
+        return _evolutionReadyBuffer;
+    }
+
+    /// <summary>Randomly upgrade one equipped weapon that is not at max level.
+    /// Returns the upgraded weapon, or null if all weapons are max level.</summary>
+    public WeaponBase UpgradeRandomWeapon()
+    {
+        var upgradeable = new List<WeaponBase>();
+        foreach (var w in _weapons)
+        {
+            if (w.CurrentLevel < w.MaxLevel)
+                upgradeable.Add(w);
+        }
+
+        if (upgradeable.Count == 0) return null;
+
+        var chosen = upgradeable[Random.Range(0, upgradeable.Count)];
+        chosen.Upgrade();
+        GameEvents.InvokeWeaponChanged();
+        return chosen;
     }
 
     /// <summary>Find a PassiveData by its id string.</summary>

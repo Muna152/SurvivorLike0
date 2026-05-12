@@ -13,17 +13,49 @@ public class MageEnemy : EnemyBase
     [SerializeField] private float _projectileSpeed = 4f;
 
     private float _fireCooldown;
+    private bool _projectilePoolRegistered;
+    private string _projectilePoolKey;
 
     public override void Initialize(EnemyData data)
     {
         base.Initialize(data);
         _fireCooldown = _fireRate;
+        RegisterProjectilePool();
     }
 
     public override void ResetForReuse()
     {
         base.ResetForReuse();
         _fireCooldown = _fireRate;
+    }
+
+    private void RegisterProjectilePool()
+    {
+        if (_projectilePoolRegistered || _projectilePrefab == null) return;
+
+        _projectilePoolKey = _projectilePrefab.name.Replace("(Clone)", "").Trim();
+
+        if (PoolManager.HasInstance && PoolManager.Instance.HasPool(_projectilePoolKey))
+        {
+            _projectilePoolRegistered = true;
+            return;
+        }
+
+        var prefab = _projectilePrefab;
+        PoolManager.Instance.Register<MageProjectile>(
+            _projectilePoolKey,
+            () =>
+            {
+                var obj = Instantiate(prefab);
+                obj.SetActive(false);
+                return obj.GetComponent<MageProjectile>();
+            },
+            mp => { mp.ResetForReuse(); mp.gameObject.SetActive(false); },
+            prewarmCount: 15,
+            maxSize: 60
+        );
+
+        _projectilePoolRegistered = true;
     }
 
     protected override void FixedUpdate()
@@ -64,8 +96,26 @@ public class MageEnemy : EnemyBase
     {
         var player = GetPlayer();
         Vector2 dir = ((Vector2)player.transform.position - (Vector2)transform.position).normalized;
-        GameObject proj = Instantiate(_projectilePrefab, transform.position, Quaternion.identity);
-        var mageProj = proj.GetComponent<MageProjectile>();
+
+        MageProjectile mageProj = null;
+        if (_projectilePoolRegistered && PoolManager.HasInstance)
+        {
+            mageProj = PoolManager.Instance.Get<MageProjectile>(_projectilePoolKey);
+        }
+
+        if (mageProj == null)
+        {
+            // Fallback: instantiate directly
+            GameObject proj = Instantiate(_projectilePrefab, transform.position, Quaternion.identity);
+            mageProj = proj.GetComponent<MageProjectile>();
+        }
+        else
+        {
+            mageProj.transform.position = transform.position;
+            mageProj.transform.rotation = Quaternion.identity;
+            mageProj.SetPoolKey(_projectilePoolKey);
+        }
+
         if (mageProj != null)
         {
             float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;

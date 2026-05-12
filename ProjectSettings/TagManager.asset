@@ -16,7 +16,7 @@ TagManager:
   - Player
   - Enemy
   - Projectile
-  - 
+  - Drop
   - 
   - 
   - 
@@ -40,4 +40,25 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Ground
+    uniqueID: 1
+    locked: 0
+  - name: Obstacles
+    uniqueID: 2
+    locked: 0
+  - name: Drops
+    uniqueID: 3
+    locked: 0
+  - name: Enemies
+    uniqueID: 4
+    locked: 0
+  - name: Player
+    uniqueID: 5
+    locked: 0
+  - name: Projectiles
+    uniqueID: 6
+    locked: 0
+  - name: VFX
+    uniqueID: 7
     locked: 0

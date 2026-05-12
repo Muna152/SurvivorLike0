@@ -21,12 +21,12 @@
 - Enemies: chase AI, spawner time-scaling, elite 5min, mage; EnemyData.id/icon added
 - Bosses: 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossHealthBar, timed spawn (10/20/30 min); EnemyDatabase.bosses[]
 - Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive
-- Drops: EXP/Gold/Health/Chest/Magnet, tiered EXP gems (8min/18min thresholds), DropTableData SO
+- Drops: EXP/Gold/Health/Chest/Magnet, tiered EXP gems (8min/18min thresholds); Chest: pause+animation+evolution/upgrade (ChestOpenUI, OnChestCollected event), chestDropChance(elite 15%/boss 50%)
 - Audio: BGM crossfade A/B, SFX 12-source round-robin, per-clip throttle 0.05s, GameEvents-driven
 - VFX: VFXBase (scale+alpha), DamageNumber (TextMesh), 12 pooled prefabs in Resources/VFX/, GameEvents-driven
 - Map: ±100 boundary, procedural obstacles (scale 0.04, sortOrder=-2)
 - Difficulty: time-driven HP/Speed/Damage/SpawnInterval multipliers
-- UI: HUD, UpgradeUI, BossHealthBar, ResultScreen (9 stats+gold), PauseMenu (4-btn), CodexUI, MainMenuUI, UpgradeShopUI, CharacterSelectUI
+- UI: HUD, UpgradeUI, BossHealthBar, ResultScreen (9 stats+gold), PauseMenu (4-btn), CodexUI, MainMenuUI, UpgradeShopUI, CharacterSelectUI, ChestOpenUI (VS-like pause+animation)
 - Meta: 5 characters, 3-slot save, gold+5 permanent upgrades, stats tracking, unlock system
 
 ## Perf Budget
@@ -66,7 +66,7 @@
 - GameEvents.ClearAll() removed — scene reload handles cleanup
 - PlayerStats/PlayerWeaponManager init before character selection → GameManager.StartGame() must call InitializeFromCharacterData() + EquipStartingWeapon()
 - MainMenuUI.Awake() must check GameManager.CurrentState — skip Show() if Playing
-- DropManager must re-register pools + clear _pending on sceneLoaded
+- DropBase.Collect() Chest type fires OnChestCollected event (does NOT directly call CheckAndEvolveWeapons); ChestOpenUI handles pause+animation+result
 - Heal() fires OnPlayerHealed only on actual HP change; HUD uses float comparison
 - PassiveEffect.Remove for MaxHP must ClampCurrentHP()
 - BossHealthBar hides on pause/death; LateUpdate guard when no valid boss

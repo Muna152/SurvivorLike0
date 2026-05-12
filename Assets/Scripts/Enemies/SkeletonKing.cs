@@ -17,6 +17,8 @@ public class SkeletonKing : BossEnemy
     [SerializeField] private float _shockwaveSpeed = 6f;
 
     private int _attackPattern; // Rotates between attack types
+    private bool _shockwavePoolRegistered;
+    private string _shockwavePoolKey;
 
     public override void Initialize(EnemyData data)
     {
@@ -29,6 +31,36 @@ public class SkeletonKing : BossEnemy
 
         base.Initialize(data);
         _attackPattern = 0;
+        RegisterShockwavePool();
+    }
+
+    private void RegisterShockwavePool()
+    {
+        if (_shockwavePoolRegistered || _shockwavePrefab == null) return;
+
+        _shockwavePoolKey = _shockwavePrefab.name.Replace("(Clone)", "").Trim();
+
+        if (PoolManager.HasInstance && PoolManager.Instance.HasPool(_shockwavePoolKey))
+        {
+            _shockwavePoolRegistered = true;
+            return;
+        }
+
+        var prefab = _shockwavePrefab;
+        PoolManager.Instance.Register<BossShockwave>(
+            _shockwavePoolKey,
+            () =>
+            {
+                var obj = Instantiate(prefab);
+                obj.SetActive(false);
+                return obj.GetComponent<BossShockwave>();
+            },
+            sw => { sw.ResetForReuse(); sw.gameObject.SetActive(false); },
+            prewarmCount: 5,
+            maxSize: 15
+        );
+
+        _shockwavePoolRegistered = true;
     }
 
     protected override void FixedUpdate()
@@ -100,8 +132,25 @@ public class SkeletonKing : BossEnemy
     {
         if (_shockwavePrefab == null) return;
 
-        GameObject shockwave = Instantiate(_shockwavePrefab, transform.position, Quaternion.identity);
-        var sw = shockwave.GetComponent<BossShockwave>();
+        BossShockwave sw = null;
+        if (_shockwavePoolRegistered && PoolManager.HasInstance)
+        {
+            sw = PoolManager.Instance.Get<BossShockwave>(_shockwavePoolKey);
+        }
+
+        if (sw == null)
+        {
+            // Fallback: instantiate directly
+            GameObject shockwave = Instantiate(_shockwavePrefab, transform.position, Quaternion.identity);
+            sw = shockwave.GetComponent<BossShockwave>();
+        }
+        else
+        {
+            sw.transform.position = transform.position;
+            sw.transform.rotation = Quaternion.identity;
+            sw.SetPoolKey(_shockwavePoolKey);
+        }
+
         if (sw != null)
         {
             float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;

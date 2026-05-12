@@ -30,6 +30,7 @@ public class AudioManager : Singleton<AudioManager>
     public AudioClip expPickup;
     public AudioClip levelUp;
     public AudioClip evolve;
+    public AudioClip chestOpen;
 
     // ── Settings ──────────────────────────────────────────────
     [Header("Settings")]
@@ -127,6 +128,7 @@ public class AudioManager : Singleton<AudioManager>
     public void PlayMenuBGM() => PlayBGM(menuTheme);
     public void PlayBattleBGM() => PlayBGM(battleTheme);
     public void PlayBossBGM() => PlayBGM(bossTheme);
+    public void PlayChestOpenSFX() => PlaySFX(chestOpen);
 
     // ── Lifecycle ─────────────────────────────────────────────
 

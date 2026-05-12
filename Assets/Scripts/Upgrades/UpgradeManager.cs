@@ -11,6 +11,12 @@ public class UpgradeManager : MonoBehaviour
     private PlayerStats _playerStats;
     private PlayerWeaponManager _weaponManager;
 
+    // Cached lists to avoid GC on level-up
+    private readonly List<UpgradeOption> _optionPool = new List<UpgradeOption>(16);
+    private readonly List<int> _evolutionIndices = new List<int>(4);
+    private readonly HashSet<int> _pickedIndices = new HashSet<int>(8);
+    private readonly List<UpgradeOption> _resultBuffer = new List<UpgradeOption>(3);
+
     public System.Action<List<UpgradeOption>> OnOptionsGenerated;
     public System.Action OnUpgradeComplete;
 
@@ -49,7 +55,11 @@ public class UpgradeManager : MonoBehaviour
 
     public List<UpgradeOption> GenerateUpgradeOptions(int count)
     {
-        var pool = new List<UpgradeOption>();
+        // Reuse cached lists
+        _optionPool.Clear();
+        _evolutionIndices.Clear();
+        _pickedIndices.Clear();
+        _resultBuffer.Clear();
 
         // Evolution options (highest priority - always show if available)
         if (_weaponManager != null)
@@ -57,7 +67,7 @@ public class UpgradeManager : MonoBehaviour
             var evolutionReady = _weaponManager.GetEvolutionReadyWeapons();
             foreach (var w in evolutionReady)
             {
-                pool.Add(new WeaponEvolutionOption(w, _weaponManager));
+                _optionPool.Add(new WeaponEvolutionOption(w, _weaponManager));
             }
         }
 
@@ -68,7 +78,7 @@ public class UpgradeManager : MonoBehaviour
             {
                 if (w.CurrentLevel < w.MaxLevel)
                 {
-                    pool.Add(new WeaponUpgradeOption(w));
+                    _optionPool.Add(new WeaponUpgradeOption(w));
                 }
             }
         }
@@ -85,7 +95,7 @@ public class UpgradeManager : MonoBehaviour
                     if (wd.isEvolutionOnly) continue;
                     if (!_weaponManager.HasWeapon(wd) && _weaponManager.EquippedWeapons.Count < 6)
                     {
-                        pool.Add(new NewWeaponOption(wd, _weaponManager));
+                        _optionPool.Add(new NewWeaponOption(wd, _weaponManager));
                     }
                 }
             }
@@ -103,7 +113,7 @@ public class UpgradeManager : MonoBehaviour
                     int currentLevel = _playerStats.GetPassiveLevel(pd);
                     if (currentLevel < pd.maxLevel)
                     {
-                        pool.Add(new PassiveUpgradeOption(pd, _playerStats, currentLevel));
+                        _optionPool.Add(new PassiveUpgradeOption(pd, _playerStats, currentLevel));
                     }
                 }
             }
@@ -111,37 +121,33 @@ public class UpgradeManager : MonoBehaviour
 
         // Pick N random non-duplicate options
         // Prioritize evolution options: if any exist, always include at least one
-        var result = new List<UpgradeOption>();
-        var indices = new HashSet<int>();
-
-        // First, ensure at least one evolution option is included
-        var evolutionIndices = new List<int>();
-        for (int i = 0; i < pool.Count; i++)
+        for (int i = 0; i < _optionPool.Count; i++)
         {
-            if (pool[i] is WeaponEvolutionOption)
-                evolutionIndices.Add(i);
+            if (_optionPool[i] is WeaponEvolutionOption)
+                _evolutionIndices.Add(i);
         }
 
-        if (evolutionIndices.Count > 0)
+        if (_evolutionIndices.Count > 0)
         {
-            int pick = evolutionIndices[Random.Range(0, evolutionIndices.Count)];
-            result.Add(pool[pick]);
-            indices.Add(pick);
+            int pick = _evolutionIndices[Random.Range(0, _evolutionIndices.Count)];
+            _resultBuffer.Add(_optionPool[pick]);
+            _pickedIndices.Add(pick);
         }
 
         // Fill remaining slots randomly
         int attempts = 0;
-        while (result.Count < count && attempts < pool.Count * 2)
+        while (_resultBuffer.Count < count && attempts < _optionPool.Count * 2)
         {
-            int idx = Random.Range(0, pool.Count);
-            if (indices.Add(idx))
+            int idx = Random.Range(0, _optionPool.Count);
+            if (_pickedIndices.Add(idx))
             {
-                result.Add(pool[idx]);
+                _resultBuffer.Add(_optionPool[idx]);
             }
             attempts++;
         }
 
-        return result;
+        // Return a new list for the caller (queued upgrades need separate lists)
+        return new List<UpgradeOption>(_resultBuffer);
     }
 
     public void OnOptionSelected(UpgradeOption option)

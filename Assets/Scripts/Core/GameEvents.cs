@@ -37,6 +37,9 @@ public static class GameEvents
     /// <summary>Fire when a drop item is collected. Parameter = the collected drop.</summary>
     public static event Action<DropBase> OnDropCollected;
 
+    /// <summary>Fire when a chest is collected, triggering the chest-open sequence.</summary>
+    public static event Action OnChestCollected;
+
     // ── Difficulty Events ─────────────────────────────────────
     /// <summary>Fire each game minute. Parameter = current minute (int).</summary>
     public static event Action<int> OnDifficultyChanged;
@@ -89,6 +92,7 @@ public static class GameEvents
     public static void InvokeEnemyDied(EnemyBase enemy) => OnEnemyDied?.Invoke(enemy);
     public static void InvokeEnemySpawned(EnemyBase enemy) => OnEnemySpawned?.Invoke(enemy);
     public static void InvokeDropCollected(DropBase drop) => OnDropCollected?.Invoke(drop);
+    public static void InvokeChestCollected() => OnChestCollected?.Invoke();
     public static void InvokeDifficultyChanged(int minute) => OnDifficultyChanged?.Invoke(minute);
     public static void InvokeWeaponEvolved(WeaponBase weapon) => OnWeaponEvolved?.Invoke(weapon);
     public static void InvokeWeaponChanged() => OnWeaponChanged?.Invoke();
@@ -115,6 +119,7 @@ public static class GameEvents
         OnEnemyDied = null;
         OnEnemySpawned = null;
         OnDropCollected = null;
+        OnChestCollected = null;
         OnDifficultyChanged = null;
         OnWeaponEvolved = null;
         OnWeaponChanged = null;

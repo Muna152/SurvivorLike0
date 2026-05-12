@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5600a5b0868ca5e4e89437478fc640c9, type: 3}
   m_Name: GameBalanceConfig
   m_EditorClassIdentifier: 
-  hpGrowthRate: 0.08
+  hpGrowthRate: 0.1
   spawnAccelRate: 0.12
   damageGrowthRate: 0.03
   speedGrowthRate: 0.015
@@ -50,7 +50,8 @@ MonoBehaviour:
   regenTickInterval: 1
   expGemChance: 0.75
   healthDropChance: 0.02
-  chestDropChance: 0.015
+  chestDropChance: 1
+  chestBossDropChance: 0.5
   magnetDropChance: 0.01
   expGemSmallValue: 1
   expGemMediumValue: 5
@@ -67,4 +68,4 @@ MonoBehaviour:
   dropVacuumSpeedMultiplier: 2
   dropVacuumEaseRate: 2.5
   dropVacuumDelay: 2.5
-  dropVacuumRange: 8
+  dropVacuumRange: 3

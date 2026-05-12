@@ -33,6 +33,7 @@ public class VFXManager : Singleton<VFXManager>
     private GameObject _splashVFXPrefab;
     private GameObject _impactVFXPrefab;
     private GameObject _damageNumberPrefab;
+    private GameObject _chestOpenEffectPrefab;
 
     // ── Settings ──────────────────────────────────────────────
     private const int HitEffectPoolSize = 10;
@@ -42,6 +43,7 @@ public class VFXManager : Singleton<VFXManager>
     private const int EvolvePoolSize = 5;
     private const int DamageNumberPoolSize = 20;
     private const int WeaponVFXPoolSize = 8;
+    private const int ChestOpenPoolSize = 5;
 
     // ── Internal ──────────────────────────────────────────────
     private bool _poolsRegistered;
@@ -106,6 +108,7 @@ public class VFXManager : Singleton<VFXManager>
         _splashVFXPrefab = Resources.Load<GameObject>("VFX/SplashVFX");
         _impactVFXPrefab = Resources.Load<GameObject>("VFX/ImpactVFX");
         _damageNumberPrefab = Resources.Load<GameObject>("VFX/DamageNumber");
+        _chestOpenEffectPrefab = Resources.Load<GameObject>("VFX/ChestOpenEffect");
     }
 
     // ── Pool Registration ────────────────────────────────────
@@ -129,6 +132,7 @@ public class VFXManager : Singleton<VFXManager>
         RegisterVFXPool(pm, "GlowVFX", _glowVFXPrefab, WeaponVFXPoolSize);
         RegisterVFXPool(pm, "SplashVFX", _splashVFXPrefab, WeaponVFXPoolSize);
         RegisterVFXPool(pm, "ImpactVFX", _impactVFXPrefab, WeaponVFXPoolSize);
+        RegisterVFXPool(pm, "ChestOpenEffect", _chestOpenEffectPrefab, ChestOpenPoolSize);
 
         _poolsRegistered = true;
     }
@@ -173,6 +177,7 @@ public class VFXManager : Singleton<VFXManager>
     public void PlayExpPickup(Vector3 position) => SpawnVFX("ExpPickup", position);
     public void PlayLevelUp(Vector3 position) => SpawnVFX("LevelUp", position);
     public void PlayEvolveEffect(Vector3 position) => SpawnVFX("EvolveEffect", position);
+    public void PlayChestOpenEffect(Vector3 position) => SpawnVFX("ChestOpenEffect", position);
 
     public void PlayWeaponVFX(WeaponData.VFXType vfxType, Vector3 position)
     {

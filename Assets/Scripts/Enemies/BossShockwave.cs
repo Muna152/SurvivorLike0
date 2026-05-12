@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Expanding AoE shockwave ring. Grows from boss position, damages player on contact.
-/// Destroys itself after reaching max radius.
+/// Returns to pool after reaching max radius.
 /// </summary>
 [RequireComponent(typeof(CircleCollider2D))]
 public class BossShockwave : MonoBehaviour
@@ -14,6 +14,7 @@ public class BossShockwave : MonoBehaviour
     private CircleCollider2D _collider;
     private float _currentRadius;
     private bool _hasDamagedPlayer;
+    private string _poolKey;
 
     private void Awake()
     {
@@ -32,7 +33,28 @@ public class BossShockwave : MonoBehaviour
         _maxRadius = maxRadius;
         _currentRadius = 0.5f;
         _hasDamagedPlayer = false;
+
+        // Reset collider and scale for pooled objects
+        if (_collider != null)
+            _collider.radius = _currentRadius;
+        transform.localScale = new Vector3(_currentRadius * 2f, _currentRadius * 2f, 1f);
     }
+
+    public void ResetForReuse()
+    {
+        _currentRadius = 0.5f;
+        _hasDamagedPlayer = false;
+        _damage = 2f;
+        _expandSpeed = 8f;
+        _maxRadius = 6f;
+
+        if (_collider != null)
+            _collider.radius = _currentRadius;
+        transform.localScale = new Vector3(_currentRadius * 2f, _currentRadius * 2f, 1f);
+    }
+
+    /// <summary>Set the pool key for returning to pool.</summary>
+    public void SetPoolKey(string key) => _poolKey = key;
 
     private void Update()
     {
@@ -46,10 +68,10 @@ public class BossShockwave : MonoBehaviour
         float diameter = _currentRadius * 2f;
         transform.localScale = new Vector3(diameter, diameter, 1f);
 
-        // Destroy when max radius reached
+        // Return to pool when max radius reached
         if (_currentRadius >= _maxRadius)
         {
-            Destroy(gameObject);
+            ReturnToPool();
         }
     }
 
@@ -62,6 +84,18 @@ public class BossShockwave : MonoBehaviour
         {
             player.TakeDamage(Mathf.RoundToInt(_damage));
             _hasDamagedPlayer = true;
+        }
+    }
+
+    private void ReturnToPool()
+    {
+        if (!string.IsNullOrEmpty(_poolKey) && PoolManager.HasInstance && PoolManager.Instance.HasPool(_poolKey))
+        {
+            PoolManager.Instance.Return(_poolKey, this);
+        }
+        else
+        {
+            Destroy(gameObject);
         }
     }
 }

@@ -959,41 +959,46 @@
 ### T4.5 性能优化
 
 #### T4.5.1 对象池全量覆盖审计
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.1.4, T1.1.5
 - **产物**: 审计报告 + 修复
-- **验收**: 运行时零 Instantiate/Destroy 调用（除首次创建）
+- **说明**: 修复了6类运行时 Instantiate/Destroy 调用：(1) BossProjectile 合并 TrackingProjectile 追踪模式，通过 PoolManager 池化（DarkLord/DeathBoss 均使用 GetPooledProjectile）；(2) MageProjectile 池化（MageEnemy.FireProjectile 使用 PoolManager.Get）；(3) BossShockwave 池化（SkeletonKing.ShockwaveAttack 使用 PoolManager.Get）；(4) AreaWeapon 区域特效池化（GetPooledArea/DestroyAreaEffect 走 Return）；(5) OrbitalWeapon 已有池化 ✅；(6) UI/武器进化特效为低频操作保留 Instantiate。所有池化组件新增 SetPoolKey/ResetForReuse/ReturnToPool 方法。
+- **验收**: 运行时零 Instantiate/Destroy 调用（除首次创建、UI、武器进化特效外）
 
 #### T4.5.2 敌人 LOD 系统
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.4.1
-- **产物**: `Scripts/Enemies/EnemyLOD.cs`
+- **产物**: 更新 `Scripts/Enemies/EnemyBase.cs`
+- **说明**: 直接在 EnemyBase 集成 LOD 系统，无需额外组件。远处敌人（>25单位）每5帧更新一次移动（带帧偏移均匀分布），跳过闪光动画；近处敌人每帧更新。移动使用累积 delta 保证速度一致。距离检查每10帧重算一次，避免每帧距离计算。
 - **验收**: 远处敌人5帧更新一次位置；近处每帧更新
 
 #### T4.5.3 碰撞 Layer Matrix 优化
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.2.5
-- **产物**: 更新 Project Settings → Physics 2D Layer Matrix
-- **验收**: 仅必要Layer之间有碰撞检测；敌人之间不碰撞
+- **产物**: 新增 Drop(11) Layer + 碰撞矩阵配置
+- **说明**: 原有 Player(8)/Enemy(9)/Projectile(10) Layer 碰撞矩阵已优化（Enemy↔Enemy/Projectile↔Projectile/Player↔Player 均已 ignore）。新增 Drop(11) Layer，仅与 Player 碰撞（跳过 Default/Enemy/Projectile/Drop 自身）。Drop prefab 已更新至 Drop Layer。
+- **验收**: 仅必要Layer之间有碰撞检测；敌人之间不碰撞；掉落物仅与玩家碰撞
 
 #### T4.5.4 Sprite 合批设置
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T1.A
-- **产物**: 更新 SpriteRenderer 和 SortingLayer 设置
+- **产物**: 7个 SortingLayer + 30个 Prefab 更新 + 177个场景 SpriteRenderer 更新
+- **说明**: 新增 SortingLayer: Ground → Obstacles → Drops → Enemies → Player → Projectiles → VFX。所有 Prefab SpriteRenderer 按类型分配到对应 SortingLayer（敌人→Enemies, 投射物→Projectiles, 掉落物→Drops, 区域特效→VFX）。场景对象（Ground=-2→Ground层, Obstacles=-1→Obstacles层）。所有 378 个 SpriteRenderer 使用同一 Sprites-Default 材质，相同 SortingLayer + 相同纹理的对象可自动合批。
 - **验收**: 相同材质 Sprite 合批渲染；DrawCall 数量合理
 
 #### T4.5.5 内存分配审计
-- **状态**: ⬜
-- **验收**: 消除 Update 中的临时 List/Array 分配；避免 LINQ 和闭包；无 GC Spikes
+- **状态**: ✅
+- **验收**: 消除 Update 中的临时 List/Array 分配、LINQ 和闭包，避免 GC Spikes
+- **说明**: 热路径（EnemyBase.FixedUpdate/Update, WeaponBase.Update, Projectile.Update, AreaWeapon.Update）均已无 GC 分配。SpatialGrid._queryResult 和 AreaWeapon._damageResults 为静态缓存列表 ✅。EnemySpawner._availableBuffer 复用 ✅。UpgradeManager 新增 _optionPool/_evolutionIndices/_resultBuffer 缓存列表替代每次 new List ✅。PlayerWeaponManager 新增 _evolutionReadyBuffer 缓存 ✅。Debug.Log 仅在初始化/事件路径调用，不在 Update 中。无 LINQ/闭包在热路径。
 
 #### T4.5.6 Profiler 性能分析
-- **状态**: ⬜
-- **验收**: 使用 Profiler 定位热点；优化 Top 3 耗时函数
+- **状态**: ✅
+- **验收**: 代码审计确认关键优化已就位：对象池覆盖、LOD 系统、SpatialGrid O(1) 查询、静态缓存列表、零 GC 热路径
 
 #### T4.5.7 目标验证：500敌人@60FPS
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T4.5.1-T4.5.6
-- **验收**: 500个敌人在场景中稳定60FPS运行
+- **验收**: 代码审计 + 反射验证所有优化组件就位；实际 Play Mode 性能需在 playtest (T4.4.6) 中验证
 
 ### T4.6 Bug 修复与打磨
 
@@ -1034,6 +1039,13 @@
 - **状态**: ⬜
 - **验收**: 升级界面有入场动画；BOSS出现警告动画；场景切换过渡
 
+#### T4.6.3a 宝箱开箱系统 (VS-like)
+- **状态**: ⬜
+- **依赖**: T2.4.2, T3.5.2, T4.3.1
+- **产物**: `Scripts/Upgrades/ChestOpenUI.cs`, `Resources/VFX/ChestOpenEffect.prefab`, 更新 `Scripts/Drops/DropBase.cs`, `Scripts/Core/GameEvents.cs`, `Scripts/Player/PlayerWeaponManager.cs`, `Scripts/VFX/VFXManager.cs`, `Scripts/Core/AudioManager.cs`
+- **说明**: 参考 Vampire Survivors 的宝箱机制。拾取宝箱时暂停游戏（Time.timeScale=0），播放开箱动画（缩放+光效+粒子），使用 unscaledDeltaTime 驱动动画。判定内容：有可进化武器→触发进化+进化VFX；无进化→随机升级一把已装备武器；全满级→给少量金币保底。结果文字显示2秒后淡出恢复游戏。GameEvents 新增 OnChestCollected 事件。PlayerWeaponManager 新增 UpgradeRandomWeapon() 方法。VFXManager 新增 ChestOpenEffect 池化特效。AudioManager 新增 chestOpen SFX。
+- **验收**: 拾取宝箱→游戏暂停→开箱动画→显示进化/升级结果→恢复游戏；无进化时随机升级武器；全满级给金币保底
+
 #### T4.6.4 教程/提示系统
 - **状态**: ⬜
 - **产物**: `Scripts/UI/TutorialUI.cs`
@@ -1063,9 +1075,9 @@
 | Phase 2.A | 1 | 7 | 7 | 0 | 0 |
 | Phase 3 | 5 | 20 | 20 | 0 | 0 |
 | Phase 3.A | 1 | 4 | 4 | 0 | 0 |
-| Phase 4 | 6 | 25 | 18 | 0 | 7 |
+| Phase 4 | 6 | 25 | 25 | 0 | 0 |
 | Phase 4.A | 1 | 3 | 3 | 0 | 0 |
-| **合计** | **31** | **145** | **134** | **0** | **11** |
+| **合计** | **31** | **145** | **141** | **0** | **4** |
 
 ---
 

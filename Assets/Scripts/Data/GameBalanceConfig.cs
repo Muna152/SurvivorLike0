@@ -113,8 +113,10 @@ public class GameBalanceConfig : ScriptableObject
     [Range(0f, 1f)] public float expGemChance = 0.75f;
     [Tooltip("Chance to drop health item on enemy kill")]
     [Range(0f, 1f)] public float healthDropChance = 0.02f;
-    [Tooltip("Chance to drop chest on elite/boss kill")]
-    [Range(0f, 1f)] public float chestDropChance = 0.015f;
+    [Tooltip("Chance to drop chest on elite kill")]
+    [Range(0f, 1f)] public float chestDropChance = 0.15f;
+    [Tooltip("Chance to drop chest on boss kill")]
+    [Range(0f, 1f)] public float chestBossDropChance = 0.5f;
     [Tooltip("Chance to drop magnet item on enemy kill")]
     [Range(0f, 1f)] public float magnetDropChance = 0.01f;
 

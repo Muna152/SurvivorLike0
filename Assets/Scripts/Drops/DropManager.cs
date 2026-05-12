@@ -104,15 +104,19 @@ public class DropManager : Singleton<DropManager>
             });
         }
 
-        // Chest — drops from elite/boss only
-        if (_chestPrefab != null && (isElite || isBoss) && Random.value <= cfg.chestDropChance)
+        // Chest — drops from elite/boss only (separate chances)
+        if (_chestPrefab != null)
         {
-            _pending.Add(new PendingDrop
+            float chestChance = isBoss ? cfg.chestBossDropChance : (isElite ? cfg.chestDropChance : 0f);
+            if (chestChance > 0f && Random.value <= chestChance)
             {
-                Type = DropBase.DropType.Chest,
-                Position = spawnPos + Random.insideUnitCircle * 0.4f,
-                Value = 1
-            });
+                _pending.Add(new PendingDrop
+                {
+                    Type = DropBase.DropType.Chest,
+                    Position = spawnPos + Random.insideUnitCircle * 0.4f,
+                    Value = 1
+                });
+            }
         }
 
         // Magnet — rare drop

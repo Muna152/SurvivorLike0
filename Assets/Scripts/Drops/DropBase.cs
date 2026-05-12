@@ -129,11 +129,7 @@ public class DropBase : MonoBehaviour
                 _cachedPlayerStats.AddGold(_value);
                 break;
             case DropType.Chest:
-                var pwm = _cachedPlayer.GetComponent<PlayerWeaponManager>();
-                if (pwm != null)
-                {
-                    pwm.CheckAndEvolveWeapons();
-                }
+                GameEvents.InvokeChestCollected();
                 break;
             case DropType.Magnet:
                 _cachedPlayerStats.ApplyMagnetEffect(_magnetDuration, _magnetPickupBoost);
