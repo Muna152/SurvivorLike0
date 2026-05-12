@@ -6,12 +6,6 @@ using UnityEngine;
 /// </summary>
 public class UpgradeManager : MonoBehaviour
 {
-    [Header("Available Weapons")]
-    [SerializeField] private WeaponData[] _availableWeapons;
-
-    [Header("Available Passives")]
-    [SerializeField] private PassiveData[] _availablePassives;
-
     private List<UpgradeOption> _currentOptions;
     private readonly Queue<List<UpgradeOption>> _pendingUpgrades = new Queue<List<UpgradeOption>>();
     private PlayerStats _playerStats;
@@ -82,13 +76,17 @@ public class UpgradeManager : MonoBehaviour
         // New weapons (exclude evolution-only weapons)
         if (_weaponManager != null)
         {
-            foreach (var wd in _availableWeapons)
+            var allWeapons = WeaponDatabase.Instance != null ? WeaponDatabase.Instance.weapons : null;
+            if (allWeapons != null)
             {
-                if (wd == null) continue;
-                if (wd.isEvolutionOnly) continue;
-                if (!_weaponManager.HasWeapon(wd) && _weaponManager.EquippedWeapons.Count < 6)
+                foreach (var wd in allWeapons)
                 {
-                    pool.Add(new NewWeaponOption(wd, _weaponManager));
+                    if (wd == null) continue;
+                    if (wd.isEvolutionOnly) continue;
+                    if (!_weaponManager.HasWeapon(wd) && _weaponManager.EquippedWeapons.Count < 6)
+                    {
+                        pool.Add(new NewWeaponOption(wd, _weaponManager));
+                    }
                 }
             }
         }
@@ -96,13 +94,17 @@ public class UpgradeManager : MonoBehaviour
         // Passives: only offer if not yet max level
         if (_playerStats != null)
         {
-            foreach (var pd in _availablePassives)
+            var allPassives = PassiveDatabase.Instance != null ? PassiveDatabase.Instance.passives : null;
+            if (allPassives != null)
             {
-                if (pd == null) continue;
-                int currentLevel = _playerStats.GetPassiveLevel(pd);
-                if (currentLevel < pd.maxLevel)
+                foreach (var pd in allPassives)
                 {
-                    pool.Add(new PassiveUpgradeOption(pd, _playerStats, currentLevel));
+                    if (pd == null) continue;
+                    int currentLevel = _playerStats.GetPassiveLevel(pd);
+                    if (currentLevel < pd.maxLevel)
+                    {
+                        pool.Add(new PassiveUpgradeOption(pd, _playerStats, currentLevel));
+                    }
                 }
             }
         }

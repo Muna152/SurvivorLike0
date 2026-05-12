@@ -2274,7 +2274,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eeb3173542d37244e98f795a52b9ac08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _allCharacters: []
 --- !u!4 &65428059
 Transform:
   m_ObjectHideFlags: 0
@@ -5227,28 +5226,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a68b7ac7356a1cd41b86441c8763d606, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _availableWeapons:
-  - {fileID: 11400000, guid: 00915ec129bd206418bae7990ac985ab, type: 2}
-  - {fileID: 11400000, guid: 9d7ebd716491c034f86934b623e475a1, type: 2}
-  - {fileID: 11400000, guid: 2f487b1b46a88d6448ace2346df3050e, type: 2}
-  - {fileID: 11400000, guid: 7f0b0b60b37dfe24bb8a45d97b634c73, type: 2}
-  - {fileID: 11400000, guid: 15b77029b2915e3468f9a014bc1ef6c0, type: 2}
-  - {fileID: 11400000, guid: 7f83a14d0feb63448aeb51a0e2c4a80c, type: 2}
-  - {fileID: 11400000, guid: 3180711e656d14f428b7c4c67c732024, type: 2}
-  - {fileID: 11400000, guid: ee8c2276c9256e54cb4abaf988c60934, type: 2}
-  - {fileID: 11400000, guid: a5d5e6469809ca542a54f0555b9d64ed, type: 2}
-  - {fileID: 11400000, guid: dc98713c870b93d4dbbd5f691bda43ea, type: 2}
-  - {fileID: 11400000, guid: 3f003a4ac1dc6744dae6ecbfd735a0b6, type: 2}
-  - {fileID: 11400000, guid: 1e50d557f3693f34aa87c732724d6f9d, type: 2}
-  _availablePassives:
-  - {fileID: 11400000, guid: f5f1445806ff9a844a021cc4aaf362df, type: 2}
-  - {fileID: 11400000, guid: 281d322f36aabd04493658948d275933, type: 2}
-  - {fileID: 11400000, guid: 2bc143b8bdeddab4da126da96824cd85, type: 2}
-  - {fileID: 11400000, guid: 3c8166ba2068c254c9af9e83998313a7, type: 2}
-  - {fileID: 11400000, guid: 848cd45e2b1ea254b8a5b25a77dcad1e, type: 2}
-  - {fileID: 11400000, guid: f5581ab667cf135489092118095f5833, type: 2}
-  - {fileID: 11400000, guid: 1c063f6d95cd0af4bbe4ca0f668894a1, type: 2}
-  - {fileID: 11400000, guid: 4a53a007626ead6409605bdbbc1d5076, type: 2}
 --- !u!4 &159261300
 Transform:
   m_ObjectHideFlags: 0
@@ -31204,11 +31181,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c879848a3df027d48be0aeee474b7270, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hpGrowthRate: 0.08
-  _spawnAccelRate: 0.12
-  _damageGrowthRate: 0.03
-  _speedGrowthRate: 0.015
-  _lastWholeMinute: 0
 --- !u!114 &1021473668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43456,21 +43428,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8b4f26e94b0bf0429b8c1ea4bf0a04c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _enemyPool:
-  - {fileID: 11400000, guid: f783dee1a03d2dc41b00ede549586799, type: 2}
-  - {fileID: 11400000, guid: 6efcfad4b2a9d4e4ebabeea4ce3e2895, type: 2}
-  - {fileID: 11400000, guid: f4ada86ab948f0041a5be6fb03b9f930, type: 2}
-  - {fileID: 11400000, guid: 4489bf2276faf7448969db60e3bef77a, type: 2}
-  - {fileID: 11400000, guid: dccb2eb1938f9b94a8eef01eaebaeae4, type: 2}
-  - {fileID: 11400000, guid: 8cb2be0ad78a5674db53701e839fef5a, type: 2}
   _baseSpawnInterval: 1.5
-  _minSpawnDistance: 15
-  _maxSpawnDistance: 25
-  _maxEnemiesOnScreen: 500
-  _eliteWaveInterval: 300
-  _skeletonKingData: {fileID: 11400000, guid: dc92a9bf144c22c418f473aa6230970c, type: 2}
-  _darkLordData: {fileID: 11400000, guid: f28710602235c5d41bf4b3461bd86a57, type: 2}
-  _deathBossData: {fileID: 11400000, guid: e59eebca8c484f0448878e76fa355fa3, type: 2}
   _bossSpawnDistance: 18
 --- !u!4 &1408426986
 Transform:
@@ -44042,7 +44000,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 10, y: 40}
-  m_SizeDelta: {x: 8, y: 8}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1439143291
 MonoBehaviour:
@@ -60968,7 +60926,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d74e096bb6e7f7748a54399ce9d3a93b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dropTable: {fileID: 11400000, guid: 215699466d403d34ebecf5c64a73a9e4, type: 2}
   _expGemPrefab: {fileID: 8644038273358691714, guid: df372726b8aeb5943a0f33634080e540, type: 3}
   _goldCoinPrefab: {fileID: 7778892489252696124, guid: d07ac47b606f90244bf77468fce24a27, type: 3}
   _healthPrefab: {fileID: 7783920278296729983, guid: 8b838c1ddf0253d438db3f19271c4d10, type: 3}

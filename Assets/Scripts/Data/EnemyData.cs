@@ -8,6 +8,7 @@ using UnityEngine;
 public class EnemyData : ScriptableObject
 {
     [Header("Basic Info")]
+    public string id;
     public string enemyName;
     public GameObject prefab;
     public Sprite icon;

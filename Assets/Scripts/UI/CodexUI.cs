@@ -59,8 +59,14 @@ public class CodexUI : MonoBehaviour
     {
         _allWeapons.Clear();
         _allCharacters.Clear();
-        _allWeapons.AddRange(Resources.FindObjectsOfTypeAll<WeaponData>());
-        _allCharacters.AddRange(Resources.FindObjectsOfTypeAll<CharacterData>());
+
+        var weaponDb = WeaponDatabase.Instance;
+        if (weaponDb != null && weaponDb.weapons != null)
+            _allWeapons.AddRange(weaponDb.weapons);
+
+        var charDb = CharacterDatabase.Instance;
+        if (charDb != null && charDb.characters != null)
+            _allCharacters.AddRange(charDb.characters);
     }
 
     // ── Tab Switching ───────────────────────────────────────────

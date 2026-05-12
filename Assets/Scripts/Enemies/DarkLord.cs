@@ -10,7 +10,7 @@ public class DarkLord : BossEnemy
 {
     [Header("Dark Lord Config")]
     [SerializeField] private GameObject _projectilePrefab;
-    [SerializeField] private EnemyData _eliteSummonData;
+    [SerializeField] private string summonEnemyId = "gargoyle";
     [SerializeField] private float _projectileSpeed = 5f;
     [SerializeField] private float _projectileDamage = 2f;
     [SerializeField] private int _fanCount = 5;
@@ -164,7 +164,8 @@ public class DarkLord : BossEnemy
     /// <summary>Summon elite enemies near the boss.</summary>
     private void SummonElites()
     {
-        if (_eliteSummonData == null || _eliteSummonData.prefab == null) return;
+        var summonData = EnemyDatabase.Instance != null ? EnemyDatabase.Instance.GetById(summonEnemyId) : null;
+        if (summonData == null || summonData.prefab == null) return;
 
         int count = _currentPhase >= 2 ? _eliteSummonCount + 1 : _eliteSummonCount;
 
@@ -176,11 +177,11 @@ public class DarkLord : BossEnemy
             Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 4f;
             Vector2 spawnPos = (Vector2)transform.position + offset;
 
-            var enemyObj = PoolManager.Instance.Get<EnemyBase>(_eliteSummonData.enemyName);
+            var enemyObj = PoolManager.Instance.Get<EnemyBase>(summonData.enemyName);
             if (enemyObj != null)
             {
                 enemyObj.transform.position = spawnPos;
-                enemyObj.Initialize(_eliteSummonData);
+                enemyObj.Initialize(summonData);
                 enemyObj.SetElite();
             }
         }

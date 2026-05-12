@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32115f894483aef46a8ea049be4d7657, type: 3}
+  m_Name: EnemyDatabase
+  m_EditorClassIdentifier: 
+  enemies:
+  - {fileID: 11400000, guid: 6efcfad4b2a9d4e4ebabeea4ce3e2895, type: 2}
+  - {fileID: 11400000, guid: 8cb2be0ad78a5674db53701e839fef5a, type: 2}
+  - {fileID: 11400000, guid: dccb2eb1938f9b94a8eef01eaebaeae4, type: 2}
+  - {fileID: 11400000, guid: 4489bf2276faf7448969db60e3bef77a, type: 2}
+  - {fileID: 11400000, guid: f783dee1a03d2dc41b00ede549586799, type: 2}
+  - {fileID: 11400000, guid: f4ada86ab948f0041a5be6fb03b9f930, type: 2}
+  bosses:
+  - {fileID: 11400000, guid: f28710602235c5d41bf4b3461bd86a57, type: 2}
+  - {fileID: 11400000, guid: e59eebca8c484f0448878e76fa355fa3, type: 2}
+  - {fileID: 11400000, guid: dc92a9bf144c22c418f473aa6230970c, type: 2}

@@ -8,6 +8,7 @@ using UnityEngine;
 public class WeaponData : ScriptableObject
 {
     [Header("Basic Info")]
+    public string id;
     public string weaponName;
     [TextArea] public string description;
     public WeaponType weaponType;

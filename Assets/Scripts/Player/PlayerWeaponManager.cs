@@ -11,9 +11,6 @@ public class PlayerWeaponManager : MonoBehaviour
     private const int MaxWeapons = 6;
     private readonly List<WeaponBase> _weapons = new List<WeaponBase>();
 
-    [Header("All Passives (for evolution lookup)")]
-    [SerializeField] private PassiveData[] _allPassives;
-
     public IReadOnlyList<WeaponBase> EquippedWeapons => _weapons;
 
     private void Start()
@@ -172,15 +169,14 @@ public class PlayerWeaponManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(id)) return null;
 
-        if (_allPassives != null)
+        // Use PassiveDatabase singleton
+        var db = PassiveDatabase.Instance;
+        if (db != null)
         {
-            foreach (var p in _allPassives)
-            {
-                if (p != null && p.id == id) return p;
-            }
+            var found = db.GetById(id);
+            if (found != null) return found;
         }
 
-        // Fallback: search asset database at runtime
         return null;
     }
 

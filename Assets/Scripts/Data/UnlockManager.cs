@@ -10,38 +10,22 @@ public class UnlockManager : Singleton<UnlockManager>
 {
     private readonly HashSet<string> _unlockedIds = new HashSet<string>();
 
-    /// <summary>All character data assets available in the game.</summary>
-    [Header("Characters")]
-    [SerializeField] private CharacterData[] _allCharacters;
+    /// <summary>Read-only access to all character definitions (loaded from CharacterDatabase).</summary>
+    public IReadOnlyList<CharacterData> AllCharacters
+    {
+        get
+        {
+            var db = CharacterDatabase.Instance;
+            return db != null && db.characters != null ? db.characters : _emptyCharacters;
+        }
+    }
 
-    /// <summary>Read-only access to all character definitions.</summary>
-    public IReadOnlyList<CharacterData> AllCharacters => _allCharacters;
+    private static readonly CharacterData[] _emptyCharacters = new CharacterData[0];
 
     protected override void Awake()
     {
         base.Awake();
-        LoadCharacterAssets();
         LoadUnlockState();
-    }
-
-    /// <summary>Auto-load all CharacterData assets if the serialized array is empty.</summary>
-    private void LoadCharacterAssets()
-    {
-        if (_allCharacters != null && _allCharacters.Length > 0) return;
-
-#if UNITY_EDITOR
-        var guids = UnityEditor.AssetDatabase.FindAssets("t:CharacterData");
-        var list = new System.Collections.Generic.List<CharacterData>();
-        foreach (var guid in guids)
-        {
-            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            var data = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(path);
-            if (data != null) list.Add(data);
-        }
-        _allCharacters = list.ToArray();
-#else
-        _allCharacters = Resources.FindObjectsOfTypeAll<CharacterData>();
-#endif
     }
 
     // ── Public API ──────────────────────────────────────────────
@@ -89,9 +73,10 @@ public class UnlockManager : Singleton<UnlockManager>
     {
         var newlyUnlocked = new List<CharacterData>();
 
-        if (_allCharacters == null) return newlyUnlocked;
+        var allChars = AllCharacters;
+        if (allChars == null || allChars.Count == 0) return newlyUnlocked;
 
-        foreach (var character in _allCharacters)
+        foreach (var character in allChars)
         {
             if (character == null) continue;
             if (character.isDefaultUnlocked) continue;
@@ -110,9 +95,12 @@ public class UnlockManager : Singleton<UnlockManager>
     /// <summary>Find a CharacterData by its id.</summary>
     public CharacterData FindCharacter(string characterId)
     {
-        if (string.IsNullOrEmpty(characterId) || _allCharacters == null) return null;
+        if (string.IsNullOrEmpty(characterId)) return null;
 
-        foreach (var c in _allCharacters)
+        var allChars = AllCharacters;
+        if (allChars == null) return null;
+
+        foreach (var c in allChars)
         {
             if (c != null && c.id == characterId) return c;
         }
@@ -149,9 +137,10 @@ public class UnlockManager : Singleton<UnlockManager>
         if (!HasInstance) return;
 
         string prefix = SaveSlotManager.GetUnlockKeyPrefix(slotIndex);
-        if (Instance._allCharacters == null) return;
+        var allChars = Instance.AllCharacters;
+        if (allChars == null) return;
 
-        foreach (var character in Instance._allCharacters)
+        foreach (var character in allChars)
         {
             if (character == null || character.isDefaultUnlocked) continue;
             string key = prefix + character.id;
@@ -171,9 +160,10 @@ public class UnlockManager : Singleton<UnlockManager>
 
         string prefix = SaveSlotManager.GetActiveUnlockKeyPrefix();
 
-        if (_allCharacters != null)
+        var allChars = AllCharacters;
+        if (allChars != null)
         {
-            foreach (var character in _allCharacters)
+            foreach (var character in allChars)
             {
                 if (character == null) continue;
                 if (character.isDefaultUnlocked) continue;

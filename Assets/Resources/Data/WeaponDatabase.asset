@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 582e0d662d8ff6e46a0efd1b231be2bc, type: 3}
+  m_Name: WeaponDatabase
+  m_EditorClassIdentifier: 
+  weapons:
+  - {fileID: 11400000, guid: 00915ec129bd206418bae7990ac985ab, type: 2}
+  - {fileID: 11400000, guid: 9d7ebd716491c034f86934b623e475a1, type: 2}
+  - {fileID: 11400000, guid: 2f487b1b46a88d6448ace2346df3050e, type: 2}
+  - {fileID: 11400000, guid: 7f0b0b60b37dfe24bb8a45d97b634c73, type: 2}
+  - {fileID: 11400000, guid: 15b77029b2915e3468f9a014bc1ef6c0, type: 2}
+  - {fileID: 11400000, guid: 7f83a14d0feb63448aeb51a0e2c4a80c, type: 2}
+  - {fileID: 11400000, guid: 3180711e656d14f428b7c4c67c732024, type: 2}
+  - {fileID: 11400000, guid: ee8c2276c9256e54cb4abaf988c60934, type: 2}
+  - {fileID: 11400000, guid: a5d5e6469809ca542a54f0555b9d64ed, type: 2}
+  - {fileID: 11400000, guid: dc98713c870b93d4dbbd5f691bda43ea, type: 2}
+  - {fileID: 11400000, guid: 3f003a4ac1dc6744dae6ecbfd735a0b6, type: 2}
+  - {fileID: 11400000, guid: 1e50d557f3693f34aa87c732724d6f9d, type: 2}

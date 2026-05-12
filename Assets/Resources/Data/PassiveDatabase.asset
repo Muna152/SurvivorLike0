@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99baaeca60724c446b31577aae2d435f, type: 3}
+  m_Name: PassiveDatabase
+  m_EditorClassIdentifier: 
+  passives:
+  - {fileID: 11400000, guid: f5f1445806ff9a844a021cc4aaf362df, type: 2}
+  - {fileID: 11400000, guid: 281d322f36aabd04493658948d275933, type: 2}
+  - {fileID: 11400000, guid: 2bc143b8bdeddab4da126da96824cd85, type: 2}
+  - {fileID: 11400000, guid: 3c8166ba2068c254c9af9e83998313a7, type: 2}
+  - {fileID: 11400000, guid: 848cd45e2b1ea254b8a5b25a77dcad1e, type: 2}
+  - {fileID: 11400000, guid: f5581ab667cf135489092118095f5833, type: 2}
+  - {fileID: 11400000, guid: 1c063f6d95cd0af4bbe4ca0f668894a1, type: 2}
+  - {fileID: 11400000, guid: 4a53a007626ead6409605bdbbc1d5076, type: 2}

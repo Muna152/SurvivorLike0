@@ -110,8 +110,16 @@ public class PauseMenuController : MonoBehaviour
 
     private void LoadAllDataAssets()
     {
-        _allWeapons.AddRange(Resources.FindObjectsOfTypeAll<WeaponData>());
-        _allPassives.AddRange(Resources.FindObjectsOfTypeAll<PassiveData>());
+        _allWeapons.Clear();
+        _allPassives.Clear();
+
+        var weaponDb = WeaponDatabase.Instance;
+        if (weaponDb != null && weaponDb.weapons != null)
+            _allWeapons.AddRange(weaponDb.weapons);
+
+        var passiveDb = PassiveDatabase.Instance;
+        if (passiveDb != null && passiveDb.passives != null)
+            _allPassives.AddRange(passiveDb.passives);
     }
 
     // ── Show / Hide ────────────────────────────────────────────

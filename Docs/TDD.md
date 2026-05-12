@@ -220,6 +220,8 @@ WeaponBase (抽象基类)
 [CreateAssetMenu(fileName = "WeaponData", menuName = "Data/WeaponData")]
 public class WeaponData : ScriptableObject
 {
+    [Header("Basic Info")]
+    public string id;                    // 唯一标识 (e.g. "flying_sword", "knife", "excalibur")
     public string weaponName;
     public string description;
     public WeaponType weaponType;        // Projectile/Orbital/Area/Auxiliary
@@ -231,6 +233,9 @@ public class WeaponData : ScriptableObject
     public bool canEvolve;
     public string requiredItemId;        // 所需被动道具ID
     public WeaponData evolvedWeapon;     // 进化后武器
+
+    [Tooltip("If true, this weapon can only be obtained through evolution, not from the upgrade pool.")]
+    public bool isEvolutionOnly;
 }
 
 [System.Serializable]
@@ -410,13 +415,22 @@ public class AreaWeapon : WeaponBase
 [CreateAssetMenu(fileName = "EnemyData", menuName = "Data/EnemyData")]
 public class EnemyData : ScriptableObject
 {
+    [Header("Basic Info")]
+    public string id;                    // 唯一标识 (e.g. "skeleton", "bat", "skeleton_king")
     public string enemyName;
     public GameObject prefab;
+    public Sprite icon;
+
+    [Header("Stats")]
     public float baseHP;
     public float moveSpeed;
     public float damage;
+
+    [Header("Rewards")]
     public int expValue;
     public int goldValue;
+
+    [Header("Spawn Settings")]
     public float spawnWeight;     // 生成权重
     public float minSpawnTime;    // 最早出现时间(秒)
 }
@@ -479,16 +493,18 @@ public class EnemyBase : MonoBehaviour
 
 ### 3.7 敌人生成器
 
+> **数据加载**：EnemySpawner 不再使用 `[SerializeField]` 引用 EnemyData，而是通过 `EnemyDatabase.Instance` 获取所有敌人和 Boss 数据。Boss 召唤数据也通过 ID 查找，不再依赖 Inspector 赋值。
+
 ```csharp
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] private EnemyData[] _enemyPool;  // 所有可用敌人数据
-    [SerializeField] private float _baseSpawnInterval = 1.5f;
-    [SerializeField] private float _minSpawnDistance = 15f;
-    [SerializeField] private float _maxSpawnDistance = 25f;
-    [SerializeField] private int _maxEnemiesOnScreen = 500;
+    // 生成参数读取 GameBalanceConfig.Instance
+    // 敌人/Boss数据读取 EnemyDatabase.Instance
     
-    private float _spawnTimer;
+    void Start()
+    {
+        _enemyPool = EnemyDatabase.Instance.enemies;
+    }
     
     void Update()
     {
@@ -498,13 +514,15 @@ public class EnemySpawner : MonoBehaviour
             SpawnWave();
             // 间隔随时间递减
             float elapsedMinutes = TimeManager.ElapsedTime / 60f;
-            _spawnTimer = _baseSpawnInterval / (1 + 0.15f * elapsedMinutes);
+            var cfg = GameBalanceConfig.Instance;
+            _spawnTimer = _baseSpawnInterval / (1 + cfg.spawnAccelRate * elapsedMinutes);
         }
     }
     
     void SpawnWave()
     {
-        if (EnemyManager.ActiveCount >= _maxEnemiesOnScreen) return;
+        var cfg = GameBalanceConfig.Instance;
+        if (EnemyManager.ActiveCount >= cfg.maxEnemiesOnScreen) return;
         
         // 确定本次生成的敌人类型
         var availableEnemies = GetAvailableEnemies();
@@ -521,19 +539,12 @@ public class EnemySpawner : MonoBehaviour
         }
     }
     
-    Vector2 GetSpawnPosition()
+    // Boss 生成通过 EnemyDatabase.Instance.bosses 按 ID 查找
+    void SpawnBoss(string bossId)
     {
-        // 在玩家视野外的环形区域随机生成
-        float angle = Random.Range(0, 360f) * Mathf.Deg2Rad;
-        float dist = Random.Range(_minSpawnDistance, _maxSpawnDistance);
-        return (Vector2)PlayerTransform.position + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * dist;
-    }
-    
-    int CalculateSpawnCount()
-    {
-        float minutes = TimeManager.ElapsedTime / 60f;
-        int baseCount = Mathf.FloorToInt(3 + minutes * 0.8f);
-        return Mathf.Min(baseCount, 15);  // 单次最多15个
+        var bossData = EnemyDatabase.Instance.GetById(bossId);
+        if (bossData != null)
+            EnemyManager.SpawnEnemy(bossData, GetSpawnPosition());
     }
 }
 ```
@@ -542,11 +553,12 @@ public class EnemySpawner : MonoBehaviour
 
 **UpgradeUI 使用 CanvasGroup 控制显隐**（而非 SetActive），确保 Start() 始终执行以绑定事件。选择/跳过后通过 `OnUpgradeComplete` 事件驱动 Hide()，而非选择后立即隐藏（避免时序问题）。
 
+> **数据加载**：UpgradeManager 不再使用 `[SerializeField]` 引用 WeaponData/PassiveData 数组，而是通过 `WeaponDatabase.Instance` 和 `PassiveDatabase.Instance` 获取所有可用数据。
+
 ```csharp
 public class UpgradeManager : MonoBehaviour
 {
-    private List<WeaponData> _availableWeapons;    // 可获得的新武器
-    private List<PassiveData> _availablePassives;  // 可获得的被动道具
+    // 数据来源: WeaponDatabase.Instance / PassiveDatabase.Instance
     private PlayerWeaponManager _weaponManager;
     private PlayerStats _playerStats;
     
@@ -573,18 +585,19 @@ public class UpgradeManager : MonoBehaviour
                 pool.Add(new WeaponUpgradeOption(weapon));
         }
         
-        // 添加：新武器选项（最多6把武器）
+        // 添加：新武器选项（最多6把武器）— 从 WeaponDatabase 获取
         if (_weaponManager.EquippedWeapons.Count < 6)
         {
-            foreach (var w in _availableWeapons)
+            foreach (var w in WeaponDatabase.Instance.weapons)
             {
+                if (w.isEvolutionOnly) continue;  // 进化武器不在普通升级池
                 if (!_weaponManager.HasWeapon(w))
                     pool.Add(new NewWeaponOption(w));
             }
         }
         
-        // 添加：被动道具选项
-        foreach (var p in _availablePassives)
+        // 添加：被动道具选项 — 从 PassiveDatabase 获取
+        foreach (var p in PassiveDatabase.Instance.passives)
         {
             if (!_playerStats.HasPassive(p) || _playerStats.GetPassiveLevel(p) < p.maxLevel)
                 pool.Add(new PassiveUpgradeOption(p));
@@ -717,19 +730,27 @@ Assets/
 │       ├── EnemyData.cs               # 敌人数据SO
 │       ├── CharacterData.cs           # 角色数据SO
 │       ├── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
-│       ├── GameBalanceConfig.cs       # 全局系统配置SO (集中管理所有调参数值)
+│       ├── GameBalanceConfig.cs       # 全局系统配置SO (Resources单例)
+│       ├── WeaponDatabase.cs         # 武器数据库SO (Resources单例)
+│       ├── EnemyDatabase.cs          # 敌人数据库SO (Resources单例)
+│       ├── CharacterDatabase.cs      # 角色数据库SO (Resources单例)
+│       ├── PassiveDatabase.cs        # 被动道具数据库SO (Resources单例)
 │       ├── SaveSlotManager.cs         # 存档栏位管理 (静态工具类)
 │       └── UnlockManager.cs          # 角色解锁管理 (Singleton, slot-aware)
 │
-├── Data/                              # 内容定义 (ScriptableObject 资产)
-│   ├── Weapons/                       #   WeaponData (6基础+6进化)
-│   ├── Enemies/                       #   EnemyData (6敌人)
-│   ├── Bosses/                        #   EnemyData (3Boss)
-│   ├── Characters/                     #   CharacterData (5角色)
-│   └── Passives/                      #   PassiveData (8被动道具)
-│
-├── Resources/
-│   └── GameBalanceConfig.asset        # 全局系统配置 (唯一SO, 集中管理所有调参数值)
+├── Resources/                         # Resources.Load 加载入口
+│   ├── GameBalanceConfig.asset        # 全局系统配置 (单例SO)
+│   ├── Data/                          # 数据库SO + 内容SO
+│   │   ├── WeaponDatabase.asset       # 武器数据库 (引用所有WeaponData)
+│   │   ├── EnemyDatabase.asset        # 敌人数据库 (引用所有EnemyData)
+│   │   ├── CharacterDatabase.asset    # 角色数据库 (引用所有CharacterData)
+│   │   ├── PassiveDatabase.asset      # 被动道具数据库 (引用所有PassiveData)
+│   │   ├── Weapons/                   #   WeaponData (6基础+6进化)
+│   │   ├── Enemies/                   #   EnemyData (6敌人)
+│   │   ├── Bosses/                    #   EnemyData (3Boss)
+│   │   ├── Characters/                #   CharacterData (5角色)
+│   │   └── Passives/                  #   PassiveData (8被动道具)
+│   └── VFX/                           # VFX 预制体 (对象池加载)
 │
 ├── Prefabs/
 │   ├── Player/
@@ -820,6 +841,7 @@ Assets/
 
 ```
 CharacterData (角色)
+├── string id                          # 唯一标识 (e.g. "hero", "mage")
 ├── string characterName
 ├── Sprite portrait
 ├── float baseHP, moveSpeed, pickupRange...
@@ -828,24 +850,29 @@ CharacterData (角色)
 └── UnlockCondition unlockCondition
 
 WeaponData (武器)
+├── string id                          # 唯一标识 (e.g. "flying_sword", "knife", "excalibur")
 ├── string weaponName, description
 ├── WeaponType type
 ├── Sprite icon
 ├── GameObject projectilePrefab
 ├── LevelData[] levelData (8级)
 ├── bool canEvolve
-├── PassiveData requiredPassive
-└── WeaponData evolvedWeapon
+├── string requiredPassiveId
+├── WeaponData evolvedWeapon
+└── bool isEvolutionOnly
 
 EnemyData (敌人)
+├── string id                          # 唯一标识 (e.g. "skeleton", "bat", "skeleton_king")
 ├── string enemyName
 ├── GameObject prefab
+├── Sprite icon
 ├── float baseHP, moveSpeed, damage
 ├── int expValue, goldValue
 ├── float spawnWeight
 └── float minSpawnTime
 
 PassiveData (被动道具)
+├── string id                          # 唯一标识 (e.g. "wing", "bracer", "magnet")
 ├── string passiveName, description
 ├── Sprite icon
 ├── int maxLevel
@@ -853,16 +880,86 @@ PassiveData (被动道具)
 └── StatType affectedStat
 ```
 
-### 6.2 数值配置体系
+### 6.2 Database 单例模式
+
+**所有内容数据 SO 通过 Database 单例加载，与 GameBalanceConfig 采用相同的 `Resources.Load` 模式。管理器不再使用 `[SerializeField]` 引用数据数组，消除了场景依赖和引用断裂风险。**
+
+```csharp
+/// <summary>
+/// 武器数据库 — 持有所有 WeaponData 引用，通过 Resources.Load 单例访问。
+/// 存放路径: Resources/Data/WeaponDatabase.asset
+/// </summary>
+[CreateAssetMenu(fileName = "WeaponDatabase", menuName = "Data/WeaponDatabase")]
+public class WeaponDatabase : ScriptableObject
+{
+    private static WeaponDatabase _instance;
+    public static WeaponDatabase Instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = Resources.Load<WeaponDatabase>("Data/WeaponDatabase");
+            return _instance;
+        }
+    }
+
+    public WeaponData[] weapons;
+
+    /// <summary>按 id 查找武器，未找到返回 null</summary>
+    public WeaponData GetById(string id) { ... }
+}
+```
+
+**四个 Database SO 及其存放路径：**
+
+| Database | Resources 路径 | 持有数据 | 使用方 |
+|----------|---------------|---------|--------|
+| `WeaponDatabase` | `Data/WeaponDatabase` | `WeaponData[] weapons` | UpgradeManager, PlayerWeaponManager, CodexUI |
+| `EnemyDatabase` | `Data/EnemyDatabase` | `EnemyData[] enemies`<br>`EnemyData[] bosses` | EnemySpawner, SkeletonKing, DarkLord |
+| `CharacterDatabase` | `Data/CharacterDatabase` | `CharacterData[] characters` | UnlockManager, CharacterSelectUI, CodexUI |
+| `PassiveDatabase` | `Data/PassiveDatabase` | `PassiveData[] passives` | UpgradeManager, PlayerWeaponManager, CodexUI |
+
+**Database 加载时机**：首次访问 `*.Database.Instance` 时通过 `Resources.Load` 延迟加载，后续调用返回缓存实例。与 `GameBalanceConfig.Instance` 完全一致。
+
+**Boss 召唤数据引用方式**：Boss 子类（SkeletonKing、DarkLord）不再使用 `[SerializeField] EnemyData` 引用召唤数据，改为通过 `summonEnemyId` 字符串字段 + `EnemyDatabase.Instance.GetById(summonEnemyId)` 查找。这消除了 Boss Prefab 对特定 EnemyData 资产的 Inspector 依赖。
+
+**UI 数据查询方式**：CodexUI 和 PauseMenuController 不再使用 `Resources.FindObjectsOfTypeAll<T>()` 扫描全部已加载资产，改为直接使用对应 Database 实例，确保数据完整性和确定性。
+
+### 6.3 数值配置体系
 
 **设计原则：内容数据 vs 系统配置分离**
 
-| 位置 | 职责 | 调整场景 |
-|------|------|----------|
-| `Assets/Data/` | 内容定义 (每个游戏实体一个SO) | 添加新武器/敌人/角色时 |
-| `Assets/Resources/GameBalanceConfig.asset` | 全局系统配置 (唯一SO) | 调整难度/掉落/缩放等数值时 |
+| 位置 | 职责 | 加载方式 | 调整场景 |
+|------|------|---------|----------|
+| `Assets/Resources/Data/{Category}/` | 内容定义 (每个游戏实体一个SO) | Database 单例引用 | 添加新武器/敌人/角色时 |
+| `Assets/Resources/Data/{Database}.asset` | 数据库 (引用某类所有SO) | `Resources.Load` 单例 | 增删数据条目时 |
+| `Assets/Resources/GameBalanceConfig.asset` | 全局系统配置 (唯一SO) | `Resources.Load` 单例 | 调整难度/掉落/缩放等数值时 |
 
-**GameBalanceConfig 包含的所有调参数值：**
+**数据流总览：**
+
+```
+Resources.Load
+    │
+    ├── GameBalanceConfig.Instance    ← 系统参数 (难度/掉落/物理/武器行为)
+    │       ↓
+    │   DifficultyManager, EnemySpawner, DropManager, WeaponBase, PlayerStats ...
+    │
+    ├── WeaponDatabase.Instance      ← 武器内容 (6基础+6进化)
+    │       ↓
+    │   UpgradeManager (升级选项), PlayerWeaponManager (进化查询), CodexUI
+    │
+    ├── EnemyDatabase.Instance       ← 敌人/Boss内容 (6敌人+3Boss)
+    │       ↓
+    │   EnemySpawner (生成池/Boss生成), SkeletonKing/DarkLord (召唤数据), CodexUI
+    │
+    ├── CharacterDatabase.Instance   ← 角色内容 (5角色)
+    │       ↓
+    │   UnlockManager (解锁查询), CharacterSelectUI, CodexUI
+    │
+    └── PassiveDatabase.Instance     ← 被动道具内容 (8道具)
+            ↓
+        UpgradeManager (升级选项), PlayerWeaponManager (进化查询), CodexUI
+```
 
 | 分类 | 字段 | 说明 |
 |------|------|------|
@@ -890,6 +987,36 @@ PassiveData (被动道具)
 | 数据持久化 | JSON序列化 | 简单可靠，适合存档系统 |
 | 碰撞检测 | 混合（物理+距离判断） | 投射物用物理，掉落物用距离 |
 | 相机 | 正交相机跟随玩家 | 俯视角2D游戏标准方案 |
+| 内容数据加载 | Database SO + Resources.Load 单例 | 与 GameBalanceConfig 一致；消除 Inspector SerializeField 引用断裂风险；数据与场景解耦 |
+
+### 7.1 数据加载架构迁移说明
+
+**迁移前（旧模式）：**
+- 各 Manager 使用 `[SerializeField]` 引用数据数组（如 `_availableWeapons`, `_enemyPool`, `_allCharacters`）
+- 数据 SO 存放在 `Assets/Data/` 目录下，通过 Inspector 手动拖拽赋值
+- 问题：场景/ prefab 依赖强；引用断裂时 NullReferenceException 静默崩溃（历史发生过 PassiveData 引用全部断裂事故）
+- UI 查询使用 `Resources.FindObjectsOfTypeAll<T>()`（不可靠，依赖资产是否已加载）
+
+**迁移后（新模式）：**
+- 4 个 Database SO（WeaponDatabase / EnemyDatabase / CharacterDatabase / PassiveDatabase）存放在 `Resources/Data/`
+- 每个 Database 持有对应类型的数组引用，通过 `Resources.Load` 单例访问
+- 数据 SO 移至 `Resources/Data/{Category}/` 下，由 Database SO 引用
+- Manager 启动时从 `Database.Instance` 获取数据，无需 Inspector 赋值
+- Boss 召唤数据改用 `summonEnemyId` 字符串 + `EnemyDatabase.Instance.GetById(id)` 查找
+- UI 查询改用 Database 实例，不再使用 `Resources.FindObjectsOfTypeAll`
+
+**受影响的 Manager 和组件：**
+
+| 组件 | 移除的 SerializeField | 改用的 Database 字段 |
+|------|----------------------|-------------------|
+| UpgradeManager | `_availableWeapons`, `_availablePassives` | `WeaponDatabase.Instance.weapons`, `PassiveDatabase.Instance.passives` |
+| PlayerWeaponManager | `_allPassives` | `PassiveDatabase.Instance.passives` |
+| EnemySpawner | `_enemyPool`, `_skeletonKingData`, `_darkLordData`, `_deathBossData` | `EnemyDatabase.Instance.enemies`, `EnemyDatabase.Instance.bosses` |
+| UnlockManager | `_allCharacters` | `CharacterDatabase.Instance.characters` |
+| SkeletonKing | `_summonData` (EnemyData) | `summonEnemyId` (string) + `EnemyDatabase.Instance.GetById()` |
+| DarkLord | `_eliteSummonData` (EnemyData) | `summonEnemyId` (string) + `EnemyDatabase.Instance.GetById()` |
+| CodexUI | `Resources.FindObjectsOfTypeAll` | `WeaponDatabase.Instance`, `CharacterDatabase.Instance` |
+| PauseMenuController | `Resources.FindObjectsOfTypeAll` | `WeaponDatabase.Instance`, `PassiveDatabase.Instance` |
 
 ---
 
@@ -1065,4 +1192,4 @@ public class SaveManager
 
 ---
 
-*文档版本: v1.3 | 最后更新: 2026-05-08*
+*文档版本: v1.4 | 最后更新: 2026-05-12*

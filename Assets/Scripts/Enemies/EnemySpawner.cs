@@ -7,16 +7,7 @@ using UnityEngine;
 /// </summary>
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] private EnemyData[] _enemyPool;
     [SerializeField] private float _baseSpawnInterval = 1.5f;
-    [SerializeField] private float _minSpawnDistance = 15f;
-    [SerializeField] private float _maxSpawnDistance = 25f;
-    [SerializeField] private int _maxEnemiesOnScreen = 500;
-
-    [Header("Boss Spawning")]
-    [SerializeField] private EnemyData _skeletonKingData;
-    [SerializeField] private EnemyData _darkLordData;
-    [SerializeField] private EnemyData _deathBossData;
     [SerializeField] private float _bossSpawnDistance = 18f;
 
     private float _spawnTimer;
@@ -25,6 +16,12 @@ public class EnemySpawner : MonoBehaviour
     private bool _poolsRegistered;
     private readonly List<WeightedRandom.WeightedItem<EnemyData>> _availableBuffer
         = new List<WeightedRandom.WeightedItem<EnemyData>>();
+
+    // Cached from EnemyDatabase
+    private EnemyData[] _enemyPool;
+    private EnemyData _skeletonKingData;
+    private EnemyData _darkLordData;
+    private EnemyData _deathBossData;
 
     // Boss tracking — each boss spawns only once per run
     private bool _skeletonKingSpawned;
@@ -38,6 +35,8 @@ public class EnemySpawner : MonoBehaviour
 
     private void Start()
     {
+        LoadEnemyData();
+
         // Ensure pools are registered (safety net for domain reload issues)
         if (!_poolsRegistered)
             RegisterEnemyPools();
@@ -45,6 +44,26 @@ public class EnemySpawner : MonoBehaviour
         _player = FindObjectOfType<PlayerController>();
         EnemyBase.SetPlayerReference(_player);
         DropBase.SetPlayerReference(_player);
+    }
+
+    /// <summary>Load enemy and boss data from EnemyDatabase singleton.</summary>
+    private void LoadEnemyData()
+    {
+        var db = EnemyDatabase.Instance;
+        if (db != null)
+        {
+            _enemyPool = db.enemies;
+
+            if (db.bosses != null)
+            {
+                _skeletonKingData = db.GetBossById("skeleton_king");
+                _darkLordData = db.GetBossById("dark_lord");
+                _deathBossData = db.GetBossById("death");
+            }
+        }
+
+        if (_enemyPool == null || _enemyPool.Length == 0)
+            Debug.LogError("[EnemySpawner] EnemyDatabase has no enemies assigned!");
     }
 
     private void Update()
@@ -181,7 +200,12 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnWave()
     {
-        if (EnemyBase.ActiveEnemyCount >= _maxEnemiesOnScreen) return;
+        var cfg = GameBalanceConfig.Instance;
+        int maxEnemies = cfg != null ? cfg.maxEnemiesOnScreen : 500;
+        float minDist = cfg != null ? cfg.minSpawnDistance : 15f;
+        float maxDist = cfg != null ? cfg.maxSpawnDistance : 25f;
+
+        if (EnemyBase.ActiveEnemyCount >= maxEnemies) return;
 
         float minutes = GameManager.Instance.ElapsedTime / 60f;
 
@@ -197,7 +221,6 @@ public class EnemySpawner : MonoBehaviour
         if (_availableBuffer.Count == 0) return;
 
         // Batch size scales with time (use config if available)
-        var cfg = GameBalanceConfig.Instance;
         int baseBatch = cfg != null ? cfg.baseBatchSize : 3;
         float batchGrowth = cfg != null ? cfg.batchGrowthRate : 0.8f;
         int maxBatch = cfg != null ? cfg.maxBatchSize : 15;
@@ -206,10 +229,10 @@ public class EnemySpawner : MonoBehaviour
 
         for (int i = 0; i < batchSize; i++)
         {
-            if (EnemyBase.ActiveEnemyCount >= _maxEnemiesOnScreen) break;
+            if (EnemyBase.ActiveEnemyCount >= maxEnemies) break;
 
             var data = WeightedRandom.Select(_availableBuffer);
-            Vector2 pos = GetSpawnPosition(playerPos);
+            Vector2 pos = GetSpawnPosition(playerPos, minDist, maxDist);
 
             var enemyObj = PoolManager.Instance.Get<EnemyBase>(data.enemyName);
             if (enemyObj != null)
@@ -220,15 +243,20 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    private Vector2 GetSpawnPosition(Vector2 center)
+    private Vector2 GetSpawnPosition(Vector2 center, float minDist = 15f, float maxDist = 25f)
     {
+        var cfg = GameBalanceConfig.Instance;
+        float min = minDist > 0 ? minDist : (cfg != null ? cfg.minSpawnDistance : 15f);
+        float max = maxDist > 0 ? maxDist : (cfg != null ? cfg.maxSpawnDistance : 25f);
         float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        float dist = Random.Range(_minSpawnDistance, _maxSpawnDistance);
+        float dist = Random.Range(min, max);
         return center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * dist;
     }
 
     private void SpawnEliteWave()
     {
+        var cfg = GameBalanceConfig.Instance;
+        int maxEnemies = cfg != null ? cfg.maxEnemiesOnScreen : 500;
         float minutes = GameManager.Instance.ElapsedTime / 60f;
 
         _availableBuffer.Clear();
@@ -244,7 +272,6 @@ public class EnemySpawner : MonoBehaviour
         if (_availableBuffer.Count == 0) return;
 
         // Elite count from config, scaling with wave number
-        var cfg = GameBalanceConfig.Instance;
         int minCount = cfg != null ? cfg.eliteWaveMinCount : 2;
         int maxCount = cfg != null ? cfg.eliteWaveMaxCount : 4;
         int bonusPerWave = cfg != null ? cfg.eliteWaveBonusPerWave : 3;
@@ -255,7 +282,7 @@ public class EnemySpawner : MonoBehaviour
 
         for (int i = 0; i < eliteCount; i++)
         {
-            if (EnemyBase.ActiveEnemyCount >= _maxEnemiesOnScreen) break;
+            if (EnemyBase.ActiveEnemyCount >= maxEnemies) break;
 
             var data = WeightedRandom.Select(_availableBuffer);
             Vector2 pos = GetSpawnPosition(playerPos);

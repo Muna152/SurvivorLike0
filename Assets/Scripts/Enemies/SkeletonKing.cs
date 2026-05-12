@@ -10,7 +10,7 @@ public class SkeletonKing : BossEnemy
     [Header("Skeleton King Config")]
     [SerializeField] private GameObject _projectilePrefab;
     [SerializeField] private GameObject _shockwavePrefab;
-    [SerializeField] private EnemyData _summonData; // Skeleton enemy data
+    [SerializeField] private string summonEnemyId = "skeleton";
     [SerializeField] private int _summonCount = 4;
     [SerializeField] private float _shockwaveDamage = 3f;
     [SerializeField] private float _shockwaveMaxRadius = 5f;
@@ -71,7 +71,8 @@ public class SkeletonKing : BossEnemy
     /// <summary>Summon skeleton minions around the boss.</summary>
     private void SummonSkeletons()
     {
-        if (_summonData == null || _summonData.prefab == null) return;
+        var summonData = EnemyDatabase.Instance != null ? EnemyDatabase.Instance.GetById(summonEnemyId) : null;
+        if (summonData == null || summonData.prefab == null) return;
 
         int count = _currentPhase >= 1 ? _summonCount + 2 : _summonCount;
         var player = GetPlayerController();
@@ -85,11 +86,11 @@ public class SkeletonKing : BossEnemy
             // Check enemy cap
             if (EnemyBase.ActiveEnemyCount >= 490) break;
 
-            var enemyObj = PoolManager.Instance.Get<EnemyBase>(_summonData.enemyName);
+            var enemyObj = PoolManager.Instance.Get<EnemyBase>(summonData.enemyName);
             if (enemyObj != null)
             {
                 enemyObj.transform.position = spawnPos;
-                enemyObj.Initialize(_summonData);
+                enemyObj.Initialize(summonData);
             }
         }
     }

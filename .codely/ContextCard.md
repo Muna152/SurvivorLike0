@@ -8,17 +8,18 @@
 ## Architecture Patterns
 - Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager, UnlockManager, AudioManager, VFXManager
 - Static util: SaveSlotManager, GoldManager, StatsTracker (PlayerPrefs, no MonoBehaviour)
+- Database SO: WeaponDatabase/EnemyDatabase/CharacterDatabase/PassiveDatabase — Resources.Load singleton w/ GetById(id), replace scene [SerializeField] arrays
 - ObjectPool<T> w/ prewarm + HashSet tracking
 - GameEvents static bus (OnEnemyDied/Hit/Damaged, OnPlayerDamaged/Healed/LevelUp/Died, OnBossSpawned/Died, OnDropCollected, OnWeaponEvolved, OnGoldChanged, OnGamePaused/Resumed, OnDifficultyChanged, OnPermanentUpgradePurchased, OnCharacterUnlocked)
-- WeaponBase abstract → Projectile|Orbital|Area|Auxiliary; WeaponData.WeaponType factory
+- WeaponBase abstract → Projectile|Orbital|Area|Auxiliary; WeaponData.WeaponType + AreaSubType factory
 - BossEnemy abstract → ExecuteAttack, multi-phase, destroy-on-death (not pooled)
 - DropBase: vacuum 2.5s, collect on contact; DropManager: deferred queue 6/frame, EXP/Gold merge
 
 ## Key Systems (all complete)
 - Player: WASD+Rigidbody2D, 6 weapon slots, magnet buff, ExtraLives, position clamped
 - Weapons: 4 types + HolyLight/HolyWater/OrbitalObject, evolution w/ passive, VFXType enum
-- Enemies: chase AI, spawner time-scaling, elite 5min, mage; Bat speed=2.2
-- Bosses: 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossHealthBar, timed spawn (10/20/30 min)
+- Enemies: chase AI, spawner time-scaling, elite 5min, mage; EnemyData.id/icon added
+- Bosses: 3 bosses (SkeletonKing/DarkLord/DeathBoss), BossHealthBar, timed spawn (10/20/30 min); EnemyDatabase.bosses[]
 - Upgrade: level-up→3 options, priority: evolution>upgrade>new>passive
 - Drops: EXP/Gold/Health/Chest/Magnet, tiered EXP gems (8min/18min thresholds), DropTableData SO
 - Audio: BGM crossfade A/B, SFX 12-source round-robin, per-clip throttle 0.05s, GameEvents-driven
@@ -34,14 +35,16 @@
 - Event-driven UI | Cached refs | Reusable lists | Min GC
 
 ## Data Architecture
-- **Assets/Data/** = Content definitions (one SO per entity): Weapons/, Enemies/, Bosses/, Characters/, Passives/
+- **Assets/Resources/Data/** = Content SOs + 4 Database SOs: Weapons/, Enemies/, Bosses/, Characters/, Passives/
+- Database SOs: WeaponDatabase, EnemyDatabase (enemies+bosses), CharacterDatabase, PassiveDatabase — each Resources.Load singleton w/ GetById()
+- All SOs have `id` field; lookup via Database.GetById(id) replaces scene [SerializeField] arrays
 - **Assets/Resources/GameBalanceConfig.asset** = ALL system tuning params (single SO): difficulty scaling, elite/boss multipliers, drop rates, spawner params, weapon behavior, drop physics
-- DropTableData merged into GameBalanceConfig; DifficultyManager reads from GameBalanceConfig (no scene [SerializeField] for scaling rates)
-- EnemySpawner reads elite/spawner params from GameBalanceConfig
+- DifficultyManager/EnemySpawner/UpgradeManager read from GameBalanceConfig or Database SOs (no scene [SerializeField] for content arrays)
 
 ## State
-- Phase 1-3: ✅ | Phase 4: 24/26
-- Game flow: MainMenuUI → Save slot → Shop → CharacterSelect → StartGame → Playing → GameOver → Gold/Stats persisted → Retry/Menu- Scene reload: DontDestroyOnLoad singletons survive; GameManager resets via ReturnToMenu()
+- Phase 1-3: ✅ | Phase 4: 24/26 | Data architecture refactor: Assets/Data/ → Resources/Data/ + Database SOs
+- Game flow: MainMenuUI → Save slot → Shop → CharacterSelect → StartGame → Playing → GameOver → Gold/Stats persisted → Retry/Menu
+- Scene reload: DontDestroyOnLoad singletons survive; GameManager resets via ReturnToMenu()
 
 ## Balance Pass (2026-05-11)
 - XP公式: 5+2×Lv² (原5+3×Lv²) → 30min可达Lv28-32

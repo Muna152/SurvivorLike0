@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e495c675233624540830e42afaec208f, type: 3}
+  m_Name: Zombie
+  m_EditorClassIdentifier: 
+  id: zombie
+  enemyName: Zombie
+  prefab: {fileID: 2549690840312331281, guid: f8bf36861fac18c47892b5ee73a79005, type: 3}
+  icon: {fileID: 0}
+  baseHP: 30
+  moveSpeed: 1
+  damage: 6
+  expValue: 4
+  goldValue: 2
+  spawnWeight: 1.5
+  minSpawnTime: 180
