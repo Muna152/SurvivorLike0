@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D _rb;
     private PlayerStats _stats;
     private PlayerWeaponManager _weaponManager;
+    private SpriteRenderer _spriteRenderer;
     private Vector2 _lastDirection = Vector2.down;
 
     public Vector2 LastDirection => _lastDirection;
@@ -19,6 +20,7 @@ public class PlayerController : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
         _stats = GetComponent<PlayerStats>();
         _weaponManager = GetComponent<PlayerWeaponManager>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     private void FixedUpdate()
@@ -42,6 +44,11 @@ public class PlayerController : MonoBehaviour
         if (dir.sqrMagnitude > 0.01f)
         {
             _lastDirection = dir;
+
+            if (_spriteRenderer != null && dir.x != 0f)
+            {
+                _spriteRenderer.flipX = dir.x < 0f;
+            }
         }
 
         if (_weaponManager != null)
