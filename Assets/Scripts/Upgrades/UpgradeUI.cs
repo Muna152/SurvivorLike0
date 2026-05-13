@@ -14,6 +14,7 @@ public class UpgradeUI : MonoBehaviour
     [SerializeField] private Button _skipButton;
 
     private CanvasGroup _canvasGroup;
+    private UIFadeAnimator _fadeAnimator;
     private UpgradeManager _manager;
     private List<UpgradeOption> _options;
     private readonly List<GameObject> _cardInstances = new List<GameObject>();
@@ -23,6 +24,10 @@ public class UpgradeUI : MonoBehaviour
         _canvasGroup = GetComponent<CanvasGroup>();
         if (_canvasGroup == null)
             _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+
+        _fadeAnimator = GetComponent<UIFadeAnimator>();
+        if (_fadeAnimator == null)
+            _fadeAnimator = gameObject.AddComponent<UIFadeAnimator>();
     }
 
     private void Start()
@@ -57,9 +62,6 @@ public class UpgradeUI : MonoBehaviour
     private void Show(List<UpgradeOption> options)
     {
         _options = options;
-        _canvasGroup.alpha = 1f;
-        _canvasGroup.blocksRaycasts = true;
-        _canvasGroup.interactable = true;
 
         if (_titleText != null) _titleText.text = "LEVEL UP!";
 
@@ -77,13 +79,41 @@ public class UpgradeUI : MonoBehaviour
                 card.Setup(options[i], () => OnCardSelected(idx));
             }
         }
+
+        // Fade in
+        if (_fadeAnimator != null)
+            _fadeAnimator.FadeIn();
+        else
+        {
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.interactable = true;
+        }
     }
 
     private void Hide()
     {
-        _canvasGroup.alpha = 0f;
-        _canvasGroup.blocksRaycasts = false;
-        _canvasGroup.interactable = false;
+        // Fade out, then clear cards when invisible
+        if (_fadeAnimator != null)
+        {
+            _canvasGroup.blocksRaycasts = false;
+            _canvasGroup.interactable = false;
+            _fadeAnimator.FadeOut();
+            // Clear cards after a short delay (fade duration)
+            StartCoroutine(ClearCardsAfterFade());
+        }
+        else
+        {
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
+            _canvasGroup.interactable = false;
+            ClearCards();
+        }
+    }
+
+    private System.Collections.IEnumerator ClearCardsAfterFade()
+    {
+        yield return new UnityEngine.WaitForSeconds(0.3f);
         ClearCards();
     }
 

@@ -6,7 +6,7 @@
 - No URP shaders | No Find() in Update | No coroutines for VFX | No per-frame UI polling
 
 ## Architecture Patterns
-- Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager, UnlockManager, AudioManager, VFXManager
+- Singleton<T>: GameManager, PoolManager, DropManager, DifficultyManager, UnlockManager, AudioManager, VFXManager, TutorialManager
 - Static util: SaveSlotManager, GoldManager, StatsTracker (PlayerPrefs, no MonoBehaviour)
 - Database SO: WeaponDatabase/EnemyDatabase/CharacterDatabase/PassiveDatabase — Resources.Load singleton w/ GetById(id), replace scene [SerializeField] arrays
 - ObjectPool<T> w/ prewarm + HashSet tracking
@@ -26,8 +26,9 @@
 - VFX: VFXBase (scale+alpha), DamageNumber (TextMesh), 12 pooled prefabs in Resources/VFX/, GameEvents-driven
 - Map: ±100 boundary, procedural obstacles (scale 0.04, sortOrder=-2)
 - Difficulty: time-driven HP/Speed/Damage/SpawnInterval multipliers
-- UI: HUD, UpgradeUI, BossHealthBar, ResultScreen (9 stats+gold), PauseMenu (4-btn), CodexUI, MainMenuUI, UpgradeShopUI, CharacterSelectUI, ChestOpenUI (VS-like pause+animation)
+- UI: HUD, UpgradeUI, BossHealthBar, ResultScreen (9 stats+gold), PauseMenu (4-btn), CodexUI, MainMenuUI, UpgradeShopUI, CharacterSelectUI, ChestOpenUI (VS-like pause+animation), TutorialUI (5-step overlay, PlayerPrefs persistence)
 - Meta: 5 characters, 3-slot save, gold+5 permanent upgrades, stats tracking, unlock system
+- Polish: SceneTransition (DontDestroyOnLoad fade-in/out, smoothstep easing), UIFadeAnimator (CanvasGroup fade helper, unscaledDeltaTime), TutorialManager (5 steps: Move→AutoWeapon→CollectEXP→LevelUp→BossWarning, event-driven auto-advance, PlayerPrefs "TutorialCompleted")
 
 ## Perf Budget
 - 500 enemies max | 6 weapons | Weapon max level 8
@@ -62,7 +63,7 @@
 ## Remaining Phase 4 Tasks
 - T4.4.6 数值平衡 playtest 迭代
 - T4.5 性能优化 ✅ (2026-05-13: frame-stamped Reconcile, sqrMagnitude drops, elite reset fix, 500@153FPS verified)
-- T4.6 收尾 (remaining: UI adaptation, animation transitions, tutorial system)
+- T4.6 收尾 ✅ (2026-05-13: TutorialManager+TutorialUI 5-step onboarding, SceneTransition fade-in/out, UIFadeAnimator on UpgradeUI/PauseMenu/ResultScreen)
 
 ## Pitfalls (likely to bite again)
 - GameEvents.ClearAll() removed — scene reload handles cleanup
@@ -83,3 +84,8 @@
 - WeaponData.sfxClip/VFXType played from WeaponBase — subclasses inherit automatically
 - EnemyBase.ResetForReuse() resets elite state (_isElite, _sr.color, _eliteDamageMultiplier)
 - SpatialGrid.Reconcile() frame-stamped: skips O(n) sweep if UpdateAll() already ran this frame
+- TutorialManager.StartTutorial() called from GameManager.StartGame() — only if PlayerPrefs "TutorialCompleted" is 0
+- TutorialUI is non-blocking (CanvasGroup.blocksRaycasts=false) so player can still interact during tutorial
+- SceneTransition uses DontDestroyOnLoad with sortingOrder=9999 Canvas; wraps SceneManager.LoadScene
+- UIFadeAnimator default duration 0.25s; uses unscaledDeltaTime (works when timeScale=0)
+- UpgradeUI.Hide() clears cards after 0.3s delay to allow fade-out to complete

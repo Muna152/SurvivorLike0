@@ -12,6 +12,7 @@ using UnityEngine.SceneManagement;
 public class PauseMenuController : MonoBehaviour
 {
     private CanvasGroup _canvasGroup;
+    private UIFadeAnimator _fadeAnimator;
     private PlayerWeaponManager _weaponManager;
     private PlayerStats _playerStats;
 
@@ -28,7 +29,7 @@ public class PauseMenuController : MonoBehaviour
     {
         BuildUI();
         UINavUtil.DisableAll(transform);
-        Hide();
+        HideImmediate();
     }
 
     private void Start()
@@ -84,7 +85,10 @@ public class PauseMenuController : MonoBehaviour
             GameManager.Instance.ReturnToMenu();
         }
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        if (SceneTransition.HasInstance)
+            SceneTransition.Instance.TransitionToScene(SceneManager.GetActiveScene().name);
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void GiveUp()
@@ -126,7 +130,9 @@ public class PauseMenuController : MonoBehaviour
 
     private void Show()
     {
-        if (_canvasGroup != null)
+        if (_fadeAnimator != null)
+            _fadeAnimator.FadeIn();
+        else if (_canvasGroup != null)
         {
             _canvasGroup.alpha = 1f;
             _canvasGroup.blocksRaycasts = true;
@@ -136,12 +142,26 @@ public class PauseMenuController : MonoBehaviour
 
     private void Hide()
     {
+        if (_fadeAnimator != null)
+            _fadeAnimator.FadeOut();
+        else if (_canvasGroup != null)
+        {
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
+            _canvasGroup.interactable = false;
+        }
+    }
+
+    private void HideImmediate()
+    {
         if (_canvasGroup != null)
         {
             _canvasGroup.alpha = 0f;
             _canvasGroup.blocksRaycasts = false;
             _canvasGroup.interactable = false;
         }
+        if (_fadeAnimator != null)
+            _fadeAnimator.SkipFade(0f);
     }
 
     // ── UI Construction ─────────────────────────────────────────
@@ -158,6 +178,9 @@ public class PauseMenuController : MonoBehaviour
         rootRect.sizeDelta = Vector2.zero;
 
         _canvasGroup = rootObj.AddComponent<CanvasGroup>();
+
+        // Add fade animator to the root panel for smooth show/hide
+        _fadeAnimator = rootObj.AddComponent<UIFadeAnimator>();
 
         // Dark background
         var bgObj = new GameObject("Background");

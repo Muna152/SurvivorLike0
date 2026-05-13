@@ -21,6 +21,7 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private Button _menuButton;
 
     private CanvasGroup _canvasGroup;
+    private UIFadeAnimator _fadeAnimator;
     private bool _persisted;
 
     private void Awake()
@@ -28,6 +29,10 @@ public class ResultScreen : MonoBehaviour
         _canvasGroup = GetComponent<CanvasGroup>();
         if (_canvasGroup == null)
             _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+
+        _fadeAnimator = GetComponent<UIFadeAnimator>();
+        if (_fadeAnimator == null)
+            _fadeAnimator = gameObject.AddComponent<UIFadeAnimator>();
     }
 
     private void Start()
@@ -62,9 +67,14 @@ public class ResultScreen : MonoBehaviour
 
     public void Show(bool victory)
     {
-        _canvasGroup.alpha = 1f;
-        _canvasGroup.blocksRaycasts = true;
-        _canvasGroup.interactable = true;
+        if (_fadeAnimator != null)
+            _fadeAnimator.FadeIn();
+        else
+        {
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.interactable = true;
+        }
         Time.timeScale = 0f;
 
         if (_titleText != null)
@@ -131,9 +141,16 @@ public class ResultScreen : MonoBehaviour
 
     private void Hide()
     {
-        _canvasGroup.alpha = 0f;
-        _canvasGroup.blocksRaycasts = false;
-        _canvasGroup.interactable = false;
+        if (_fadeAnimator != null)
+        {
+            _fadeAnimator.FadeOut();
+        }
+        else
+        {
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
+            _canvasGroup.interactable = false;
+        }
     }
 
     private void Retry()
@@ -154,7 +171,10 @@ public class ResultScreen : MonoBehaviour
             GameManager.Instance.ReturnToMenu();
         }
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        if (SceneTransition.HasInstance)
+            SceneTransition.Instance.TransitionToScene(SceneManager.GetActiveScene().name);
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void ReturnToMenu()
@@ -172,6 +192,9 @@ public class ResultScreen : MonoBehaviour
             GameManager.Instance.ReturnToMenu();
         }
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        if (SceneTransition.HasInstance)
+            SceneTransition.Instance.TransitionToScene(SceneManager.GetActiveScene().name);
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

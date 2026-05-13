@@ -52,6 +52,10 @@ public class HUDController : MonoBehaviour
         if (GetComponent<ChestOpenUI>() == null)
             gameObject.AddComponent<ChestOpenUI>();
 
+        // Ensure TutorialUI exists on the Canvas for tutorial overlay
+        if (GetComponent<TutorialUI>() == null)
+            gameObject.AddComponent<TutorialUI>();
+
         _stats = FindObjectOfType<PlayerStats>();
         _weaponManager = FindObjectOfType<PlayerWeaponManager>();
 

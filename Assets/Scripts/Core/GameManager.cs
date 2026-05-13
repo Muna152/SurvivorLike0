@@ -122,6 +122,10 @@ public class GameManager : Singleton<GameManager>
 
         if (AudioManager.HasInstance)
             AudioManager.Instance.PlayBattleBGM();
+
+        // Start tutorial on first game session
+        if (TutorialManager.HasInstance && !TutorialManager.Instance.IsTutorialCompleted)
+            TutorialManager.Instance.StartTutorial();
     }
 
     /// <summary>Pause the game.</summary>
