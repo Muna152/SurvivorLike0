@@ -31,7 +31,9 @@
 
 ## Perf Budget
 - 500 enemies max | 6 weapons | Weapon max level 8
-- SpatialGrid O(1) queries (cell=8f, Reconcile() on all query paths)
+- SpatialGrid O(1) queries (cell=8f, frame-stamped Reconcile skips if UpdateAll ran this frame)
+- 500 enemies@153FPS verified (2026-05-13); QueryNearest 0.024ms, QueryInRadius 0.008ms
+- DropBase uses sqrMagnitude (not Vector2.Distance/sqrt)
 - Event-driven UI | Cached refs | Reusable lists | Min GC
 
 ## Data Architecture
@@ -59,7 +61,7 @@
 
 ## Remaining Phase 4 Tasks
 - T4.4.6 数值平衡 playtest 迭代
-- T4.5 性能优化 (pool audit, LOD, layers, batching, GC, profiler, 500 enemies@60FPS)
+- T4.5 性能优化 ✅ (2026-05-13: frame-stamped Reconcile, sqrMagnitude drops, elite reset fix, 500@153FPS verified)
 - T4.6 收尾 (remaining: UI adaptation, animation transitions, tutorial system)
 
 ## Pitfalls (likely to bite again)
@@ -79,3 +81,5 @@
 - DamageNumber uses TextMesh (MeshRenderer), no SpriteRenderer
 - AudioManager SFX throttle 0.05s; BGM crossfade uses unscaledDeltaTime
 - WeaponData.sfxClip/VFXType played from WeaponBase — subclasses inherit automatically
+- EnemyBase.ResetForReuse() resets elite state (_isElite, _sr.color, _eliteDamageMultiplier)
+- SpatialGrid.Reconcile() frame-stamped: skips O(n) sweep if UpdateAll() already ran this frame

@@ -140,6 +140,12 @@ public class EnemyBase : MonoBehaviour
         _flashing = false;
         _flashTimer = 0f;
 
+        // Reset elite state — pooled enemies must not carry over elite visuals/stats
+        if (_isElite && _sr != null)
+            _sr.color = Color.white;
+        _isElite = false;
+        _eliteDamageMultiplier = 1f;
+
         _isFarLOD = false;
         _lodAccumulatedDelta = 0f;
         _lastLODCheckFrame = -1;

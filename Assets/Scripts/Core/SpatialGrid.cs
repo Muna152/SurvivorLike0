@@ -20,6 +20,10 @@ public static class SpatialGrid
     // Reusable result list for the no-arg QueryInRadius overload
     private static readonly List<EnemyBase> _queryResult = new List<EnemyBase>(32);
 
+    // Frame-stamp to avoid redundant Reconcile() calls within the same frame.
+    // Set by UpdateAll(); checked by Reconcile() to skip work if already fresh.
+    private static int _lastReconcileFrame = -1;
+
     // ── Diagnostics ────────────────────────────────────────────────
 
     public static int CellCount => _cells.Count;
@@ -85,7 +89,8 @@ public static class SpatialGrid
     /// <summary>
     /// Centralised grid refresh. Call once per physics frame from a single driver.
     /// Updates all registered enemies every frame (no stagger) to guarantee
-    /// spatial consistency.
+    /// spatial consistency. Also stamps the frame so that subsequent Reconcile()
+    /// calls within the same frame can skip their O(n) work.
     /// </summary>
     public static void UpdateAll()
     {
@@ -100,6 +105,8 @@ public static class SpatialGrid
             AddToCell(newKey, e);
             e.LastCellKey = newKey;
         }
+
+        _lastReconcileFrame = Time.frameCount;
     }
 
     // ── Reconcile (called before queries) ──────────────────────────
@@ -108,10 +115,16 @@ public static class SpatialGrid
     /// Force-updates all registered enemies' cells to match their current positions.
     /// Called before every query to guarantee correctness, even if UpdateAll
     /// hasn't run yet (e.g., on the same frame as registration).
-    /// Cost: one hash computation per registered enemy — negligible.
+    /// 
+    /// Performance: if UpdateAll() already ran this frame, Reconcile() is a
+    /// no-op (O(1) guard) because the grid is already fresh. Otherwise it
+    /// falls through to the full O(n) sweep.
     /// </summary>
     public static void Reconcile()
     {
+        // Skip if UpdateAll() already refreshed the grid this frame
+        if (_lastReconcileFrame == Time.frameCount) return;
+
         foreach (var e in _registered)
         {
             if (e == null) continue;
@@ -123,6 +136,8 @@ public static class SpatialGrid
             AddToCell(correctKey, e);
             e.LastCellKey = correctKey;
         }
+
+        _lastReconcileFrame = Time.frameCount;
     }
 
     // ── Queries ───────────────────────────────────────────────────

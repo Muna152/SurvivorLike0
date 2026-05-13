@@ -79,7 +79,8 @@ public class DropBase : MonoBehaviour
 
         float pickupRange = _cachedPlayerStats.PickupRange;
         Vector2 playerPos = (Vector2)_cachedPlayer.transform.position;
-        float dist = Vector2.Distance(transform.position, playerPos);
+        Vector2 offsetToPlayer = playerPos - (Vector2)transform.position;
+        float distSq = offsetToPlayer.sqrMagnitude;
 
         // Vacuum: after delay, attract from vacuumRange instead of pickupRange
         float attractRange = pickupRange;
@@ -93,7 +94,10 @@ public class DropBase : MonoBehaviour
             attractRange = Mathf.Max(pickupRange, _vacuumRange);
         }
 
-        if (dist <= attractRange)
+        float attractRangeSq = attractRange * attractRange;
+        float collectRadiusSq = _collectRadius * _collectRadius;
+
+        if (distSq <= attractRangeSq)
         {
             // Ease-in acceleration: starts slow, ramps up to full speed
             _attractT = Mathf.Min(1f, _attractT + Time.deltaTime * 2.5f);
@@ -101,10 +105,13 @@ public class DropBase : MonoBehaviour
             float baseSpeed = _vacuuming ? _attractSpeed * 2f : _attractSpeed;
             float speed = baseSpeed * eased;
 
-            Vector2 dir = (playerPos - (Vector2)transform.position).normalized;
+            float dist = Mathf.Sqrt(distSq);
+            Vector2 dir = dist > 0.001f ? offsetToPlayer / dist : Vector2.up;
             transform.position += (Vector3)(dir * speed * Time.deltaTime);
 
-            if (dist <= _collectRadius)
+            // Re-check distance after move
+            float newDistSq = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).sqrMagnitude;
+            if (newDistSq <= collectRadiusSq)
             {
                 Collect();
                 return;
