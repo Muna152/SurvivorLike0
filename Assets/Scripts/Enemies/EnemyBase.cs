@@ -33,6 +33,10 @@ public class EnemyBase : MonoBehaviour
     protected bool _isElite;
     protected float _eliteDamageMultiplier;
 
+    // Slow state
+    protected float _slowMultiplier = 1f;
+    protected float _slowTimer;
+
     // LOD state — far enemies update at lower frequency
     private int _lodFrameOffset;       // Random offset so far enemies don't all update on the same frame
     private bool _isFarLOD;            // Cached: is this enemy in the far LOD tier?
@@ -127,6 +131,19 @@ public class EnemyBase : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Apply a slow effect. Only overrides if the new slow is stronger or lasts longer.
+    /// factor: speed multiplier (e.g. 0.7 = 30% slow). duration: seconds.
+    /// </summary>
+    public void ApplySlow(float factor, float duration)
+    {
+        if (factor < _slowMultiplier || duration > _slowTimer)
+        {
+            _slowMultiplier = factor;
+            _slowTimer = duration;
+        }
+    }
+
     public virtual void ResetForReuse()
     {
         if (_data != null)
@@ -145,6 +162,10 @@ public class EnemyBase : MonoBehaviour
             _sr.color = Color.white;
         _isElite = false;
         _eliteDamageMultiplier = 1f;
+
+        // Reset slow state
+        _slowMultiplier = 1f;
+        _slowTimer = 0f;
 
         _isFarLOD = false;
         _lodAccumulatedDelta = 0f;
@@ -175,20 +196,33 @@ public class EnemyBase : MonoBehaviour
 
             // Execute movement with accumulated + current delta
             float dt = _lodAccumulatedDelta + Time.fixedDeltaTime;
+            float effectiveSpeedFar = _moveSpeed * _slowMultiplier;
             _lodAccumulatedDelta = 0f;
             Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
-            _rb.MovePosition(_rb.position + dir * _moveSpeed * dt);
+            _rb.MovePosition(_rb.position + dir * effectiveSpeedFar * dt);
         }
         else
         {
             // Near LOD: full update every frame
+            float effectiveSpeed = _moveSpeed * _slowMultiplier;
             Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
-            _rb.MovePosition(_rb.position + dir * _moveSpeed * Time.fixedDeltaTime);
+            _rb.MovePosition(_rb.position + dir * effectiveSpeed * Time.fixedDeltaTime);
         }
     }
 
     protected virtual void Update()
     {
+        // Slow timer countdown
+        if (_slowTimer > 0f)
+        {
+            _slowTimer -= Time.deltaTime;
+            if (_slowTimer <= 0f)
+            {
+                _slowMultiplier = 1f;
+                _slowTimer = 0f;
+            }
+        }
+
         // Far LOD enemies skip visual-only updates (hit flash)
         if (_isFarLOD) return;
 

@@ -195,11 +195,8 @@ public abstract class AreaWeapon : WeaponBase
 
     /// <summary>
     /// Returns the damage radius: data-driven _areaRadius + buffer.
-    /// The visual is scaled to match _areaRadius (see ScaleAreaVisual), so the
-    /// buffer guarantees damage ≥ visual.  Never reads from SpriteRenderer.bounds
-    /// to avoid coupling gameplay logic to visual state.
     /// </summary>
-    private float GetDamageRadius() => _areaRadius + DamageRadiusBuffer;
+    protected float GetDamageRadius() => _areaRadius + DamageRadiusBuffer;
 
     /// <summary>
     /// Scales the area GameObject so the sprite's visible circle radius matches _areaRadius.

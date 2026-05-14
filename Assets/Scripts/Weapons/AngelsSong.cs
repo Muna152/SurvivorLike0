@@ -2,21 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Holy Light weapon: Creates a holy aura around the player.
-/// Slows enemies, deals minimal damage, and provides tiny healing.
-/// Primarily a utility weapon — not a healing machine.
+/// Angel's Song weapon: Evolved form of Holy Light.
+/// Stronger slow, low damage, steady ~1 HP/sec healing.
+/// A defensive utility weapon that trades raw power for survivability.
 /// </summary>
-public class HolyLight : AreaWeapon
+public class AngelsSong : AreaWeapon
 {
-    [Header("Holy Light Settings")]
-    [Tooltip("Speed multiplier applied to slowed enemies (0.7 = 30% slow)")]
-    [SerializeField] protected float slowFactor = 0.7f;
+    [Header("Angel's Song Settings")]
+    [Tooltip("Speed multiplier applied to slowed enemies (0.6 = 40% slow)")]
+    [SerializeField] protected float slowFactor = 0.6f;
     [Tooltip("Duration of slow effect on each tick (seconds)")]
-    [SerializeField] protected float slowDuration = 0.6f;
-    [Tooltip("Base healing per tick at level 1")]
-    [SerializeField] protected float baseHealPerTick = 0.1f;
-    [Tooltip("Additional healing per level")]
-    [SerializeField] protected float healPerLevel = 0.025f;
+    [SerializeField] protected float slowDuration = 0.8f;
+    [Tooltip("Fixed healing per tick (with 0.5s interval = 1 HP/sec)")]
+    [SerializeField] protected float healPerTick = 0.5f;
 
     // Reusable list for slow queries
     private static readonly List<EnemyBase> _slowResults = new List<EnemyBase>(32);
@@ -26,7 +24,6 @@ public class HolyLight : AreaWeapon
     private void Awake()
     {
         _followsPlayer = true;
-        // Do NOT set _isHealing = true — we handle healing ourselves with flat values
     }
 
     protected override void ApplyAreaEffect()
@@ -44,7 +41,7 @@ public class HolyLight : AreaWeapon
             // Apply slow
             enemy.ApplySlow(slowFactor, slowDuration);
 
-            // Apply minimal damage
+            // Apply low damage
             var ld = CurrentLevelData;
             if (ld != null)
             {
@@ -52,11 +49,10 @@ public class HolyLight : AreaWeapon
             }
         }
 
-        // 2. Heal player with flat tiny amount (NOT damage-based)
+        // 2. Heal player with fixed amount (~1 HP/sec at default tick interval)
         if (_playerStats != null)
         {
-            float healAmount = baseHealPerTick + healPerLevel * (CurrentLevel - 1);
-            _playerStats.Heal(healAmount);
+            _playerStats.Heal(healPerTick);
         }
     }
 }

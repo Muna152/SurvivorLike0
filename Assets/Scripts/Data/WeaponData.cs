@@ -59,6 +59,7 @@ public class WeaponData : ScriptableObject
     {
         None,
         HealingAura,
+        EvolvedHealingAura,
         DamagePuddle
     }
 

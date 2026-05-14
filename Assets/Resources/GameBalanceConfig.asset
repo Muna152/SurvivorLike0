@@ -49,7 +49,7 @@ MonoBehaviour:
   extraLifeReviveHpPercent: 0.5
   regenTickInterval: 1
   expGemChance: 0.75
-  healthDropChance: 0.02
+  healthDropChance: 0.01
   chestDropChance: 0.1
   chestBossDropChance: 0.5
   magnetDropChance: 0.01
@@ -58,7 +58,7 @@ MonoBehaviour:
   expGemLargeValue: 20
   expGemMediumThreshold: 8
   expGemLargeThreshold: 18
-  healthRestoreAmount: 30
+  healthRestoreAmount: 20
   magnetDropDuration: 10
   magnetDropPickupBoost: 5
   maxDropsPerFrame: 6

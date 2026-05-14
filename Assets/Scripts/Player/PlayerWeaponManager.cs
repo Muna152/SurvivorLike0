@@ -229,6 +229,9 @@ public class PlayerWeaponManager : MonoBehaviour
                     case WeaponData.AreaSubType.HealingAura:
                         weapon = child.AddComponent<HolyLight>();
                         break;
+                    case WeaponData.AreaSubType.EvolvedHealingAura:
+                        weapon = child.AddComponent<AngelsSong>();
+                        break;
                     case WeaponData.AreaSubType.DamagePuddle:
                         weapon = child.AddComponent<HolyWater>();
                         break;
