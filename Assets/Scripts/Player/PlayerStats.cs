@@ -75,6 +75,13 @@ public class PlayerStats : MonoBehaviour
 
         _currentHP = MaxHP;
 
+        // Apply the character's in-game sprite
+        if (character.gameSprite != null)
+        {
+            var sr = GetComponent<SpriteRenderer>();
+            if (sr != null) sr.sprite = character.gameSprite;
+        }
+
         // Apply permanent upgrades from meta-progression
         GoldManager.ApplyPermanentUpgrades(this);
     }

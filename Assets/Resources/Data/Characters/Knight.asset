@@ -15,6 +15,7 @@ MonoBehaviour:
   id: knight
   characterName: "\u9A91\u58EB"
   portrait: {fileID: 21300000, guid: 1afa44a554dfc1f4aa1bf3b4299a9a43, type: 3}
+  gameSprite: {fileID: 21300000, guid: 26f1f69dc01a6c041b30599073588989, type: 3}
   description: "\u94A2\u94C1\u5821\u5792\u822C\u7684\u9632\u5FA1\u8005\u3002\u9AD8\u62A4\u7532\u8BA9\u4ED6\u80FD\u627F\u53D7\u5927\u91CF\u4F24\u5BB3\uFF0C\u4F46\u8F83\u6162\u7684\u79FB\u52A8\u901F\u5EA6\u9700\u8981\u66F4\u597D\u7684\u8D70\u4F4D\u9884\u5224\u3002"
   baseHP: 100
   moveSpeed: 2.5

@@ -13,6 +13,8 @@ public class CharacterData : ScriptableObject
     public string id;
     public string characterName;
     public Sprite portrait;
+    [Tooltip("In-game sprite shown on the Player's SpriteRenderer")]
+    public Sprite gameSprite;
     [TextArea(1, 3)]
     public string description;
 
