@@ -17,6 +17,7 @@ public class DamageNumber : MonoBehaviour
     private float _timer;
     private bool _playing;
     private int _currentAmount;
+    private int _lastTextAmount; // Cache to avoid redundant ToString allocations
     private string _poolKey;
 
     private void Awake()
@@ -36,7 +37,11 @@ public class DamageNumber : MonoBehaviour
     {
         transform.position = position + new Vector3(Random.Range(-0.3f, 0.3f), 0.5f, 0f);
         _currentAmount = amount;
-        _tm.text = amount.ToString();
+        if (_lastTextAmount != amount)
+        {
+            _tm.text = amount.ToString();
+            _lastTextAmount = amount;
+        }
         _tm.color = color;
         _timer = 0f;
         _playing = true;
@@ -50,7 +55,11 @@ public class DamageNumber : MonoBehaviour
     public void Accumulate(int additionalDamage, Vector3 newPosition)
     {
         _currentAmount += additionalDamage;
-        _tm.text = _currentAmount.ToString();
+        if (_lastTextAmount != _currentAmount)
+        {
+            _tm.text = _currentAmount.ToString();
+            _lastTextAmount = _currentAmount;
+        }
         // Pop scale back up and extend life slightly
         float t = Mathf.Clamp01(_timer / _duration);
         transform.localScale = Vector3.one * Mathf.Lerp(_startScale, _startScale * 0.9f, t);
@@ -99,6 +108,8 @@ public class DamageNumber : MonoBehaviour
     {
         _playing = false;
         _timer = 0f;
+        _currentAmount = 0;
+        _lastTextAmount = 0;
         if (_tm != null)
         {
             _tm.text = "";

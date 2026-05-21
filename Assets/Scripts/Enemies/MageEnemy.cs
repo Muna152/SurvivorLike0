@@ -83,8 +83,8 @@ public class MageEnemy : EnemyBase
         _fireCooldown -= dt;
         if (_fireCooldown <= 0f)
         {
-            float dist = Vector2.Distance(transform.position, player.transform.position);
-            if (dist <= _attackRange)
+            float distSq = ((Vector2)transform.position - (Vector2)player.transform.position).sqrMagnitude;
+            if (distSq <= _attackRange * _attackRange)
             {
                 FireProjectile();
             }
