@@ -35,6 +35,12 @@ Desktop.ini
 .codely-cli/
 .codely/clipboard/
 screenshots/
+.com-unity-codely.json
+CODELY.md
+
+# Health check reports
+Assets/HealthCheck_*.html
+Assets/HealthCheck_*.html.meta
 
 # NuGet
 packages/

@@ -31208,6 +31208,7 @@ MonoBehaviour:
   expPickup: {fileID: 8300000, guid: e190eebe2e5ee574b91a237429122513, type: 3}
   levelUp: {fileID: 8300000, guid: cfcf8a12099016942b41388da14b8b8b, type: 3}
   evolve: {fileID: 8300000, guid: 094ed573129bee24e94a3782e2903469, type: 3}
+  chestOpen: {fileID: 0}
   bgmVolume: 0.5
   sfxVolume: 0.7
   bgmFadeDuration: 1
