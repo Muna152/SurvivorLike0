@@ -45,6 +45,9 @@ public abstract class BossEnemy : EnemyBase
         float bossScale = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.bossScaleMultiplier : 2f;
         transform.localScale = Vector3.one * bossScale;
 
+        // Recompute separation radius with the new scale
+        ComputeSeparationRadius();
+
         GameEvents.InvokeBossSpawned(this);
     }
 

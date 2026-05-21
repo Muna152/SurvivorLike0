@@ -41,6 +41,9 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     protected Rigidbody2D _rb;
     protected SpriteRenderer _sr;
 
+    // Separation radius for enemy-enemy collision (computed from sprite or data)
+    private float _separationRadius;
+
     // Hit flash state (timer instead of coroutine to avoid GC)
     protected float _flashTimer;
     protected Color _originalColor;
@@ -69,6 +72,7 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     public EnemyData Data => _data;
     public float CurrentHP => _currentHP;
     public bool IsElite => _isElite;
+    public float SeparationRadius => _separationRadius;
 
     /// <summary>Cache the player reference once. Called by EnemySpawner on Start.</summary>
     public static void SetPlayerReference(PlayerController player)
@@ -143,6 +147,9 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
         _activeEnemies.Add(this);
         SpatialGrid.Register(this);
 
+        // Compute separation radius from data or sprite
+        ComputeSeparationRadius();
+
         // LOD: random frame offset to stagger far-enemy updates
         _lodFrameOffset = UnityEngine.Random.Range(0, LOD_FAR_INTERVAL);
         _isFarLOD = false;
@@ -168,10 +175,72 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
 
         transform.localScale = transform.localScale * scaleMult;
 
+        // Recompute separation radius after scale change
+        ComputeSeparationRadius();
+
         if (_sr != null)
         {
             _sr.color = new Color(1f, 0.5f, 0f); // Orange tint
         }
+    }
+
+    /// <summary>
+    /// Compute the separation radius from EnemyData, non-trigger collider, or sprite bounds.
+    /// Used by EnemyManager's separation pass to prevent enemy overlap.
+    /// </summary>
+    protected virtual void ComputeSeparationRadius()
+    {
+        // Priority 1: Explicit data override
+        if (_data != null && _data.separationRadius > 0f)
+        {
+            float scale = Mathf.Max(Mathf.Abs(transform.localScale.x), Mathf.Abs(transform.localScale.y));
+            _separationRadius = _data.separationRadius * scale;
+            return;
+        }
+
+        // Priority 2: Non-trigger CircleCollider2D (e.g., boss hitbox colliders)
+        var colliders = GetComponents<Collider2D>();
+        float bestColliderRadius = -1f;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            var c = colliders[i];
+            if (!c.isTrigger && c is CircleCollider2D cc && cc.radius > 0f)
+            {
+                if (bestColliderRadius < 0f || cc.radius < bestColliderRadius)
+                    bestColliderRadius = cc.radius;
+            }
+        }
+
+        if (bestColliderRadius > 0f)
+        {
+            float scale = Mathf.Max(Mathf.Abs(transform.localScale.x), Mathf.Abs(transform.localScale.y));
+            _separationRadius = bestColliderRadius * scale;
+            return;
+        }
+
+        // Priority 3: Sprite bounds (works well for regular enemies with tight sprites)
+        if (_sr != null && _sr.sprite != null)
+        {
+            var s = _sr.sprite;
+            float w = s.rect.width / s.pixelsPerUnit;
+            float h = s.rect.height / s.pixelsPerUnit;
+            float maxDim = Mathf.Max(w, h) * 0.5f;
+            float scale = Mathf.Max(Mathf.Abs(transform.localScale.x), Mathf.Abs(transform.localScale.y));
+            _separationRadius = maxDim * scale;
+        }
+        else
+        {
+            _separationRadius = 0.5f;
+        }
+    }
+
+    /// <summary>
+    /// Apply a separation push vector. Called by EnemyManager's separation pass.
+    /// </summary>
+    public void ApplySeparationPush(Vector2 push)
+    {
+        if (_rb != null)
+            _rb.MovePosition(_rb.position + push);
     }
 
     /// <summary>

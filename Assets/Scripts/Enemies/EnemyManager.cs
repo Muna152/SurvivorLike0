@@ -11,6 +11,13 @@ public class EnemyManager : Singleton<EnemyManager>
 {
     private PlayerStats _playerStats;
 
+    // Pre-allocated list for separation neighbor queries
+    private readonly List<EnemyBase> _separationNeighbors = new List<EnemyBase>(16);
+
+    // Separation constants
+    private const float OverlapAllowance = 0.23f; // Allow ~77% overlap (gap ≈ 1/3 of original)
+    private const float PushFactor = 0.5f;       // Smoothing per frame
+
     public int ActiveCount => EnemyBase.ActiveEnemyCount;
 
     protected override void Awake()
@@ -58,6 +65,9 @@ public class EnemyManager : Singleton<EnemyManager>
         }
         EnemyBase.IsIterating = false;
         EnemyBase.FlushPendingRemoves();
+
+        // Separation pass: push enemies apart to prevent overlap
+        SeparationPass();
     }
 
     private void Update()
@@ -71,6 +81,61 @@ public class EnemyManager : Singleton<EnemyManager>
         }
         EnemyBase.IsIterating = false;
         EnemyBase.FlushPendingRemoves();
+    }
+
+    /// <summary>
+    /// Soft separation pass: push enemies apart when they overlap more than 30%.
+    /// Uses SpatialGrid for efficient neighbor queries.
+    /// </summary>
+    private void SeparationPass()
+    {
+        foreach (var enemy in EnemyBase.ActiveEnemies)
+        {
+            if (enemy == null) continue;
+
+            float r1 = enemy.SeparationRadius;
+            if (r1 <= 0f) continue;
+
+            Vector2 enemyPos = (Vector2)enemy.transform.position;
+            float queryRadius = r1 * 2.2f; // Slightly beyond max separation range
+
+            SpatialGrid.QueryInRadius(enemyPos, queryRadius, _separationNeighbors);
+
+            Vector2 push = Vector2.zero;
+            for (int i = 0; i < _separationNeighbors.Count; i++)
+            {
+                var other = _separationNeighbors[i];
+                if (other == enemy) continue;
+
+                float r2 = other.SeparationRadius;
+                if (r2 <= 0f) continue;
+
+                float minDist = (r1 + r2) * OverlapAllowance;
+                Vector2 diff = enemyPos - (Vector2)other.transform.position;
+                float distSq = diff.sqrMagnitude;
+
+                if (distSq < minDist * minDist)
+                {
+                    float dist = Mathf.Sqrt(distSq);
+                    if (dist > 0.001f)
+                    {
+                        float overlap = minDist - dist;
+                        push += (diff / dist) * overlap;
+                    }
+                    else
+                    {
+                        // Coincident enemies — deterministic push direction
+                        float angle = ((enemy.GetInstanceID() * 2.345f) % 6.283185f);
+                        push += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * minDist;
+                    }
+                }
+            }
+
+            if (push.sqrMagnitude > 0.0001f)
+            {
+                enemy.ApplySeparationPush(push * PushFactor);
+            }
+        }
     }
 
     protected override void OnDestroy()

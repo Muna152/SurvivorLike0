@@ -25,4 +25,8 @@ public class EnemyData : ScriptableObject
     [Header("Spawn Settings")]
     public float spawnWeight = 1f;
     public float minSpawnTime;  // Earliest time in seconds this enemy can appear
+
+    [Header("Collision")]
+    [Tooltip("Radius used for enemy-enemy separation. 0 = auto-compute from sprite bounds.")]
+    public float separationRadius;
 }
