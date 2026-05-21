@@ -58,7 +58,7 @@ public class MageEnemy : EnemyBase
         _projectilePoolRegistered = true;
     }
 
-    protected override void FixedUpdate()
+    public override void OnFixedTick(float dt)
     {
         var player = GetPlayer();
         if (player == null) return;
@@ -69,18 +69,18 @@ public class MageEnemy : EnemyBase
         if (dist > _attackRange)
         {
             Vector2 dir = toPlayer.normalized;
-            _rb.MovePosition(_rb.position + dir * _moveSpeed * Time.fixedDeltaTime);
+            _rb.MovePosition(_rb.position + dir * _moveSpeed * dt);
         }
     }
 
-    protected override void Update()
+    public override void OnUpdateTick(float dt)
     {
-        base.Update();
+        base.OnUpdateTick(dt);
 
         var player = GetPlayer();
         if (player == null || _projectilePrefab == null) return;
 
-        _fireCooldown -= Time.deltaTime;
+        _fireCooldown -= dt;
         if (_fireCooldown <= 0f)
         {
             float dist = Vector2.Distance(transform.position, player.transform.position);

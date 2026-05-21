@@ -3,14 +3,15 @@ using UnityEngine;
 
 /// <summary>
 /// Singleton managing all active enemies in the scene.
-/// Subscribes to OnEnemyDied to remove enemies from tracking.
+/// Drives centralized update via IEnemyTick. Uses EnemyBase.ActiveEnemies
+/// (static HashSet) as the single source of truth — all enemies register
+/// there in Initialize(), regardless of spawn path.
 /// </summary>
 public class EnemyManager : Singleton<EnemyManager>
 {
-    private readonly List<EnemyBase> _activeEnemies = new List<EnemyBase>();
     private PlayerStats _playerStats;
 
-    public int ActiveCount => _activeEnemies.Count;
+    public int ActiveCount => EnemyBase.ActiveEnemyCount;
 
     protected override void Awake()
     {
@@ -30,14 +31,12 @@ public class EnemyManager : Singleton<EnemyManager>
 
         enemyObj.transform.position = position;
         enemyObj.Initialize(data);
-        _activeEnemies.Add(enemyObj);
         GameEvents.InvokeEnemySpawned(enemyObj);
         return enemyObj;
     }
 
     private void OnEnemyDiedHandler(EnemyBase enemy)
     {
-        _activeEnemies.Remove(enemy);
         if (_playerStats != null)
         {
             _playerStats.AddKill();
@@ -49,6 +48,29 @@ public class EnemyManager : Singleton<EnemyManager>
     private void FixedUpdate()
     {
         SpatialGrid.UpdateAll();
+
+        float dt = Time.fixedDeltaTime;
+        EnemyBase.IsIterating = true;
+        foreach (var enemy in EnemyBase.ActiveEnemies)
+        {
+            if (enemy != null)
+                enemy.OnFixedTick(dt);
+        }
+        EnemyBase.IsIterating = false;
+        EnemyBase.FlushPendingRemoves();
+    }
+
+    private void Update()
+    {
+        float dt = Time.deltaTime;
+        EnemyBase.IsIterating = true;
+        foreach (var enemy in EnemyBase.ActiveEnemies)
+        {
+            if (enemy != null)
+                enemy.OnUpdateTick(dt);
+        }
+        EnemyBase.IsIterating = false;
+        EnemyBase.FlushPendingRemoves();
     }
 
     protected override void OnDestroy()

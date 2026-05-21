@@ -63,7 +63,7 @@ public class SkeletonKing : BossEnemy
         _shockwavePoolRegistered = true;
     }
 
-    protected override void FixedUpdate()
+    public override void OnFixedTick(float dt)
     {
         if (_phaseTransitioning) return;
 
@@ -73,7 +73,7 @@ public class SkeletonKing : BossEnemy
 
         float speedMultiplier = _currentPhase >= 1 ? 1.3f : 1f;
         Vector2 dir = ((Vector2)player.transform.position - (Vector2)transform.position).normalized;
-        _rb.MovePosition(_rb.position + dir * _moveSpeed * speedMultiplier * Time.fixedDeltaTime);
+        _rb.MovePosition(_rb.position + dir * _moveSpeed * speedMultiplier * dt);
     }
 
     protected override void ExecuteAttack()

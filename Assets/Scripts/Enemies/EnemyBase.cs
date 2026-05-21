@@ -2,15 +2,32 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// Interface for centralized enemy ticking. EnemyManager drives all updates
+/// through this interface, eliminating per-MonoBehaviour Update/FixedUpdate overhead.
+/// </summary>
+public interface IEnemyTick
+{
+    void OnFixedTick(float dt);
+    void OnUpdateTick(float dt);
+}
+
+/// <summary>
 /// Base class for all enemies: chase the player, take damage, die & drop loot.
 /// Uses HashSet for O(1) tracking and MovePosition for smooth Kinematic movement.
+/// Update logic is driven centrally by EnemyManager via IEnemyTick.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
-public class EnemyBase : MonoBehaviour
+public class EnemyBase : MonoBehaviour, IEnemyTick
 {
     private static readonly HashSet<EnemyBase> _activeEnemies = new HashSet<EnemyBase>();
     private static PlayerController _cachedPlayer;
     private static PlayerStats _cachedPlayerStats;
+
+    /// <summary>True while EnemyManager is iterating the activeEnemies set.</summary>
+    internal static bool IsIterating { get; set; }
+
+    // Enemies that die during iteration — removed after the loop completes
+    private static readonly List<EnemyBase> _pendingRemoves = new List<EnemyBase>();
 
     /// <summary>PlayerStats reference for subclasses (e.g. BossEnemy) to use in Die().</summary>
     protected static PlayerStats CachedPlayerStats => _cachedPlayerStats;
@@ -58,6 +75,32 @@ public class EnemyBase : MonoBehaviour
     {
         _cachedPlayer = player;
         _cachedPlayerStats = player != null ? player.GetComponent<PlayerStats>() : null;
+    }
+
+    /// <summary>
+    /// Remove an enemy from the active set. If currently iterating, defers removal.
+    /// </summary>
+    private static void SafeRemove(EnemyBase enemy)
+    {
+        if (IsIterating)
+        {
+            _pendingRemoves.Add(enemy);
+        }
+        else
+        {
+            _activeEnemies.Remove(enemy);
+        }
+    }
+
+    /// <summary>
+    /// Flush any deferred removals after iteration completes.
+    /// Called by EnemyManager after each tick loop.
+    /// </summary>
+    public static void FlushPendingRemoves()
+    {
+        for (int i = 0; i < _pendingRemoves.Count; i++)
+            _activeEnemies.Remove(_pendingRemoves[i]);
+        _pendingRemoves.Clear();
     }
 
     public static PlayerController GetPlayer()
@@ -172,7 +215,10 @@ public class EnemyBase : MonoBehaviour
         _lastLODCheckFrame = -1;
     }
 
-    protected virtual void FixedUpdate()
+    /// <summary>
+    /// Centralized physics tick driven by EnemyManager. Replaces MonoBehaviour.FixedUpdate().
+    /// </summary>
+    public virtual void OnFixedTick(float dt)
     {
         if (_cachedPlayer == null) return;
 
@@ -190,32 +236,35 @@ public class EnemyBase : MonoBehaviour
             // Far LOD: only move on assigned frame, accumulate delta otherwise
             if (frame % LOD_FAR_INTERVAL != _lodFrameOffset)
             {
-                _lodAccumulatedDelta += Time.fixedDeltaTime;
+                _lodAccumulatedDelta += dt;
                 return;
             }
 
             // Execute movement with accumulated + current delta
-            float dt = _lodAccumulatedDelta + Time.fixedDeltaTime;
+            float accumulatedDt = _lodAccumulatedDelta + dt;
             float effectiveSpeedFar = _moveSpeed * _slowMultiplier;
             _lodAccumulatedDelta = 0f;
             Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
-            _rb.MovePosition(_rb.position + dir * effectiveSpeedFar * dt);
+            _rb.MovePosition(_rb.position + dir * effectiveSpeedFar * accumulatedDt);
         }
         else
         {
             // Near LOD: full update every frame
             float effectiveSpeed = _moveSpeed * _slowMultiplier;
             Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
-            _rb.MovePosition(_rb.position + dir * effectiveSpeed * Time.fixedDeltaTime);
+            _rb.MovePosition(_rb.position + dir * effectiveSpeed * dt);
         }
     }
 
-    protected virtual void Update()
+    /// <summary>
+    /// Centralized per-frame tick driven by EnemyManager. Replaces MonoBehaviour.Update().
+    /// </summary>
+    public virtual void OnUpdateTick(float dt)
     {
         // Slow timer countdown
         if (_slowTimer > 0f)
         {
-            _slowTimer -= Time.deltaTime;
+            _slowTimer -= dt;
             if (_slowTimer <= 0f)
             {
                 _slowMultiplier = 1f;
@@ -228,7 +277,7 @@ public class EnemyBase : MonoBehaviour
 
         if (_flashing)
         {
-            _flashTimer -= Time.deltaTime;
+            _flashTimer -= dt;
             if (_flashTimer <= 0f)
             {
                 if (_sr != null) _sr.color = _originalColor;
@@ -260,7 +309,7 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void Die()
     {
-        _activeEnemies.Remove(this);
+        SafeRemove(this);
         SpatialGrid.Unregister(this);
 
         // Track kill count on PlayerStats
@@ -288,7 +337,7 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void OnDisable()
     {
-        _activeEnemies.Remove(this);
+        SafeRemove(this);
         // Unregister is idempotent — safe to call even if Die() already unregistered.
         SpatialGrid.Unregister(this);
     }

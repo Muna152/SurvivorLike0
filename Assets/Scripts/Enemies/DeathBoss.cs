@@ -87,7 +87,7 @@ public class DeathBoss : BossEnemy
         return bp;
     }
 
-    protected override void FixedUpdate()
+    public override void OnFixedTick(float dt)
     {
         if (_phaseTransitioning) return;
 
@@ -97,7 +97,7 @@ public class DeathBoss : BossEnemy
 
         float speedMultiplier = _currentPhase >= 2 ? 2f : (_currentPhase >= 1 ? 1.5f : 1f);
         Vector2 dir = ((Vector2)player.transform.position - (Vector2)transform.position).normalized;
-        _rb.MovePosition(_rb.position + dir * _moveSpeed * speedMultiplier * Time.fixedDeltaTime);
+        _rb.MovePosition(_rb.position + dir * _moveSpeed * speedMultiplier * dt);
     }
 
     protected override void ExecuteAttack()

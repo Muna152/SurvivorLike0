@@ -90,7 +90,7 @@ public class DarkLord : BossEnemy
         return bp;
     }
 
-    protected override void FixedUpdate()
+    public override void OnFixedTick(float dt)
     {
         if (_phaseTransitioning) return;
 
@@ -100,7 +100,7 @@ public class DarkLord : BossEnemy
 
         float speedMultiplier = _currentPhase >= 2 ? 1.5f : 1f;
         Vector2 dir = ((Vector2)player.transform.position - (Vector2)transform.position).normalized;
-        _rb.MovePosition(_rb.position + dir * _moveSpeed * 0.6f * speedMultiplier * Time.fixedDeltaTime);
+        _rb.MovePosition(_rb.position + dir * _moveSpeed * 0.6f * speedMultiplier * dt);
     }
 
     protected override void ExecuteAttack()

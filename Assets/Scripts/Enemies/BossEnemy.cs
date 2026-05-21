@@ -57,13 +57,13 @@ public abstract class BossEnemy : EnemyBase
         _phaseTransitioning = false;
     }
 
-    protected override void Update()
+    public override void OnUpdateTick(float dt)
     {
-        base.Update();
+        base.OnUpdateTick(dt);
 
         if (_phaseTransitioning) return;
 
-        _attackTimer -= Time.deltaTime;
+        _attackTimer -= dt;
         if (_attackTimer <= 0f)
         {
             ExecuteAttack();

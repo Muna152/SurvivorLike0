@@ -30,6 +30,9 @@ public class EnemySpawner : MonoBehaviour
 
     private void Awake()
     {
+        // Ensure EnemyManager exists so the centralized tick loop runs
+        _ = EnemyManager.Instance;
+
         RegisterEnemyPools();
     }
 
