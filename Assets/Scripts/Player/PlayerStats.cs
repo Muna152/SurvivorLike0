@@ -82,6 +82,27 @@ public class PlayerStats : MonoBehaviour
             if (sr != null) sr.sprite = character.gameSprite;
         }
 
+        // Apply the character's AnimatorController
+        var anim = GetComponent<Animator>();
+        if (character.animatorController != null)
+        {
+            if (anim != null)
+            {
+                anim.runtimeAnimatorController = character.animatorController;
+                anim.Rebind();
+                anim.Update(0f);
+                Debug.Log($"[PlayerStats] Applied AnimatorController '{character.animatorController.name}' for character '{character.characterName}'");
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerStats] No Animator component on Player — cannot apply controller for '{character.characterName}'");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[PlayerStats] Character '{character.characterName}' has no animatorController assigned!");
+        }
+
         // Apply permanent upgrades from meta-progression
         GoldManager.ApplyPermanentUpgrades(this);
     }

@@ -15,6 +15,12 @@ public class CharacterData : ScriptableObject
     public Sprite portrait;
     [Tooltip("In-game sprite shown on the Player's SpriteRenderer")]
     public Sprite gameSprite;
+    [Tooltip("AnimatorController for this character's animations")]
+    public RuntimeAnimatorController animatorController;
+
+    [Tooltip("True if the character's sprite/animation frames face right by default. " +
+             "Used by PlayerController to determine flipX direction.")]
+    public bool faceRightByDefault = true;
     [TextArea(1, 3)]
     public string description;
 

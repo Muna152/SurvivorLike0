@@ -16,6 +16,8 @@ MonoBehaviour:
   characterName: "\u6CD5\u5E08"
   portrait: {fileID: 21300000, guid: 2f2fb09b361018f47a6f7e6d913d9e1e, type: 3}
   gameSprite: {fileID: 21300000, guid: 864a576112f05f249a5052656d109c4d, type: 3}
+  animatorController: {fileID: 9100000, guid: 726edd760939c5149b97192f7f93f39f, type: 2}
+  faceRightByDefault: 1
   description: "\u9AD8\u653B\u901F\u7684\u6CD5\u672F\u5927\u5E08\u3002\u51B7\u5374\u7F29\u51CF\u8BA9\u6B66\u5668\u53D1\u5C04\u66F4\u5FEB\uFF0C\u4F46\u8F83\u4F4E\u7684\u751F\u547D\u503C\u9700\u8981\u7075\u6D3B\u8D70\u4F4D\u3002"
   baseHP: 70
   moveSpeed: 3

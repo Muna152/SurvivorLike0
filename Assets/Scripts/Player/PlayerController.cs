@@ -11,9 +11,16 @@ public class PlayerController : MonoBehaviour
     private PlayerStats _stats;
     private PlayerWeaponManager _weaponManager;
     private SpriteRenderer _spriteRenderer;
+    private Animator _animator;
     private Vector2 _lastDirection = Vector2.down;
 
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
+    private static readonly int FrontRunHash = Animator.StringToHash("frontRun");
+
     public Vector2 LastDirection => _lastDirection;
+
+    /// <summary>Whether the current character's sprite faces right by default.</summary>
+    private bool _faceRightByDefault = true;
 
     private void Awake()
     {
@@ -21,10 +28,15 @@ public class PlayerController : MonoBehaviour
         _stats = GetComponent<PlayerStats>();
         _weaponManager = GetComponent<PlayerWeaponManager>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
+        _animator = GetComponent<Animator>();
     }
 
     private void FixedUpdate()
     {
+        // Sync facing direction from character data (set by PlayerStats on init)
+        if (GameManager.HasInstance && GameManager.Instance.SelectedCharacter != null)
+            _faceRightByDefault = GameManager.Instance.SelectedCharacter.faceRightByDefault;
+
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
         var dir = new Vector2(h, v).normalized;
@@ -41,14 +53,33 @@ public class PlayerController : MonoBehaviour
             _rb.position = pos;
         }
 
-        if (dir.sqrMagnitude > 0.01f)
+        bool isMoving = dir.sqrMagnitude > 0.01f;
+
+        if (isMoving)
         {
             _lastDirection = dir;
 
             if (_spriteRenderer != null && dir.x != 0f)
             {
-                _spriteRenderer.flipX = dir.x < 0f;
+                // Flip when moving opposite to the character's default facing direction
+                _spriteRenderer.flipX = _faceRightByDefault ? dir.x < 0f : dir.x > 0f;
             }
+        }
+        else
+        {
+            // When idle, reset flipX only if the current animation state is idle
+            // (idle frames are front-facing and should not be flipped)
+            if (_animator != null && _spriteRenderer != null)
+            {
+                var stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+                if (stateInfo.shortNameHash != FrontRunHash)
+                    _spriteRenderer.flipX = false;
+            }
+        }
+
+        if (_animator != null)
+        {
+            _animator.SetFloat(SpeedHash, isMoving ? 1f : 0f);
         }
 
         if (_weaponManager != null)

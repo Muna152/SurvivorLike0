@@ -168,7 +168,8 @@ public class UpgradeManager : MonoBehaviour
 
         if (_pendingUpgrades.Count > 0)
         {
-            // Show next queued upgrade
+            // Pop current pause before showing next upgrade (which will push its own pause)
+            GameManager.Instance.PopPause();
             ShowUpgrade(_pendingUpgrades.Dequeue());
             return;
         }
