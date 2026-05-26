@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2388911468458809217}
   - component: {fileID: 2206357271216117833}
   - component: {fileID: 1090875342346939170}
+  - component: {fileID: 3412899282523214833}
   m_Layer: 9
   m_HasEditorInfo: 1
   m_Name: Zombie
@@ -166,3 +167,26 @@ CircleCollider2D:
   m_CompositeLayer: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 6.25
+--- !u!95 &3412899282523214833
+Animator:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2549690840312331281}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 1f11cfabbf5b7e541a2d330810638427, type: 2}
+  m_CullingMode: 1
+  m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5600555362737470879}
   - component: {fileID: 7633080617871138444}
   - component: {fileID: 6252814766493382244}
+  - component: {fileID: 6594935288423934604}
   m_Layer: 9
   m_HasEditorInfo: 1
   m_Name: Bat
@@ -166,3 +167,26 @@ CircleCollider2D:
   m_CompositeLayer: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 6.25
+--- !u!95 &6594935288423934604
+Animator:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5836391112768287560}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2b29c789ced98604eaec740327d105dc, type: 2}
+  m_CullingMode: 1
+  m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

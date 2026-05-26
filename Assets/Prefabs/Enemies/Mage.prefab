@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5473654086296058140}
   - component: {fileID: 7893384267454924967}
   - component: {fileID: 1574358606216316575}
+  - component: {fileID: 2603928808990979689}
   m_Layer: 9
   m_HasEditorInfo: 1
   m_Name: Mage
@@ -170,3 +171,26 @@ MonoBehaviour:
   _attackRange: 6
   _fireRate: 2
   _projectileSpeed: 4
+--- !u!95 &2603928808990979689
+Animator:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8095204050528813794}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 98c8e406f30a6df4c832ead0e94efed3, type: 2}
+  m_CullingMode: 1
+  m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

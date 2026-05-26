@@ -40,6 +40,10 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     protected float _moveSpeed;
     protected Rigidbody2D _rb;
     protected SpriteRenderer _sr;
+    protected Animator _animator;
+
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
+    private Vector2 _lastMoveDir;
 
     // Separation radius for enemy-enemy collision (computed from sprite or data)
     private float _separationRadius;
@@ -127,6 +131,7 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     {
         _rb = GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
+        _animator = GetComponent<Animator>();
 
         // Enable trigger detection with other Kinematic bodies (e.g. projectiles)
         if (_rb != null && _rb.bodyType == RigidbodyType2D.Kinematic)
@@ -279,6 +284,11 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
         _slowMultiplier = 1f;
         _slowTimer = 0f;
 
+        // Reset animation state
+        _lastMoveDir = Vector2.zero;
+        if (_animator != null)
+            _animator.SetFloat(SpeedHash, 0f);
+
         _isFarLOD = false;
         _lodAccumulatedDelta = 0f;
         _lastLODCheckFrame = -1;
@@ -300,6 +310,9 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
             _lastLODCheckFrame = frame;
         }
 
+        Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
+        bool isMoving = dir.sqrMagnitude > 0.01f;
+
         if (_isFarLOD)
         {
             // Far LOD: only move on assigned frame, accumulate delta otherwise
@@ -313,16 +326,21 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
             float accumulatedDt = _lodAccumulatedDelta + dt;
             float effectiveSpeedFar = _moveSpeed * _slowMultiplier;
             _lodAccumulatedDelta = 0f;
-            Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
             _rb.MovePosition(_rb.position + dir * effectiveSpeedFar * accumulatedDt);
         }
         else
         {
             // Near LOD: full update every frame
             float effectiveSpeed = _moveSpeed * _slowMultiplier;
-            Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
             _rb.MovePosition(_rb.position + dir * effectiveSpeed * dt);
         }
+
+        // Track movement direction for animation and sprite flipping
+        if (isMoving)
+            _lastMoveDir = dir;
+
+        if (_animator != null)
+            _animator.SetFloat(SpeedHash, isMoving ? 1f : 0f);
     }
 
     /// <summary>
@@ -330,6 +348,10 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     /// </summary>
     public virtual void OnUpdateTick(float dt)
     {
+        // Flip sprite based on horizontal movement direction
+        if (_sr != null && _lastMoveDir.x != 0f)
+            _sr.flipX = _lastMoveDir.x < 0f;
+
         // Slow timer countdown
         if (_slowTimer > 0f)
         {

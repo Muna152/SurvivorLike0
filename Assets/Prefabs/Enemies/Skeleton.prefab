@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3321343173359800323}
   - component: {fileID: 4129750412918571612}
   - component: {fileID: 6147243140885327923}
+  - component: {fileID: 6055069062429822533}
   m_Layer: 9
   m_HasEditorInfo: 1
   m_Name: Skeleton
@@ -166,3 +167,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5df10de85b17777459dbb8a1516a2dd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!95 &6055069062429822533
+Animator:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2693384263389038719}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 387dbdea59a351649a09db3f77b91c4e, type: 2}
+  m_CullingMode: 1
+  m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
