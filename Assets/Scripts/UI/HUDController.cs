@@ -22,6 +22,9 @@ public class HUDController : MonoBehaviour
     [Header("Gold")]
     private Text _goldText;
 
+    [Header("Auto-Pilot")]
+    private Text _autoPilotText;
+
     [Header("Weapon Bar")]
     [SerializeField] private Transform _weaponBarContainer;
     [SerializeField] private GameObject _weaponSlotPrefab;
@@ -78,6 +81,25 @@ public class HUDController : MonoBehaviour
             _goldText.text = "💰 0";
         }
 
+        // Create auto-pilot indicator (top-left area)
+        if (_autoPilotText == null && _timerText != null)
+        {
+            var apObj = new GameObject("AutoPilotText");
+            apObj.transform.SetParent(_timerText.transform.parent, false);
+            var apRect = apObj.AddComponent<RectTransform>();
+            apRect.anchorMin = new Vector2(0f, 1f);
+            apRect.anchorMax = new Vector2(1f, 1f);
+            apRect.pivot = new Vector2(0f, 1f);
+            apRect.anchoredPosition = new Vector2(10f, -70f);
+            apRect.sizeDelta = new Vector2(200f, 30f);
+            _autoPilotText = apObj.AddComponent<Text>();
+            _autoPilotText.fontSize = 16;
+            _autoPilotText.color = new Color(0f, 1f, 0.5f);
+            _autoPilotText.alignment = TextAnchor.MiddleLeft;
+            _autoPilotText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _autoPilotText.text = "";
+        }
+
         // Create cached delegate instances so unsubscribe works correctly
         _onDamagedHandler = _ => RefreshHP();
         _onHealedHandler = _ => RefreshHP();
@@ -88,6 +110,7 @@ public class HUDController : MonoBehaviour
         GameEvents.OnPlayerHealed += _onHealedHandler;
         GameEvents.OnPlayerLevelUp += _onLevelUpHandler;
         GameEvents.OnWeaponChanged += _onWeaponChangedHandler;
+        GameEvents.OnAutoPilotToggled += OnAutoPilotToggled;
 
         // Disable keyboard navigation on all HUD Selectables (Sliders, Buttons)
         UINavUtil.DisableAll(transform);
@@ -105,6 +128,7 @@ public class HUDController : MonoBehaviour
         GameEvents.OnPlayerHealed -= _onHealedHandler;
         GameEvents.OnPlayerLevelUp -= _onLevelUpHandler;
         GameEvents.OnWeaponChanged -= _onWeaponChangedHandler;
+        GameEvents.OnAutoPilotToggled -= OnAutoPilotToggled;
     }
 
     private void Update()
@@ -118,6 +142,9 @@ public class HUDController : MonoBehaviour
         // Refresh HP/EXP only if values changed (avoids string allocation every frame)
         RefreshHPIfNeeded();
         RefreshEXPIfNeeded();
+
+        // Refresh auto-pilot indicator
+        RefreshAutoPilotIndicator();
     }
 
     private void RefreshHP()
@@ -236,6 +263,17 @@ public class HUDController : MonoBehaviour
 
         _lastGold = gold;
         _goldText.text = $"💰 {gold}";
+    }
+
+    private void OnAutoPilotToggled(bool enabled)
+    {
+        RefreshAutoPilotIndicator();
+    }
+
+    private void RefreshAutoPilotIndicator()
+    {
+        if (_autoPilotText == null) return;
+        _autoPilotText.text = PlayerController.IsAutoPilot ? "🤖 AUTO [P]" : "";
     }
 
     private void RefreshWeaponBar()

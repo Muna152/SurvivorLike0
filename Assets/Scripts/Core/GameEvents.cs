@@ -79,6 +79,9 @@ public static class GameEvents
     /// <summary>Fire when a permanent upgrade is purchased in the shop.</summary>
     public static event Action OnPermanentUpgradePurchased;
 
+    /// <summary>Fire when auto-pilot is toggled. Parameter = enabled state.</summary>
+    public static event Action<bool> OnAutoPilotToggled;
+
     // ── Invoke Helpers ─────────────────────────────────────────
     // Centralised invoke points so we never miss null-checks.
     // Also makes it easy to add logging / analytics later.
@@ -102,6 +105,7 @@ public static class GameEvents
     public static void InvokeCharacterUnlocked(string characterId) => OnCharacterUnlocked?.Invoke(characterId);
     public static void InvokeOnGoldChanged(int currentGold) => OnGoldChanged?.Invoke(currentGold);
     public static void InvokeOnPermanentUpgradePurchased() => OnPermanentUpgradePurchased?.Invoke();
+    public static void InvokeAutoPilotToggled(bool enabled) => OnAutoPilotToggled?.Invoke(enabled);
     public static void InvokeGamePaused() => OnGamePaused?.Invoke();
     public static void InvokeGameResumed() => OnGameResumed?.Invoke();
 
@@ -129,6 +133,7 @@ public static class GameEvents
         OnCharacterUnlocked = null;
         OnGoldChanged = null;
         OnPermanentUpgradePurchased = null;
+        OnAutoPilotToggled = null;
         OnGamePaused = null;
         OnGameResumed = null;
     }

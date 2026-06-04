@@ -1,8 +1,10 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Manages level-up upgrades: pauses game, generates 3 options, then resumes on selection.
+/// When Auto-Pilot is enabled, automatically selects the best upgrade after a short delay.
 /// </summary>
 public class UpgradeManager : MonoBehaviour
 {
@@ -51,6 +53,57 @@ public class UpgradeManager : MonoBehaviour
         _currentOptions = options;
         GameManager.Instance.PushPause();
         OnOptionsGenerated?.Invoke(_currentOptions);
+
+        // Auto-select if auto-pilot is enabled
+        if (PlayerController.IsAutoPilot)
+            StartCoroutine(AutoSelectUpgradeCoroutine());
+    }
+
+    private IEnumerator AutoSelectUpgradeCoroutine()
+    {
+        // Wait a short moment so the player can see the options flash on screen
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        if (_currentOptions == null || _currentOptions.Count == 0)
+            yield break;
+
+        UpgradeOption chosen = SelectBestOption(_currentOptions);
+        if (chosen != null)
+        {
+            Debug.Log($"[AutoPilot] Auto-selected upgrade: {chosen.Name}");
+            OnOptionSelected(chosen);
+        }
+        else
+        {
+            SkipUpgrade();
+        }
+    }
+
+    private static UpgradeOption SelectBestOption(List<UpgradeOption> options)
+    {
+        UpgradeOption best = null;
+        int bestPriority = int.MaxValue;
+
+        foreach (var option in options)
+        {
+            int priority = GetUpgradePriority(option);
+            if (priority < bestPriority)
+            {
+                bestPriority = priority;
+                best = option;
+            }
+        }
+
+        return best ?? (options.Count > 0 ? options[0] : null);
+    }
+
+    private static int GetUpgradePriority(UpgradeOption option)
+    {
+        if (option is WeaponEvolutionOption) return 0;
+        if (option is NewWeaponOption) return 1;
+        if (option is WeaponUpgradeOption) return 2;
+        if (option is PassiveUpgradeOption) return 3;
+        return 4;
     }
 
     public List<UpgradeOption> GenerateUpgradeOptions(int count)
