@@ -56,35 +56,29 @@ public class DeathBoss : BossEnemy
                 return obj.GetComponent<BossProjectile>();
             },
             bp => { bp.ResetForReuse(); bp.gameObject.SetActive(false); },
-            prewarmCount: 30,
-            maxSize: 120
+            prewarmCount: 40,
+            maxSize: 150
         );
 
         _projectilePoolRegistered = true;
     }
 
-    /// <summary>Get a pooled BossProjectile, or Instantiate as fallback.</summary>
+    /// <summary>Get a pooled BossProjectile. Returns null if pool is exhausted.</summary>
     private BossProjectile GetPooledProjectile(Vector2 position)
     {
-        BossProjectile bp = null;
         if (_projectilePoolRegistered && PoolManager.HasInstance)
         {
-            bp = PoolManager.Instance.Get<BossProjectile>(_projectilePoolKey);
+            var bp = PoolManager.Instance.Get<BossProjectile>(_projectilePoolKey);
+            if (bp != null)
+            {
+                bp.transform.position = position;
+                bp.transform.rotation = Quaternion.identity;
+                bp.SetPoolKey(_projectilePoolKey);
+                return bp;
+            }
         }
 
-        if (bp == null)
-        {
-            GameObject proj = Instantiate(_projectilePrefab, position, Quaternion.identity);
-            bp = proj.GetComponent<BossProjectile>();
-        }
-        else
-        {
-            bp.transform.position = position;
-            bp.transform.rotation = Quaternion.identity;
-            bp.SetPoolKey(_projectilePoolKey);
-        }
-
-        return bp;
+        return null;
     }
 
     public override void OnFixedTick(float dt)

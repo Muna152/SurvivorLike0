@@ -96,6 +96,7 @@ public class GameManager : Singleton<GameManager>
         _currentState = GameState.Playing;
         Time.timeScale = 1f;
 
+        // Reset difficulty for new run
         if (DifficultyManager.HasInstance)
             DifficultyManager.Instance.ResetDifficulty();
 
@@ -119,6 +120,12 @@ public class GameManager : Singleton<GameManager>
         }
 
         Debug.Log($"[GameManager] Game started with character: {(SelectedCharacter != null ? SelectedCharacter.characterName : "none")}");
+
+        // Ensure HUD elements are visible for gameplay
+        // (MainMenuUI.Show() hides them; this re-enables regardless of start flow)
+        var mainMenu = FindObjectOfType<MainMenuUI>();
+        if (mainMenu != null)
+            mainMenu.SetHUDEnabled(true);
 
         if (AudioManager.HasInstance)
             AudioManager.Instance.PlayBattleBGM();
@@ -178,10 +185,29 @@ public class GameManager : Singleton<GameManager>
         ElapsedTime = 0f;
         SelectedCharacter = null;
 
+        // Clean up all game session state to prevent memory leaks
+        CleanupSessionState();
+
         if (AudioManager.HasInstance)
             AudioManager.Instance.PlayMenuBGM();
 
         Debug.Log("[GameManager] Returned to menu.");
+    }
+
+    /// <summary>
+    /// Clean up all game session state: events, static collections, pools.
+    /// Prevents memory leaks across multiple game sessions.
+    /// </summary>
+    private void CleanupSessionState()
+    {
+        GameEvents.ClearAll();
+        EnemyBase.ResetStatics();
+
+        if (PoolManager.HasInstance)
+            PoolManager.Instance.ClearAll();
+
+        AreaWeapon.ClearStaticCache();
+        WeaponEvolutionVFX.ClearStaticCache();
     }
 
     // ── Update ─────────────────────────────────────────────────

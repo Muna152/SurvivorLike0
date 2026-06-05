@@ -497,24 +497,47 @@ public abstract class AreaWeapon : WeaponBase
 
     private static Sprite _cachedHealSprite;
     private static Sprite _cachedDamageSprite;
+    private static Texture2D _cachedHealTex;
+    private static Texture2D _cachedDamageTex;
+
+    /// <summary>Clear all static caches and destroy cached textures. Call on session end.</summary>
+    public static void ClearStaticCache()
+    {
+        _spriteFillCache.Clear();
+
+        if (_cachedHealSprite != null) { DestroyHelper.Destroy(_cachedHealSprite); _cachedHealSprite = null; }
+        if (_cachedDamageSprite != null) { DestroyHelper.Destroy(_cachedDamageSprite); _cachedDamageSprite = null; }
+        if (_cachedHealTex != null) { DestroyHelper.Destroy(_cachedHealTex); _cachedHealTex = null; }
+        if (_cachedDamageTex != null) { DestroyHelper.Destroy(_cachedDamageTex); _cachedDamageTex = null; }
+    }
 
     private static Sprite GetCachedCircleSprite(bool isHealing)
     {
         if (isHealing)
         {
             if (_cachedHealSprite == null)
-                _cachedHealSprite = CreateCircleSprite(new Color(1f, 1f, 0.5f, 0.4f));
+            {
+                var result = CreateCircleSprite(new Color(1f, 1f, 0.5f, 0.4f));
+                _cachedHealSprite = result.sprite;
+                _cachedHealTex = result.texture;
+            }
             return _cachedHealSprite;
         }
         else
         {
             if (_cachedDamageSprite == null)
-                _cachedDamageSprite = CreateCircleSprite(new Color(0.3f, 0.6f, 1f, 0.4f));
+            {
+                var result = CreateCircleSprite(new Color(0.3f, 0.6f, 1f, 0.4f));
+                _cachedDamageSprite = result.sprite;
+                _cachedDamageTex = result.texture;
+            }
             return _cachedDamageSprite;
         }
     }
 
-    private static Sprite CreateCircleSprite(Color color)
+    private struct CircleSpriteResult { public Sprite sprite; public Texture2D texture; }
+
+    private static CircleSpriteResult CreateCircleSprite(Color color)
     {
         int size = 64;
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -532,6 +555,10 @@ public abstract class AreaWeapon : WeaponBase
         tex.SetPixels(pixels);
         tex.Apply();
         tex.filterMode = FilterMode.Bilinear;
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        return new CircleSpriteResult
+        {
+            sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size),
+            texture = tex
+        };
     }
 }

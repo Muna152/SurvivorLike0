@@ -25,6 +25,11 @@ public class HUDController : MonoBehaviour
     [Header("Auto-Pilot")]
     private Text _autoPilotText;
 
+    [Header("Enemy Count")]
+    private Text _enemyCountText;
+    private int _lastEnemyCount = -1;
+    private bool _lastSpawnCapped;
+
     [Header("Weapon Bar")]
     [SerializeField] private Transform _weaponBarContainer;
     [SerializeField] private GameObject _weaponSlotPrefab;
@@ -100,6 +105,25 @@ public class HUDController : MonoBehaviour
             _autoPilotText.text = "";
         }
 
+        // Create enemy count indicator (top-left area, below auto-pilot)
+        if (_enemyCountText == null && _timerText != null)
+        {
+            var ecObj = new GameObject("EnemyCountText");
+            ecObj.transform.SetParent(_timerText.transform.parent, false);
+            var ecRect = ecObj.AddComponent<RectTransform>();
+            ecRect.anchorMin = new Vector2(0f, 1f);
+            ecRect.anchorMax = new Vector2(1f, 1f);
+            ecRect.pivot = new Vector2(0f, 1f);
+            ecRect.anchoredPosition = new Vector2(10f, -95f);
+            ecRect.sizeDelta = new Vector2(200f, 30f);
+            _enemyCountText = ecObj.AddComponent<Text>();
+            _enemyCountText.fontSize = 14;
+            _enemyCountText.color = new Color(0.85f, 0.85f, 0.85f);
+            _enemyCountText.alignment = TextAnchor.MiddleLeft;
+            _enemyCountText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _enemyCountText.text = "";
+        }
+
         // Create cached delegate instances so unsubscribe works correctly
         _onDamagedHandler = _ => RefreshHP();
         _onHealedHandler = _ => RefreshHP();
@@ -145,6 +169,9 @@ public class HUDController : MonoBehaviour
 
         // Refresh auto-pilot indicator
         RefreshAutoPilotIndicator();
+
+        // Refresh enemy count (cheap int compare)
+        RefreshEnemyCountIfNeeded();
     }
 
     private void RefreshHP()
@@ -274,6 +301,27 @@ public class HUDController : MonoBehaviour
     {
         if (_autoPilotText == null) return;
         _autoPilotText.text = PlayerController.IsAutoPilot ? "🤖 AUTO [P]" : "";
+    }
+
+    private void RefreshEnemyCountIfNeeded()
+    {
+        if (_enemyCountText == null) return;
+
+        int count = EnemyBase.ActiveEnemyCount;
+        int cap = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.maxEnemiesOnScreen : 200;
+        bool capped = count >= cap;
+
+        if (count == _lastEnemyCount && capped == _lastSpawnCapped) return;
+
+        _lastEnemyCount = count;
+        _lastSpawnCapped = capped;
+
+        _enemyCountText.text = capped
+            ? $"👹 {count}/{cap} ⚠MAX"
+            : $"👹 {count}/{cap}";
+        _enemyCountText.color = capped
+            ? new Color(1f, 0.4f, 0.4f)
+            : new Color(0.85f, 0.85f, 0.85f);
     }
 
     private void RefreshWeaponBar()

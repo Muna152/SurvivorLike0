@@ -17,8 +17,11 @@ public class EnemyManager : Singleton<EnemyManager>
     // Separation constants
     private const float OverlapAllowance = 0.23f; // Allow ~77% overlap (gap ≈ 1/3 of original)
     private const float PushFactor = 0.5f;       // Smoothing per frame
+    private const int SeparationInterval = 2;    // Run separation every N FixedFrames
 
     public int ActiveCount => EnemyBase.ActiveEnemyCount;
+    /// <summary>True when spawner should pause due to enemy cap.</summary>
+    public bool IsSpawnCapped => EnemyBase.ActiveEnemyCount >= (GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.maxEnemiesOnScreen : 200);
 
     protected override void Awake()
     {
@@ -44,12 +47,7 @@ public class EnemyManager : Singleton<EnemyManager>
 
     private void OnEnemyDiedHandler(EnemyBase enemy)
     {
-        if (_playerStats != null)
-        {
-            _playerStats.AddKill();
-            if (enemy.IsElite)
-                _playerStats.AddEliteKill();
-        }
+        // Kill tracking is handled in EnemyBase.Die() — no duplicate counting here
     }
 
     private void FixedUpdate()
@@ -66,8 +64,10 @@ public class EnemyManager : Singleton<EnemyManager>
         EnemyBase.IsIterating = false;
         EnemyBase.FlushPendingRemoves();
 
-        // Separation pass: push enemies apart to prevent overlap
-        SeparationPass();
+        // Separation pass: run every other frame to halve CPU cost.
+        // Skip far-LOD enemies — they don't need pixel-perfect separation.
+        if (Time.frameCount % SeparationInterval == 0)
+            SeparationPass();
     }
 
     private void Update()
@@ -86,12 +86,16 @@ public class EnemyManager : Singleton<EnemyManager>
     /// <summary>
     /// Soft separation pass: push enemies apart when they overlap more than 30%.
     /// Uses SpatialGrid for efficient neighbor queries.
+    /// Skips far-LOD enemies to save CPU when enemy count is high.
     /// </summary>
     private void SeparationPass()
     {
         foreach (var enemy in EnemyBase.ActiveEnemies)
         {
             if (enemy == null) continue;
+
+            // Skip far enemies — separation is not critical at long range
+            if (enemy.IsFarLOD) continue;
 
             float r1 = enemy.SeparationRadius;
             if (r1 <= 0f) continue;

@@ -86,6 +86,11 @@ public class VFXManager : Singleton<VFXManager>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         _cachedPlayer = null;
+
+        // Clear stale pool state from previous scene
+        if (PoolManager.HasInstance)
+            PoolManager.Instance.ClearAll();
+
         _poolsRegistered = false;
         _damageNumberPoolRegistered = false;
         _damageAccum.Clear();

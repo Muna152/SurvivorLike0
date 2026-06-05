@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -114,6 +115,7 @@ public class MapManager : MonoBehaviour
         };
         mesh.RecalculateNormals();
         mf.mesh = mesh;
+        _groundMesh = mesh; // Track for cleanup in OnDestroy
 
         if (_groundMaterial != null)
             groundRenderer.sharedMaterial = _groundMaterial;
@@ -242,22 +244,28 @@ public class MapManager : MonoBehaviour
         var decoParent = new GameObject("Decorations");
         decoParent.transform.SetParent(transform);
 
+        // Create a single shared grass sprite (instead of 80 separate Texture2D)
+        var grassResult = CreateColorSprite(1, 1, new Color(0.25f, 0.45f, 0.15f, 0.4f));
+        Sprite grassSprite = grassResult.sprite;
+        _dynamicTextures.Add(grassResult.texture);
+        _dynamicSprites.Add(grassSprite);
+
         // Scattered grass patches (small colored quads)
         for (int i = 0; i < 80; i++)
         {
             var pos = GetRandomPosition(5f);
-            CreateGrassPatch(decoParent, $"Grass_{i}", pos);
+            CreateGrassPatch(decoParent, $"Grass_{i}", pos, grassSprite);
         }
     }
 
-    private void CreateGrassPatch(GameObject parent, string name, Vector2 position)
+    private void CreateGrassPatch(GameObject parent, string name, Vector2 position, Sprite sprite)
     {
         var obj = new GameObject(name);
         obj.transform.SetParent(parent.transform);
         obj.transform.position = new Vector3(position.x, position.y, 0f);
 
         var sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateColorSprite(1, 1, new Color(0.25f, 0.45f, 0.15f, 0.4f));
+        sr.sprite = sprite;
         sr.sortingOrder = -1; // Behind obstacles
 
         float scale = Random.Range(0.8f, 2.5f);
@@ -265,8 +273,27 @@ public class MapManager : MonoBehaviour
         obj.transform.Rotate(0f, 0f, Random.Range(0f, 360f));
     }
 
-    /// <summary>Creates a small 1×1 solid-color sprite for decoration purposes.</summary>
-    private static Sprite CreateColorSprite(int width, int height, Color color)
+    // Track dynamically-created assets for cleanup
+    private readonly List<Texture2D> _dynamicTextures = new List<Texture2D>();
+    private readonly List<Sprite> _dynamicSprites = new List<Sprite>();
+    private Mesh _groundMesh;
+
+    private void OnDestroy()
+    {
+        foreach (var tex in _dynamicTextures)
+            DestroyHelper.Destroy(tex);
+        _dynamicTextures.Clear();
+        foreach (var sprite in _dynamicSprites)
+            DestroyHelper.Destroy(sprite);
+        _dynamicSprites.Clear();
+        if (_groundMesh != null)
+            DestroyHelper.Destroy(_groundMesh);
+    }
+
+    /// <summary>Creates a small solid-color sprite for decoration purposes.</summary>
+    private struct ColorSpriteResult { public Sprite sprite; public Texture2D texture; }
+
+    private static ColorSpriteResult CreateColorSprite(int width, int height, Color color)
     {
         var tex = new Texture2D(width, height);
         var pixels = new Color[width * height];
@@ -275,6 +302,10 @@ public class MapManager : MonoBehaviour
         tex.SetPixels(pixels);
         tex.Apply();
         tex.filterMode = FilterMode.Point;
-        return Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 1f);
+        return new ColorSpriteResult
+        {
+            sprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 1f),
+            texture = tex
+        };
     }
 }

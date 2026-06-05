@@ -125,4 +125,13 @@ public class ObjectPool<T> where T : Component
 
         _active.Clear();
     }
+
+    /// <summary>
+    /// Remove destroyed (Unity-null) objects from the active set.
+    /// Called after scene loads to clean up references to objects destroyed by Unity.
+    /// </summary>
+    public void PurgeDestroyedFromActive()
+    {
+        _active.RemoveWhere(obj => obj == null);
+    }
 }

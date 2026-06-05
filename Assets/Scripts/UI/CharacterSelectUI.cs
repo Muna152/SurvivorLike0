@@ -42,7 +42,12 @@ public class CharacterSelectUI : MonoBehaviour
 
             // Hide main menu first — it was shown in Awake and disabled HUD / set timeScale=0
             var mainMenu = FindObjectOfType<MainMenuUI>();
-            if (mainMenu != null) mainMenu.Hide();
+            if (mainMenu != null)
+            {
+                mainMenu.Hide();
+                // Re-enable HUD elements that were hidden by MainMenuUI.Show()
+                mainMenu.SetHUDEnabled(true);
+            }
 
             GameManager.Instance.StartGame(character);
             Hide();
@@ -92,6 +97,11 @@ public class CharacterSelectUI : MonoBehaviour
         var character = Characters[_selectedIndex];
         if (character == null) return;
         if (!UnlockManager.Instance.IsUnlocked(character.id)) return;
+
+        // Ensure HUD is visible before starting the game
+        var mainMenu = FindObjectOfType<MainMenuUI>();
+        if (mainMenu != null)
+            mainMenu.SetHUDEnabled(true);
 
         GameManager.Instance.StartGame(character);
         Hide();

@@ -123,4 +123,17 @@ public class PoolManager : Singleton<PoolManager>
 
         _pools.Clear();
     }
+
+    /// <summary>
+    /// Remove destroyed (null) objects from the active sets of all pools.
+    /// Call periodically or after scene loads to prevent stale reference accumulation.
+    /// </summary>
+    public void PurgeDestroyedFromActive()
+    {
+        foreach (var kvp in _pools)
+        {
+            var purgeMethod = kvp.Value.GetType().GetMethod("PurgeDestroyedFromActive");
+            purgeMethod?.Invoke(kvp.Value, null);
+        }
+    }
 }

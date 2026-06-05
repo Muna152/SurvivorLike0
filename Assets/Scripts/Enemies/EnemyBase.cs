@@ -28,6 +28,8 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
 
     // Enemies that die during iteration — removed after the loop completes
     private static readonly List<EnemyBase> _pendingRemoves = new List<EnemyBase>();
+    // Enemies that spawn during iteration — added after the loop completes
+    private static readonly List<EnemyBase> _pendingAdds = new List<EnemyBase>();
 
     /// <summary>PlayerStats reference for subclasses (e.g. BossEnemy) to use in Die().</summary>
     protected static PlayerStats CachedPlayerStats => _cachedPlayerStats;
@@ -65,6 +67,8 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     private int _lodFrameOffset;       // Random offset so far enemies don't all update on the same frame
     private bool _isFarLOD;            // Cached: is this enemy in the far LOD tier?
     private float _lodAccumulatedDelta; // Accumulated fixedDeltaTime for skipped frames
+    /// <summary>Public accessor for far LOD state (used by EnemyManager separation pass).</summary>
+    public bool IsFarLOD => _isFarLOD;
     private const float LOD_FAR_DISTANCE = 25f; // Beyond this distance, enemy enters far LOD
     private const int LOD_FAR_INTERVAL = 5;     // Far enemies update every N FixedFrames
     private int _lastLODCheckFrame = -1;         // Frame of last distance check
@@ -86,6 +90,21 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     }
 
     /// <summary>
+    /// Add an enemy to the active set. If currently iterating, defers addition.
+    /// </summary>
+    private static void SafeAdd(EnemyBase enemy)
+    {
+        if (IsIterating)
+        {
+            _pendingAdds.Add(enemy);
+        }
+        else
+        {
+            _activeEnemies.Add(enemy);
+        }
+    }
+
+    /// <summary>
     /// Remove an enemy from the active set. If currently iterating, defers removal.
     /// </summary>
     private static void SafeRemove(EnemyBase enemy)
@@ -101,11 +120,15 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     }
 
     /// <summary>
-    /// Flush any deferred removals after iteration completes.
+    /// Flush any deferred additions and removals after iteration completes.
     /// Called by EnemyManager after each tick loop.
     /// </summary>
     public static void FlushPendingRemoves()
     {
+        for (int i = 0; i < _pendingAdds.Count; i++)
+            _activeEnemies.Add(_pendingAdds[i]);
+        _pendingAdds.Clear();
+
         for (int i = 0; i < _pendingRemoves.Count; i++)
             _activeEnemies.Remove(_pendingRemoves[i]);
         _pendingRemoves.Clear();
@@ -149,7 +172,7 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
         _currentHP = data.baseHP * hpScale;
         _moveSpeed = data.moveSpeed * speedScale;
 
-        _activeEnemies.Add(this);
+        SafeAdd(this);
         SpatialGrid.Register(this);
 
         // Compute separation radius from data or sprite

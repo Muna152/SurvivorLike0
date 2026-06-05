@@ -30,7 +30,7 @@ MonoBehaviour:
   bossPhaseTransitionDuration: 0.5
   minSpawnDistance: 15
   maxSpawnDistance: 25
-  maxEnemiesOnScreen: 500
+  maxEnemiesOnScreen: 200
   eliteWaveInterval: 360
   bossSpawnDistance: 18
   baseBatchSize: 3
@@ -61,7 +61,7 @@ MonoBehaviour:
   healthRestoreAmount: 20
   magnetDropDuration: 10
   magnetDropPickupBoost: 5
-  maxDropsPerFrame: 6
+  maxDropsPerFrame: 12
   dropMergeRadius: 2.5
   dropAttractSpeed: 15
   dropCollectRadius: 0.5

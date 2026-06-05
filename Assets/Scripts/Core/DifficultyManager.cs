@@ -62,14 +62,22 @@ public class DifficultyManager : Singleton<DifficultyManager>
     public int EliteWaveCount { get; private set; }
 
     /// <summary>Increment elite wave counter (called by EnemySpawner).</summary>
-    public void OnEliteWaveSpawned() => EliteWaveCount++;
+    public void OnEliteWaveSpawned()
+    {
+        EliteWaveCount++;
+        _accumulatedDecayTimer = 0f;
+    }
 
     /// <summary>Reset all difficulty state (called when a new run starts).</summary>
     public void ResetDifficulty()
     {
         EliteWaveCount = 0;
         _lastWholeMinute = 0;
+        _accumulatedDecayTimer = 0f;
     }
+
+    // Elite wave decay: reduce bonus over time between elite waves
+    private float _accumulatedDecayTimer;
 
     private void Update()
     {
@@ -80,6 +88,19 @@ public class DifficultyManager : Singleton<DifficultyManager>
         {
             _lastWholeMinute = currentMinute;
             GameEvents.InvokeDifficultyChanged(currentMinute);
+        }
+
+        // Elite wave bonus decay: each minute without an elite wave, reduce the count
+        var cfg = GameBalanceConfig.Instance;
+        int decayRate = cfg != null ? cfg.eliteWaveDecayPerWave : 1;
+        if (decayRate > 0 && EliteWaveCount > 0)
+        {
+            _accumulatedDecayTimer += Time.deltaTime;
+            if (_accumulatedDecayTimer >= 60f) // Every 60 seconds
+            {
+                EliteWaveCount = Mathf.Max(0, EliteWaveCount - decayRate);
+                _accumulatedDecayTimer = 0f;
+            }
         }
     }
 }

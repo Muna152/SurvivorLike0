@@ -29,12 +29,15 @@ public class WeaponEvolutionVFX : MonoBehaviour
 
     private IEnumerator PlayEvolutionEffect(Vector3 position)
     {
+        var circleSprite = GetCachedCircleSprite();
+        if (circleSprite == null) yield break;
+
         // Create flash object
         var flashObj = new GameObject("EvolutionFlash");
         flashObj.transform.position = position;
 
         var sr = flashObj.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateCircleSprite();
+        sr.sprite = circleSprite;
         sr.color = _flashColor;
         sr.sortingOrder = 100;
         sr.drawMode = SpriteDrawMode.Sliced;
@@ -49,7 +52,7 @@ public class WeaponEvolutionVFX : MonoBehaviour
             pObj.transform.SetParent(flashObj.transform, false);
 
             var pSr = pObj.AddComponent<SpriteRenderer>();
-            pSr.sprite = CreateCircleSprite();
+            pSr.sprite = circleSprite;
             pSr.color = _flashColor;
             pSr.sortingOrder = 101;
             pSr.transform.localScale = Vector3.one * 0.3f;
@@ -95,8 +98,14 @@ public class WeaponEvolutionVFX : MonoBehaviour
         Destroy(flashObj);
     }
 
-    private static Sprite CreateCircleSprite()
+    // Cached circle sprite + texture to avoid leaking Texture2D every evolution
+    private static Sprite _cachedCircleSprite;
+    private static Texture2D _cachedCircleTex;
+
+    private static Sprite GetCachedCircleSprite()
     {
+        if (_cachedCircleSprite != null) return _cachedCircleSprite;
+
         int size = 32;
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
         Color[] pixels = new Color[size * size];
@@ -114,6 +123,15 @@ public class WeaponEvolutionVFX : MonoBehaviour
         tex.SetPixels(pixels);
         tex.Apply();
         tex.filterMode = FilterMode.Bilinear;
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        _cachedCircleTex = tex;
+        _cachedCircleSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        return _cachedCircleSprite;
+    }
+
+    /// <summary>Destroy cached sprite and texture. Call on session end.</summary>
+    public static void ClearStaticCache()
+    {
+        if (_cachedCircleSprite != null) { DestroyHelper.Destroy(_cachedCircleSprite); _cachedCircleSprite = null; }
+        if (_cachedCircleTex != null) { DestroyHelper.Destroy(_cachedCircleTex); _cachedCircleTex = null; }
     }
 }

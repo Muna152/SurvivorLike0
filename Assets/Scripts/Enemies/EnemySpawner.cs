@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Spawns enemy waves around the player at configurable intervals.
@@ -17,6 +18,9 @@ public class EnemySpawner : MonoBehaviour
     private readonly List<WeightedRandom.WeightedItem<EnemyData>> _availableBuffer
         = new List<WeightedRandom.WeightedItem<EnemyData>>();
 
+    /// <summary>True when enemy count has reached the cap and spawning is paused.</summary>
+    public bool IsSpawnCapped { get; private set; }
+
     // Cached from EnemyDatabase
     private EnemyData[] _enemyPool;
     private EnemyData _skeletonKingData;
@@ -33,7 +37,20 @@ public class EnemySpawner : MonoBehaviour
         // Ensure EnemyManager exists so the centralized tick loop runs
         _ = EnemyManager.Instance;
 
-        RegisterEnemyPools();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Defer pool registration — other systems (VFXManager, DropManager) may clear
+        // pools in their own sceneLoaded callbacks, which can run after ours.
+        // Setting the flag to false lets Update re-register lazily when safe.
+        _poolsRegistered = false;
     }
 
     private void Start()
@@ -73,6 +90,14 @@ public class EnemySpawner : MonoBehaviour
     {
         if (_player == null) return;
         if (GameManager.Instance != null && !GameManager.Instance.IsPlaying) return;
+
+        // Lazy pool registration — ensures pools exist before any spawning.
+        // Handles delayed init and scene-load re-registration after other systems have cleared pools.
+        if (!_poolsRegistered)
+            RegisterEnemyPools();
+
+        if (_enemyPool == null || _enemyPool.Length == 0)
+            return;
 
         // Regular spawn
         _spawnTimer -= Time.deltaTime;
@@ -160,8 +185,10 @@ public class EnemySpawner : MonoBehaviour
     {
         if (_poolsRegistered) return;
         if (_enemyPool == null)
+            LoadEnemyData();
+        if (_enemyPool == null)
         {
-            Debug.LogError("[EnemySpawner] _enemyPool is null! Cannot register pools.");
+            Debug.LogWarning("[EnemySpawner] _enemyPool is still null after LoadEnemyData — skipping pool registration.");
             return;
         }
 
@@ -208,7 +235,12 @@ public class EnemySpawner : MonoBehaviour
         float minDist = cfg != null ? cfg.minSpawnDistance : 15f;
         float maxDist = cfg != null ? cfg.maxSpawnDistance : 25f;
 
-        if (EnemyBase.ActiveEnemyCount >= maxEnemies) return;
+        if (EnemyBase.ActiveEnemyCount >= maxEnemies)
+        {
+            IsSpawnCapped = true;
+            return;
+        }
+        IsSpawnCapped = false;
 
         float minutes = GameManager.Instance.ElapsedTime / 60f;
 

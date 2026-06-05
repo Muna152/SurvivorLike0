@@ -64,7 +64,7 @@ public class GameBalanceConfig : ScriptableObject
     [Tooltip("Maximum spawn distance from player")]
     public float maxSpawnDistance = 25f;
     [Tooltip("Global enemy cap on screen")]
-    public int maxEnemiesOnScreen = 500;
+    public int maxEnemiesOnScreen = 200;
     [Tooltip("Elite wave interval (seconds)")]
     public float eliteWaveInterval = 300f;
     [Tooltip("Boss spawn distance from player")]
@@ -83,6 +83,8 @@ public class GameBalanceConfig : ScriptableObject
     public int eliteWaveCap = 20;
     [Tooltip("Elite wave bonus per previous wave")]
     public int eliteWaveBonusPerWave = 2;
+    [Tooltip("Elite wave bonus decays by this amount each non-elite wave (0 = no decay)")]
+    public int eliteWaveDecayPerWave = 1;
 
     [Header("Area Weapon")]
     [Tooltip("Tick interval (seconds) for AreaWeapon damage/healing pulses")]
@@ -133,7 +135,7 @@ public class GameBalanceConfig : ScriptableObject
     public float magnetDropPickupBoost = 5f;
 
     [Header("Drop Performance")]
-    public int maxDropsPerFrame = 6;
+    public int maxDropsPerFrame = 12;
     public float dropMergeRadius = 2.5f;
 
     [Header("Drop Physics")]

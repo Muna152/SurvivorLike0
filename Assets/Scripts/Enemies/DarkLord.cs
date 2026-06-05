@@ -58,36 +58,29 @@ public class DarkLord : BossEnemy
                 return obj.GetComponent<BossProjectile>();
             },
             bp => { bp.ResetForReuse(); bp.gameObject.SetActive(false); },
-            prewarmCount: 20,
-            maxSize: 80
+            prewarmCount: 30,
+            maxSize: 120
         );
 
         _projectilePoolRegistered = true;
     }
 
-    /// <summary>Get a pooled BossProjectile, or Instantiate as fallback.</summary>
+    /// <summary>Get a pooled BossProjectile. Returns null if pool is exhausted.</summary>
     private BossProjectile GetPooledProjectile(Vector2 position)
     {
-        BossProjectile bp = null;
         if (_projectilePoolRegistered && PoolManager.HasInstance)
         {
-            bp = PoolManager.Instance.Get<BossProjectile>(_projectilePoolKey);
+            var bp = PoolManager.Instance.Get<BossProjectile>(_projectilePoolKey);
+            if (bp != null)
+            {
+                bp.transform.position = position;
+                bp.transform.rotation = Quaternion.identity;
+                bp.SetPoolKey(_projectilePoolKey);
+                return bp;
+            }
         }
 
-        if (bp == null)
-        {
-            // Fallback: instantiate directly
-            GameObject proj = Instantiate(_projectilePrefab, position, Quaternion.identity);
-            bp = proj.GetComponent<BossProjectile>();
-        }
-        else
-        {
-            bp.transform.position = position;
-            bp.transform.rotation = Quaternion.identity;
-            bp.SetPoolKey(_projectilePoolKey);
-        }
-
-        return bp;
+        return null;
     }
 
     public override void OnFixedTick(float dt)
@@ -226,7 +219,7 @@ public class DarkLord : BossEnemy
 
         for (int i = 0; i < count; i++)
         {
-            if (EnemyBase.ActiveEnemyCount >= 490) break;
+            if (EnemyBase.ActiveEnemyCount >= (GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.maxEnemiesOnScreen - 10 : 190)) break;
 
             float angle = (360f / count) * i * Mathf.Deg2Rad;
             Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 4f;

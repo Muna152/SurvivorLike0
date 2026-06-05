@@ -56,8 +56,8 @@ public class SkeletonKing : BossEnemy
                 return obj.GetComponent<BossShockwave>();
             },
             sw => { sw.ResetForReuse(); sw.gameObject.SetActive(false); },
-            prewarmCount: 5,
-            maxSize: 15
+            prewarmCount: 8,
+            maxSize: 20
         );
 
         _shockwavePoolRegistered = true;
@@ -116,7 +116,7 @@ public class SkeletonKing : BossEnemy
             Vector2 spawnPos = (Vector2)transform.position + offset;
 
             // Check enemy cap
-            if (EnemyBase.ActiveEnemyCount >= 490) break;
+            if (EnemyBase.ActiveEnemyCount >= (GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.maxEnemiesOnScreen - 10 : 190)) break;
 
             var enemyObj = PoolManager.Instance.Get<EnemyBase>(summonData.enemyName);
             if (enemyObj != null)
@@ -127,7 +127,7 @@ public class SkeletonKing : BossEnemy
         }
     }
 
-    /// <summary>Create expanding shockwave around the boss.</summary>
+    /// <summary>Get a pooled BossShockwave. Returns null if pool is exhausted.</summary>
     private void ShockwaveAttack()
     {
         if (_shockwavePrefab == null) return;
@@ -138,13 +138,7 @@ public class SkeletonKing : BossEnemy
             sw = PoolManager.Instance.Get<BossShockwave>(_shockwavePoolKey);
         }
 
-        if (sw == null)
-        {
-            // Fallback: instantiate directly
-            GameObject shockwave = Instantiate(_shockwavePrefab, transform.position, Quaternion.identity);
-            sw = shockwave.GetComponent<BossShockwave>();
-        }
-        else
+        if (sw != null)
         {
             sw.transform.position = transform.position;
             sw.transform.rotation = Quaternion.identity;

@@ -613,7 +613,7 @@ public class MainMenuUI : MonoBehaviour
 
     // ── HUD Visibility ──────────────────────────────────────────
 
-    private void SetHUDEnabled(bool enabled)
+    public void SetHUDEnabled(bool enabled)
     {
         if (_hudCanvas == null) return;
 

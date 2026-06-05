@@ -41,6 +41,11 @@ public class DropManager : Singleton<DropManager>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         _pending.Clear();
+
+        // Clear stale pool state from previous scene
+        if (PoolManager.HasInstance)
+            PoolManager.Instance.ClearAll();
+
         RegisterDropPools();
     }
 
@@ -165,13 +170,16 @@ public class DropManager : Singleton<DropManager>
             }
         }
 
-        // No merge candidate — add new request
-        _pending.Add(new PendingDrop
+        // No merge candidate — add new request (cap queue size to prevent unbounded growth)
+        if (_pending.Count < 500)
         {
-            Type = type,
-            Position = pos,
-            Value = value
-        });
+            _pending.Add(new PendingDrop
+            {
+                Type = type,
+                Position = pos,
+                Value = value
+            });
+        }
     }
 
     private void Update()
