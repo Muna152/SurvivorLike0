@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 /// Singleton drop manager: queues drop requests and spawns them
 /// over multiple frames to avoid mass-instantiation spikes.
 /// Nearby EXP/Gold drops are merged to reduce total object count.
+/// Centralizes Tick() for all active drops to eliminate per-instance Update() overhead.
 /// All tuning values read from GameBalanceConfig (Resources/GameBalanceConfig).
 /// </summary>
 public class DropManager : Singleton<DropManager>
@@ -31,6 +32,9 @@ public class DropManager : Singleton<DropManager>
 
     private readonly List<PendingDrop> _pending = new List<PendingDrop>(64);
 
+    // Active drops tracked for centralized Tick
+    private readonly List<DropBase> _activeDrops = new List<DropBase>(128);
+
     protected override void Awake()
     {
         base.Awake();
@@ -41,6 +45,7 @@ public class DropManager : Singleton<DropManager>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         _pending.Clear();
+        _activeDrops.Clear();
 
         // Clear stale pool state from previous scene
         if (PoolManager.HasInstance)
@@ -184,40 +189,82 @@ public class DropManager : Singleton<DropManager>
 
     private void Update()
     {
-        if (_pending.Count == 0) return;
-
-        var cfg = GameBalanceConfig.Instance;
-        int maxSpawns = cfg != null ? cfg.maxDropsPerFrame : 6;
-        int spawned = 0;
-        int startIdx = 0;
-
-        while (startIdx < _pending.Count && spawned < maxSpawns)
+        // Spawn pending drops
+        if (_pending.Count > 0)
         {
-            PendingDrop drop = _pending[startIdx];
+            var cfg = GameBalanceConfig.Instance;
+            int maxSpawns = cfg != null ? cfg.maxDropsPerFrame : 6;
+            int spawned = 0;
+            int startIdx = 0;
 
-            string poolKey = drop.Type.ToString();
-            var dropObj = PoolManager.Instance.Get<DropBase>(poolKey);
-            if (dropObj != null)
+            while (startIdx < _pending.Count && spawned < maxSpawns)
             {
-                dropObj.transform.position = drop.Position;
-                dropObj.SetValue(drop.Value);
-                dropObj.SetType(drop.Type);
+                PendingDrop drop = _pending[startIdx];
 
-                // Apply magnet config
-                if (drop.Type == DropBase.DropType.Magnet)
+                string poolKey = drop.Type.ToString();
+                var dropObj = PoolManager.Instance.Get<DropBase>(poolKey);
+                if (dropObj != null)
                 {
-                    dropObj.SetMagnetConfig(drop.MagnetDuration, drop.MagnetPickupBoost);
+                    dropObj.transform.position = drop.Position;
+                    dropObj.SetValue(drop.Value);
+                    dropObj.SetType(drop.Type);
+
+                    // Apply magnet config
+                    if (drop.Type == DropBase.DropType.Magnet)
+                    {
+                        dropObj.SetMagnetConfig(drop.MagnetDuration, drop.MagnetPickupBoost);
+                    }
+
+                    // Register for centralized tick
+                    _activeDrops.Add(dropObj);
                 }
+
+                // Remove by swapping with last (O(1) removal)
+                int lastIdx = _pending.Count - 1;
+                if (startIdx != lastIdx)
+                    _pending[startIdx] = _pending[lastIdx];
+                _pending.RemoveAt(lastIdx);
+
+                // Don't increment startIdx — we swapped a new element into startIdx
+                spawned++;
             }
+        }
 
-            // Remove by swapping with last (O(1) removal)
-            int lastIdx = _pending.Count - 1;
-            if (startIdx != lastIdx)
-                _pending[startIdx] = _pending[lastIdx];
-            _pending.RemoveAt(lastIdx);
+        // Tick all active drops centrally
+        if (_activeDrops.Count > 0)
+        {
+            float dt = Time.deltaTime;
+            for (int i = _activeDrops.Count - 1; i >= 0; i--)
+            {
+                var drop = _activeDrops[i];
+                if (drop == null || !drop.isActiveAndEnabled)
+                {
+                    // Already collected/returned — clean up stale entry
+                    _activeDrops.RemoveAt(i);
+                    continue;
+                }
 
-            // Don't increment startIdx — we swapped a new element into startIdx
-            spawned++;
+                drop.Tick(dt);
+
+                // If Tick caused collection, the drop unregistered itself via ReturnToPool
+                // Check if it's still in the list (fast path: remove from end)
+                if (i < _activeDrops.Count && _activeDrops[i] != drop)
+                    i++; // The swap-remove in UnregisterDrop shifted items; re-check current index
+            }
+        }
+    }
+
+    /// <summary>Unregister a drop from the tick list (called by DropBase.ReturnToPool).</summary>
+    public void UnregisterDrop(DropBase drop)
+    {
+        int idx = _activeDrops.IndexOf(drop);
+        if (idx >= 0)
+        {
+            // Swap-remove for O(1)
+            int lastIdx = _activeDrops.Count - 1;
+            if (idx != lastIdx)
+                _activeDrops[idx] = _activeDrops[lastIdx];
+            _activeDrops.RemoveAt(lastIdx);
         }
     }
 }

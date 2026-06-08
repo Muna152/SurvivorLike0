@@ -1,5 +1,9 @@
 # AI 可读文档体系规范
 
+> ⚠️ **状态说明**：本文档描述的是 Docs 的目标目录结构（`gdd/`、`tdd/`、`feature-specs/`、`exec-plans/` 等）。
+> **当前 Docs 仍为扁平单文件结构**（GDD.md、TDD.md、ROADMAP.md、TASKS.md），尚未按此规范拆分。
+> 拆分工作属于未来重构任务，不属于当前迭代范围。
+>
 > 本文档是 AI 智能体开发时必须遵守的文档结构与读写规范。
 > 来源：DOCUMENTATION_GUIDE.md §10，本文档可独立使用。
 
@@ -488,4 +492,4 @@ public class ObjectPool<T> where T : Component
 
 ---
 
-*本文档版本：v1.0 | 创建日期：2025-05-16 | 独立于 DOCUMENTATION_GUIDE.md 使用*
+*本文档版本：v1.1 | 创建日期：2025-05-16 | 最后更新：2026-06-08 (添加当前状态说明) | 独立于 DOCUMENTATION_GUIDE.md 使用*

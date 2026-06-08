@@ -51,7 +51,11 @@ public class MainMenuUI : MonoBehaviour
     {
         _characterSelectUI = FindObjectOfType<CharacterSelectUI>();
         _hudController = FindObjectOfType<HUDController>();
-        _hudCanvas = FindObjectOfType<Canvas>()?.gameObject;
+
+        // Do NOT reassign _hudCanvas here — FindObjectOfType<Canvas>() may return
+        // a nested sub-Canvas (e.g. ChestOpenCanvas) instead of the root HUD Canvas,
+        // which would cause SetHUDEnabled to toggle the wrong children.
+        // _hudCanvas was already correctly set in Awake() via GetComponentInParent<Canvas>().
 
         if (GameManager.HasInstance && GameManager.Instance.CurrentState != GameManager.GameState.Menu)
         {

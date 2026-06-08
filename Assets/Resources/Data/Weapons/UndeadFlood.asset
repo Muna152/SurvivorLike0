@@ -16,7 +16,7 @@ MonoBehaviour:
   weaponName: UndeadFlood
   description: "\u4EA1\u7075\u6D2A\u6D41\uFF0C\u591A\u4E2A\u5730\u9762\u4F24\u5BB3\u533A\u57DF\uFF0C\u8FDB\u5316\u81EA\u5723\u6C34"
   weaponType: 2
-  areaSubType: 2
+  areaSubType: 3
   icon: {fileID: 21300000, guid: 52506148003b81f429944b097217e841, type: 3}
   projectilePrefab: {fileID: 5628126384031220068, guid: 36e88cc27c1c87048881fbbd00871e54, type: 3}
   spreadAngle: 30

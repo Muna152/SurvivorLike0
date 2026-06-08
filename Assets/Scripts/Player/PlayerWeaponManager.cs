@@ -128,6 +128,13 @@ public class PlayerWeaponManager : MonoBehaviour
             child.transform.localPosition = Vector3.zero;
 
             WeaponBase evolvedWeapon = CreateWeaponComponent(child, evolvedData);
+            if (evolvedWeapon == null)
+            {
+                Debug.LogError($"Failed to create weapon component for evolved weapon: {evolvedName} (type: {evolvedData.weaponType}, areaSubType: {evolvedData.areaSubType})");
+                Destroy(child);
+                continue;
+            }
+
             evolvedWeapon.Initialize(evolvedData, stats);
             _weapons.Insert(i, evolvedWeapon);
 

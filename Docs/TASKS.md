@@ -1003,7 +1003,7 @@
 ### T4.6 Bug 修复与打磨
 
 #### T4.6.1 边界情况处理
-- **状态**: 🔧
+- **状态**: ✅ (子项全部完成)
 - **验收**: 处理：玩家死亡时武器仍在攻击；升级界面重复弹出；敌人重叠卡住等
 
 #### T4.6.1a 玩家超出地图边界
@@ -1040,10 +1040,10 @@
 - **验收**: 升级界面有入场动画；BOSS出现警告动画；场景切换过渡
 
 #### T4.6.3a 宝箱开箱系统 (VS-like)
-- **状态**: ⬜
+- **状态**: ✅
 - **依赖**: T2.4.2, T3.5.2, T4.3.1
-- **产物**: `Scripts/Upgrades/ChestOpenUI.cs`, `Resources/VFX/ChestOpenEffect.prefab`, 更新 `Scripts/Drops/DropBase.cs`, `Scripts/Core/GameEvents.cs`, `Scripts/Player/PlayerWeaponManager.cs`, `Scripts/VFX/VFXManager.cs`, `Scripts/Core/AudioManager.cs`
-- **说明**: 参考 Vampire Survivors 的宝箱机制。拾取宝箱时暂停游戏（Time.timeScale=0），播放开箱动画（缩放+光效+粒子），使用 unscaledDeltaTime 驱动动画。判定内容：有可进化武器→触发进化+进化VFX；无进化→随机升级一把已装备武器；全满级→给少量金币保底。结果文字显示2秒后淡出恢复游戏。GameEvents 新增 OnChestCollected 事件。PlayerWeaponManager 新增 UpgradeRandomWeapon() 方法。VFXManager 新增 ChestOpenEffect 池化特效。AudioManager 新增 chestOpen SFX。
+- **产物**: `Scripts/UI/ChestOpenUI.cs`, `Resources/VFX/ChestOpenEffect.prefab`, 更新 `Scripts/Drops/DropBase.cs`, `Scripts/Core/GameEvents.cs`, `Scripts/Player/PlayerWeaponManager.cs`, `Scripts/VFX/VFXManager.cs`, `Scripts/Core/AudioManager.cs`
+- **说明**: 参考 Vampire Survivors 的宝箱机制。拾取宝箱时暂停游戏（使用 GameManager.PushPause/PopPause 引用计数），播放开箱动画（缩放+光效+粒子），使用 unscaledDeltaTime 驱动动画（timeScale=0时不卡住）。判定内容：有可进化武器→触发进化+进化VFX；无进化→随机升级一把已装备武器（PlayerWeaponManager.UpgradeRandomWeapon()）；全满级→给少量金币保底。动画阶段：ChestAppear(0.3s, EaseOutBack)→ChestBurst(0.5s, 缩放1.3+闪光+粒子爆发)→ResultShow(2.0s, 结果文字+武器图标)→FadeOut(0.3s, 遮罩淡出)。GameEvents 新增 OnChestCollected 事件。VFXManager 新增 PlayChestOpenEffect()。AudioManager 新增 PlayChestOpenSFX()。
 - **验收**: 拾取宝箱→游戏暂停→开箱动画→显示进化/升级结果→恢复游戏；无进化时随机升级武器；全满级给金币保底
 
 #### T4.6.4 教程/提示系统
@@ -1081,7 +1081,7 @@
 
 ---
 
-*文档版本: v2.5 | 最后更新: 2026-05-09*
+*文档版本: v2.6 | 最后更新: 2026-06-08*
 
 ## 游戏体验优化日志
 

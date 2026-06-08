@@ -16,7 +16,7 @@ MonoBehaviour:
   weaponName: Holy Water
   description: Creates a damaging pool on the ground. Slows and damages enemies.
   weaponType: 2
-  areaSubType: 2
+  areaSubType: 3
   icon: {fileID: 21300000, guid: 29dd9253b3b59f2459801ed98cc65910, type: 3}
   projectilePrefab: {fileID: 4989992958906792961, guid: 11bffc1a6c8327e43ba338f18a2fc0e5, type: 3}
   spreadAngle: 30

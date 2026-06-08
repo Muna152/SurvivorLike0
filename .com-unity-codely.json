@@ -1,10 +1,10 @@
 {
-  "unity_port": 53871,
-  "stream_port": 51894,
+  "unity_port": 50883,
+  "stream_port": 51041,
   "created_date": "2026-03-30T06:50:18.2579380Z",
   "project_path": "C:/Users/xiaochen.liu/SurvivorLike0/Assets",
   "reloading": false,
   "reason": "ready",
   "seq": 1,
-  "last_heartbeat": "2026-06-05T02:41:28.9165684Z"
+  "last_heartbeat": "2026-06-08T03:53:13.6018811Z"
 }

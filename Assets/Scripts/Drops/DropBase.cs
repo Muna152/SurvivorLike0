@@ -71,11 +71,12 @@ public class DropBase : MonoBehaviour
         _magnetPickupBoost = pickupBoost;
     }
 
-    private void Update()
+    /// <summary>Called by DropManager each frame instead of per-instance Update().</summary>
+    public void Tick(float dt)
     {
         if (_collected || _cachedPlayer == null || _cachedPlayerStats == null) return;
 
-        _age += Time.deltaTime;
+        _age += dt;
 
         float pickupRange = _cachedPlayerStats.PickupRange;
         Vector2 playerPos = (Vector2)_cachedPlayer.transform.position;
@@ -100,14 +101,14 @@ public class DropBase : MonoBehaviour
         if (distSq <= attractRangeSq)
         {
             // Ease-in acceleration: starts slow, ramps up to full speed
-            _attractT = Mathf.Min(1f, _attractT + Time.deltaTime * 2.5f);
+            _attractT = Mathf.Min(1f, _attractT + dt * 2.5f);
             float eased = _attractT * _attractT; // quadratic ease-in
             float baseSpeed = _vacuuming ? _attractSpeed * 2f : _attractSpeed;
             float speed = baseSpeed * eased;
 
             float dist = Mathf.Sqrt(distSq);
             Vector2 dir = dist > 0.001f ? offsetToPlayer / dist : Vector2.up;
-            transform.position += (Vector3)(dir * speed * Time.deltaTime);
+            transform.position += (Vector3)(dir * speed * dt);
 
             // Re-check distance after move
             float newDistSq = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).sqrMagnitude;
@@ -157,6 +158,10 @@ public class DropBase : MonoBehaviour
 
     private void ReturnToPool()
     {
+        // Unregister from manager tick list before returning to pool
+        if (DropManager.HasInstance)
+            DropManager.Instance.UnregisterDrop(this);
+
         // Pool's resetAction will call ResetForReuse — don't call it here
         PoolManager.Instance.Return<DropBase>(_poolKey, this);
     }

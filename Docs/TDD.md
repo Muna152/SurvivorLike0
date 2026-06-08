@@ -737,7 +737,10 @@ Assets/
 │   │   ├── Singleton.cs               # 单例基类
 │   │   ├── WeightedRandom.cs          # 加权随机工具
 │   │   ├── GoldManager.cs             # 金币+永久升级管理 (静态工具类)
-│   │   └── StatsTracker.cs            # 统计数据追踪 (静态工具类)
+│   │   ├── StatsTracker.cs            # 统计数据追踪 (静态工具类)
+│   │   ├── DifficultyManager.cs        # 难度缩放系统
+│   │   ├── MapManager.cs              # 地图边界管理
+│   │   └── UnlockManager.cs          # 角色解锁管理 (Singleton, slot-aware)
 │   │
 │   ├── Player/                        # 玩家系统
 │   │   ├── PlayerController.cs        # 移动控制
@@ -754,6 +757,7 @@ Assets/
 │   │   ├── AuxiliaryWeapon.cs         # 辅助型武器
 │   │   ├── Projectile.cs              # 投射物
 │   │   ├── OrbitalObject.cs           # 轨道物体
+│   │   ├── WeaponEvolutionVFX.cs       # 武器进化特效
 │   │   ├── HolyLight.cs              # 圣光武器
 │   │   └── HolyWater.cs              # 圣水武器
 │   │
@@ -762,6 +766,12 @@ Assets/
 │   │   ├── EnemySpawner.cs            # 敌人生成器
 │   │   ├── EnemyManager.cs            # 敌人管理器
 │   │   ├── EliteEnemy.cs              # 精英敌人组件
+│   │   ├── BossEnemy.cs               # Boss基类
+│   │   ├── SkeletonKing.cs            # 骷髅王 Boss
+│   │   ├── DarkLord.cs                # 暗夜领主 Boss
+│   │   ├── DeathBoss.cs              # 死神 Boss
+│   │   ├── BossProjectile.cs          # Boss投射物
+│   │   ├── BossShockwave.cs           # Boss震击特效
 │   │   ├── MageEnemy.cs               # 法师敌人组件
 │   │   └── MageProjectile.cs          # 法师投射物
 │   │
@@ -773,8 +783,7 @@ Assets/
 │   │   ├── UpgradeManager.cs          # 升级管理器
 │   │   ├── UpgradeOption.cs           # 升级选项基类
 │   │   ├── UpgradeUI.cs              # 升级选择UI (CanvasGroup驱动显隐)
-│   │   ├── UpgradeCard.cs            # 升级卡片组件
-│   │   └── ChestOpenUI.cs            # 宝箱开箱UI (暂停+动画+结果展示)
+│   │   └── UpgradeCard.cs            # 升级卡片组件
 │   │
 │   ├── UI/                            # UI系统
 │   │   ├── HUDController.cs          # 战斗HUD (含EXP文字显示)
@@ -783,19 +792,38 @@ Assets/
 │   │   ├── PauseMenuController.cs     # 暂停菜单
 │   │   ├── ResultScreen.cs           # 结算界面
 │   │   ├── UpgradeShopUI.cs          # 永久升级商店 (编程式UI, CanvasGroup驱动)
+│   │   ├── ChestOpenUI.cs            # 宝箱开箱UI (暂停+动画+结果展示)
+│   │   └── BossHealthBar.cs          # BOSS血条UI
 │   │
-│   └── Data/                          # 数据定义
-│       ├── WeaponData.cs              # 武器数据SO
-│       ├── EnemyData.cs               # 敌人数据SO
-│       ├── CharacterData.cs           # 角色数据SO
-│       ├── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
-│       ├── GameBalanceConfig.cs       # 全局系统配置SO (Resources单例)
-│       ├── WeaponDatabase.cs         # 武器数据库SO (Resources单例)
-│       ├── EnemyDatabase.cs          # 敌人数据库SO (Resources单例)
-│       ├── CharacterDatabase.cs      # 角色数据库SO (Resources单例)
-│       ├── PassiveDatabase.cs        # 被动道具数据库SO (Resources单例)
-│       ├── SaveSlotManager.cs         # 存档栏位管理 (静态工具类)
-│       └── UnlockManager.cs          # 角色解锁管理 (Singleton, slot-aware)
+│   ├── UI/                            # UI系统
+│   │   ├── HUDController.cs          # 战斗HUD (含EXP文字显示)
+│   │   ├── MainMenuUI.cs             # 主菜单 + 存档管理面板
+│   │   ├── CharacterSelectUI.cs       # 角色选择界面
+│   │   ├── PauseMenuController.cs     # 暂停菜单
+│   │   ├── ResultScreen.cs           # 结算界面
+│   │   ├── UpgradeShopUI.cs          # 永久升级商店 (编程式UI, CanvasGroup驱动)
+│   │   └── BossHealthBar.cs          # BOSS血条UI
+│   │
+│   ├── VFX/                           # 特效系统
+│   │   ├── VFXManager.cs              # 特效管理器
+│   │   ├── VFXBase.cs                 # 特效动画基类
+│   │   └── DamageNumber.cs            # 伤害数字 (TextMesh)
+│   │
+│   ├── Data/                          # 数据定义 (ScriptableObject C# 类)
+│   │   ├── WeaponData.cs              # 武器数据SO
+│   │   ├── EnemyData.cs               # 敌人数据SO
+│   │   ├── CharacterData.cs           # 角色数据SO
+│   │   ├── PassiveData.cs             # 被动道具数据SO (含StatType枚举)
+│   │   ├── GameBalanceConfig.cs       # 全局系统配置SO (Resources单例)
+│   │   ├── WeaponDatabase.cs          # 武器数据库SO (Resources单例)
+│   │   ├── EnemyDatabase.cs           # 敌人数据库SO (Resources单例)
+│   │   ├── CharacterDatabase.cs       # 角色数据库SO (Resources单例)
+│   │   ├── PassiveDatabase.cs         # 被动道具数据库SO (Resources单例)
+│   │   ├── SaveSlotManager.cs         # 存档栏位管理 (静态工具类)
+│   │   └── DropTableData.cs          # 掉落表配置SO
+│   │
+│   └── Audio/                         # 音频系统
+│       └── AudioManager.cs            # 音效管理器 (BGM交叉淡入淡出+SFX轮转池)
 │
 ├── Resources/                         # Resources.Load 加载入口
 │   ├── GameBalanceConfig.asset        # 全局系统配置 (单例SO)
@@ -804,12 +832,15 @@ Assets/
 │   │   ├── EnemyDatabase.asset        # 敌人数据库 (引用所有EnemyData)
 │   │   ├── CharacterDatabase.asset    # 角色数据库 (引用所有CharacterData)
 │   │   ├── PassiveDatabase.asset      # 被动道具数据库 (引用所有PassiveData)
-│   │   ├── Weapons/                   #   WeaponData (6基础+6进化)
-│   │   ├── Enemies/                   #   EnemyData (6敌人)
-│   │   ├── Bosses/                    #   EnemyData (3Boss)
-│   │   ├── Characters/                #   CharacterData (5角色)
-│   │   └── Passives/                  #   PassiveData (8被动道具)
+│   │   ├── Weapons/                   #   WeaponData (6基础+6进化) — 12个 .asset
+│   │   ├── Enemies/                   #   EnemyData (6敌人) — 6个 .asset
+│   │   ├── Characters/                #   CharacterData (5角色) — 5个 .asset
+│   │   └── Passives/                  #   PassiveData (8被动道具) — 8个 .asset
 │   └── VFX/                           # VFX 预制体 (对象池加载)
+│       ├── HitEffect.prefab
+│       ├── SlashVFX.prefab / TrailVFX.prefab / ExplosionVFX.prefab ...
+│       ├── EnemyDeath.prefab
+│       └── ExpPickup.prefab / LevelUp.prefab / EvolveEffect.prefab
 │
 ├── Prefabs/
 │   ├── Player/
@@ -832,8 +863,7 @@ Assets/
 │       └── Enemies/
 │
 ├── Scenes/
-│   ├── MainMenu.unity
-│   └── GameLevel.unity
+│   └── GameLevel.unity               # 主游戏场景 (主菜单为编程式UI，无独立场景)
 │
 ├── Audio/
 │   ├── BGM/
@@ -841,6 +871,8 @@ Assets/
 │
 └── Fonts/
 ```
+
+> **注意**：ChestOpenUI（宝箱开箱系统）尚未实现，故 Upgrades/ 下无对应文件。Boss 子目录（Bosses/）的 SO 资产已移至 Resources/Data/Enemies/ 统一管理。
 
 ---
 
@@ -1251,4 +1283,4 @@ public class SaveManager
 
 ---
 
-*文档版本: v1.4 | 最后更新: 2026-05-12*
+*文档版本: v1.5 | 最后更新: 2026-06-08*
