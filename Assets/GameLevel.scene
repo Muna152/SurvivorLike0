@@ -31323,15 +31323,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0dfc45aea73bbf84b8b53591c0a98625, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sfxThrottle: 0.05
+  masterVolume: 1
+  bgmVolume: 0.5
+  sfxVolume: 0.7
+  ambientVolume: 1
+  uiVolume: 1
+  sfxSourceCount: 12
   menuTheme: {fileID: 8300000, guid: db7ac020e4dd1694191d1de72cff7b1d, type: 3}
   battleTheme: {fileID: 8300000, guid: 8cc81e2ddca7a8f448c78bc856eed917, type: 3}
   bossTheme: {fileID: 8300000, guid: 24c40e327acae854d91bc39548842e17, type: 3}
-  weaponSword: {fileID: 8300000, guid: 31feab2d5feaa3847a6dd67ebc3b206a, type: 3}
-  weaponKnife: {fileID: 8300000, guid: 35ce21e84f9ed6246a09dc485f8fa920, type: 3}
-  weaponShield: {fileID: 8300000, guid: 384eddbebae0bea4b822b517079f2994, type: 3}
-  weaponEnergy: {fileID: 8300000, guid: b60cc42639b3196468d54cdf22279881, type: 3}
-  weaponHoly: {fileID: 8300000, guid: 69a6e087b1df9b64888795ade32bf8c8, type: 3}
-  weaponWater: {fileID: 8300000, guid: 21e21d0cfb97fdf4486442155b1c40b1, type: 3}
   enemyHit: {fileID: 8300000, guid: 92028ff0ee6ba4d45a0827fb25333af1, type: 3}
   enemyDie: {fileID: 8300000, guid: fe998630205790047a4704847b8cb1ab, type: 3}
   playerHit: {fileID: 8300000, guid: cb3387bd4bd91544b83dbf4b4a51d8b2, type: 3}
@@ -31339,11 +31340,6 @@ MonoBehaviour:
   levelUp: {fileID: 8300000, guid: cfcf8a12099016942b41388da14b8b8b, type: 3}
   evolve: {fileID: 8300000, guid: 094ed573129bee24e94a3782e2903469, type: 3}
   chestOpen: {fileID: 0}
-  bgmVolume: 0.5
-  sfxVolume: 0.7
-  bgmFadeDuration: 1
-  sfxSourceCount: 12
-  sfxThrottle: 0.05
 --- !u!81 &1021473669
 AudioListener:
   m_ObjectHideFlags: 0
@@ -43566,7 +43562,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8b4f26e94b0bf0429b8c1ea4bf0a04c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _baseSpawnInterval: 1.5
+  _baseSpawnInterval: 0.8
   _bossSpawnDistance: 18
 --- !u!4 &1408426986
 Transform:

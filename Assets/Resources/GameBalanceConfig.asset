@@ -30,12 +30,12 @@ MonoBehaviour:
   bossPhaseTransitionDuration: 0.5
   minSpawnDistance: 15
   maxSpawnDistance: 25
-  maxEnemiesOnScreen: 200
-  eliteWaveInterval: 360
+  maxEnemiesOnScreen: 500
+  eliteWaveInterval: 300
   bossSpawnDistance: 18
-  baseBatchSize: 3
+  baseBatchSize: 8
   batchGrowthRate: 0.8
-  maxBatchSize: 15
+  maxBatchSize: 30
   eliteWaveMinCount: 2
   eliteWaveMaxCount: 4
   eliteWaveCap: 20
