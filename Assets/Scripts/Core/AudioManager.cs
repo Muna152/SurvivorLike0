@@ -10,6 +10,9 @@ public sealed class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
+    /// <summary>便捷属性：检查单例实例是否存在</summary>
+    public static bool HasInstance => Instance != null;
+
     // 节流控制
     public float sfxThrottle = 0.1f;
 
@@ -37,6 +40,21 @@ public sealed class AudioManager : MonoBehaviour
 
     // 音频池引用
     private AudioPool _audioPool;
+
+    // 音频Clip字段
+    [Header("BGM Clips")]
+    public AudioClip menuTheme;
+    public AudioClip battleTheme;
+    public AudioClip bossTheme;
+
+    [Header("Enemy & Environment SFX")]
+    public AudioClip enemyHit;
+    public AudioClip enemyDie;
+    public AudioClip playerHit;
+    public AudioClip expPickup;
+    public AudioClip levelUp;
+    public AudioClip evolve;
+    public AudioClip chestOpen;
 
     // 日志辅助（可选：可替换为更完善的日志系统）
     public static class DebugLogger
@@ -163,7 +181,7 @@ public sealed class AudioManager : MonoBehaviour
         if (_audioPool != null)
         {
             string key = clip.name;
-            _audioPool.Play(key, transform.position);
+            _audioPool.Play(key, transform.position, volumeScale);
         }
         else
         {
@@ -172,6 +190,12 @@ public sealed class AudioManager : MonoBehaviour
             src.PlayOneShot(clip, sfxVolume * volumeScale);
         }
     }
+
+    // ── Convenience Methods ─────────────────────────────────────
+    public void PlayMenuBGM() => PlayBGM(menuTheme);
+    public void PlayBattleBGM() => PlayBGM(battleTheme);
+    public void PlayBossBGM() => PlayBGM(bossTheme);
+    public void PlayChestOpenSFX() => PlaySFX(chestOpen);
 
     public void PlaySFX(AudioClip clip, Vector3 position, float volumeScale = 1f, bool spatialBlend = false)
     {
