@@ -25,12 +25,6 @@ public class HUDController : MonoBehaviour
     [Header("Auto-Pilot")]
     private Text _autoPilotText;
 
-    // Cached references for high-frequency UI updates
-    private Text _hpTextCached;
-    private Text _timerTextCached;
-    private Text _levelTextCached;
-    private Text _expTextCached;
-
     [Header("Enemy Count")]
     private Text _enemyCountText;
     private int _lastEnemyCount = -1;
@@ -42,10 +36,6 @@ public class HUDController : MonoBehaviour
 
     private PlayerStats _stats;
     private PlayerWeaponManager _weaponManager;
-
-    // Component cache for performance - avoid Find calls during runtime
-    private Image _hpSliderFill;
-    private Image _expSliderFill;
 
     // Cached values to detect changes and avoid redundant UI updates
     private float _lastHPDisplay = -1f;
@@ -76,26 +66,6 @@ public class HUDController : MonoBehaviour
 
         _stats = FindObjectOfType<PlayerStats>();
         _weaponManager = FindObjectOfType<PlayerWeaponManager>();
-
-        // Cache UI component references for performance
-        _hpTextCached = _hpText;
-        _timerTextCached = _timerText;
-        _levelTextCached = _levelText;
-        _expTextCached = _expText;
-
-        if (_hpSlider != null)
-        {
-            var fillTransform = _hpSlider.transform.Find("Fill");
-            if (fillTransform != null)
-                _hpSliderFill = fillTransform.GetComponent<Image>();
-        }
-
-        if (_expSlider != null)
-        {
-            var fillTransform = _expSlider.transform.Find("Fill Area/Fill");
-            if (fillTransform != null)
-                _expSliderFill = fillTransform.GetComponent<Image>();
-        }
 
         // Create gold text programmatically (next to timer area)
         if (_goldText == null && _timerText != null)
@@ -238,10 +208,6 @@ public class HUDController : MonoBehaviour
         {
             _hpSlider.maxValue = maxHp;
             _hpSlider.value = Mathf.Min(hp, maxHp);
-
-            // Use cached Image ref to directly update fill amount (more efficient)
-            if (_hpSliderFill != null)
-                _hpSliderFill.fillAmount = hp / maxHp;
         }
 
         if (_hpText != null)
