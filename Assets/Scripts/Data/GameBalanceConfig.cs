@@ -64,17 +64,17 @@ public class GameBalanceConfig : ScriptableObject
     [Tooltip("Maximum spawn distance from player")]
     public float maxSpawnDistance = 25f;
     [Tooltip("Global enemy cap on screen")]
-    public int maxEnemiesOnScreen = 200;
+    public int maxEnemiesOnScreen = 500;
     [Tooltip("Elite wave interval (seconds)")]
     public float eliteWaveInterval = 300f;
     [Tooltip("Boss spawn distance from player")]
     public float bossSpawnDistance = 18f;
     [Tooltip("Base batch size formula: floor(baseBatch + batchGrowthRate * minutes)")]
-    public int baseBatchSize = 3;
+    public int baseBatchSize = 8;
     [Tooltip("Batch size growth rate per minute")]
     public float batchGrowthRate = 0.8f;
     [Tooltip("Maximum batch size per wave")]
-    public int maxBatchSize = 15;
+    public int maxBatchSize = 30;
     [Tooltip("Minimum elite wave count")]
     public int eliteWaveMinCount = 5;
     [Tooltip("Maximum elite wave count (before cap)")]
