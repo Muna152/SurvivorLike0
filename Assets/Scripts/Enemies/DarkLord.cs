@@ -22,6 +22,7 @@ public class DarkLord : BossEnemy
     private int _attackPattern;
     private bool _projectilePoolRegistered;
     private string _projectilePoolKey;
+    private DifficultyManager _difficultyManager; // Cached to avoid repeated Singleton lock
 
     public override void Initialize(EnemyData data)
     {
@@ -33,6 +34,7 @@ public class DarkLord : BossEnemy
 
         base.Initialize(data);
         _attackPattern = 0;
+        _difficultyManager = DifficultyManager.HasInstance ? DifficultyManager.Instance : null;
         RegisterProjectilePool();
     }
 
@@ -144,7 +146,7 @@ public class DarkLord : BossEnemy
         Vector2 toPlayer = ((Vector2)player.transform.position - (Vector2)transform.position).normalized;
         float baseAngle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
 
-        float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+        float dmgScale = _difficultyManager != null ? _difficultyManager.DamageMultiplier : 1f;
         float damage = _projectileDamage * dmgScale;
 
         int count = _currentPhase >= 2 ? _fanCount + 3 : _fanCount;
@@ -169,7 +171,7 @@ public class DarkLord : BossEnemy
     {
         if (_projectilePrefab == null) return;
 
-        float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+        float dmgScale = _difficultyManager != null ? _difficultyManager.DamageMultiplier : 1f;
         float damage = _projectileDamage * dmgScale;
         int count = _currentPhase >= 2 ? _ringCount + 6 : _ringCount;
 

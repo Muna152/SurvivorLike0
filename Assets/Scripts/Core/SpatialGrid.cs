@@ -42,6 +42,13 @@ public static class SpatialGrid
         cy = (int)(pos.y * InvCellSize + (pos.y >= 0f ? 0.5f : -0.5f));
     }
 
+    /// <summary>Decompose a cell key back into its (cx, cy) coordinates.</summary>
+    public static void CellCoordFromKey(long key, out int cx, out int cy)
+    {
+        cx = (int)(key >> 32);
+        cy = (int)(key & 0xFFFFFFFF);
+    }
+
     public static long ComputeCellKey(Vector2 pos)
     {
         CellCoord(pos, out int cx, out int cy);
@@ -364,6 +371,37 @@ public static class SpatialGrid
         _cells.Clear();
         _registered.Clear();
         _queryResult.Clear();
+    }
+
+    // ── Cell iteration for batch operations (e.g. separation) ──────
+
+    /// <summary>
+    /// Iterates over all non-empty cells, passing cell key and enemy list to the callback.
+    /// Used by EnemyManager.SeparationPass for efficient cell-based pair processing.
+    /// The callback must NOT modify the list (read-only iteration).
+    /// </summary>
+    public static void IterateCells(System.Action<long, List<EnemyBase>> callback)
+    {
+        foreach (var kvp in _cells)
+        {
+            if (kvp.Value.Count > 0)
+                callback(kvp.Key, kvp.Value);
+        }
+    }
+
+    /// <summary>
+    /// Tries to get the enemy list for a specific cell key.
+    /// Returns true and the list if the cell exists and is non-empty.
+    /// </summary>
+    public static bool TryGetCell(long key, out List<EnemyBase> enemies)
+    {
+        if (_cells.TryGetValue(key, out var list) && list.Count > 0)
+        {
+            enemies = list;
+            return true;
+        }
+        enemies = null;
+        return false;
     }
 
     // ── Internals ──────────────────────────────────────────────────

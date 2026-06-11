@@ -15,11 +15,13 @@ public class MageEnemy : EnemyBase
     private float _fireCooldown;
     private bool _projectilePoolRegistered;
     private string _projectilePoolKey;
+    private DifficultyManager _difficultyManager; // Cached to avoid repeated Singleton lock
 
     public override void Initialize(EnemyData data)
     {
         base.Initialize(data);
         _fireCooldown = _fireRate;
+        _difficultyManager = DifficultyManager.HasInstance ? DifficultyManager.Instance : null;
         RegisterProjectilePool();
     }
 
@@ -27,6 +29,7 @@ public class MageEnemy : EnemyBase
     {
         base.ResetForReuse();
         _fireCooldown = _fireRate;
+        _difficultyManager = DifficultyManager.HasInstance ? DifficultyManager.Instance : null;
     }
 
     private void RegisterProjectilePool()
@@ -118,7 +121,7 @@ public class MageEnemy : EnemyBase
 
         if (mageProj != null)
         {
-            float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+            float dmgScale = _difficultyManager != null ? _difficultyManager.DamageMultiplier : 1f;
             mageProj.Initialize(_data.damage * dmgScale, _projectileSpeed, dir);
         }
     }

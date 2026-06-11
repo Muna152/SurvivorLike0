@@ -21,6 +21,9 @@ public class AudioPool : MonoBehaviour
     private Dictionary<string, List<AudioSource>> _activeSources = new Dictionary<string, List<AudioSource>>();
     private Transform _poolRoot;
 
+    // Reusable list for StopAll iteration — avoids allocating a copy each call
+    private static readonly List<AudioSource> _stopAllBuffer = new List<AudioSource>(16);
+
     private void Awake()
     {
         _poolRoot = transform;
@@ -138,13 +141,18 @@ public class AudioPool : MonoBehaviour
         // 停止所有激活的AudioSource
         if (_activeSources.ContainsKey(key))
         {
-            foreach (var source in new List<AudioSource>(_activeSources[key]))
+            var active = _activeSources[key];
+            _stopAllBuffer.Clear();
+            _stopAllBuffer.AddRange(active);
+            active.Clear();
+
+            for (int i = 0; i < _stopAllBuffer.Count; i++)
             {
+                var source = _stopAllBuffer[i];
                 source.Stop();
                 source.gameObject.SetActive(false);
                 _audioPools[key].Enqueue(source);
             }
-            _activeSources[key].Clear();
         }
 
         // 停止池中剩余的激活对象

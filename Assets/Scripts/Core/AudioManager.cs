@@ -26,6 +26,12 @@ public sealed class AudioManager : MonoBehaviour
     private Dictionary<int, float> _lastSFXTime = new Dictionary<int, float>();
     private WaitForSeconds _throttleWait;
 
+    // Stale-entry cleanup for _lastSFXTime to prevent indefinite growth
+    private float _sfxCleanupTimer;
+    private const float SfxCleanupInterval = 30f;   // seconds between cleanups
+    private const float SfxEntryMaxAge = 60f;         // seconds before an entry is considered stale
+    private readonly List<int> _staleKeyBuffer = new List<int>(16);
+
     // BGM源（单例支持循环与过渡）
     private AudioSource _bgmSource;
 
@@ -78,6 +84,33 @@ public sealed class AudioManager : MonoBehaviour
         _throttleWait = new WaitForSeconds(sfxThrottle);
 
         SetupAudioSources();
+    }
+
+    private void Update()
+    {
+        _sfxCleanupTimer += Time.unscaledDeltaTime;
+        if (_sfxCleanupTimer >= SfxCleanupInterval)
+        {
+            _sfxCleanupTimer = 0f;
+            CleanupStaleSFXEntries();
+        }
+    }
+
+    private void CleanupStaleSFXEntries()
+    {
+        if (_lastSFXTime.Count == 0) return;
+
+        float threshold = Time.unscaledTime - SfxEntryMaxAge;
+        _staleKeyBuffer.Clear();
+
+        foreach (var kvp in _lastSFXTime)
+        {
+            if (kvp.Value < threshold)
+                _staleKeyBuffer.Add(kvp.Key);
+        }
+
+        for (int i = 0; i < _staleKeyBuffer.Count; i++)
+            _lastSFXTime.Remove(_staleKeyBuffer[i]);
     }
 
     private void OnDestroy()

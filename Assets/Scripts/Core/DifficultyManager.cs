@@ -9,6 +9,9 @@ public class DifficultyManager : Singleton<DifficultyManager>
 {
     private int _lastWholeMinute;
 
+    // Cached reference to avoid repeated singleton lookups in property getters
+    private GameBalanceConfig _cfg;
+
     /// <summary>Current elapsed minutes in the run.</summary>
     public float CurrentMinutes => GameManager.HasInstance
         ? GameManager.Instance.ElapsedTime / 60f
@@ -19,8 +22,7 @@ public class DifficultyManager : Singleton<DifficultyManager>
     {
         get
         {
-            float rate = GameBalanceConfig.Instance != null
-                ? GameBalanceConfig.Instance.hpGrowthRate : 0.08f;
+            float rate = _cfg != null ? _cfg.hpGrowthRate : 0.08f;
             return 1f + rate * CurrentMinutes;
         }
     }
@@ -30,8 +32,7 @@ public class DifficultyManager : Singleton<DifficultyManager>
     {
         get
         {
-            float rate = GameBalanceConfig.Instance != null
-                ? GameBalanceConfig.Instance.spawnAccelRate : 0.12f;
+            float rate = _cfg != null ? _cfg.spawnAccelRate : 0.12f;
             return 1f / (1f + rate * CurrentMinutes);
         }
     }
@@ -41,8 +42,7 @@ public class DifficultyManager : Singleton<DifficultyManager>
     {
         get
         {
-            float rate = GameBalanceConfig.Instance != null
-                ? GameBalanceConfig.Instance.damageGrowthRate : 0.03f;
+            float rate = _cfg != null ? _cfg.damageGrowthRate : 0.03f;
             return 1f + rate * CurrentMinutes;
         }
     }
@@ -52,8 +52,7 @@ public class DifficultyManager : Singleton<DifficultyManager>
     {
         get
         {
-            float rate = GameBalanceConfig.Instance != null
-                ? GameBalanceConfig.Instance.speedGrowthRate : 0.015f;
+            float rate = _cfg != null ? _cfg.speedGrowthRate : 0.015f;
             return 1f + rate * CurrentMinutes;
         }
     }
@@ -79,6 +78,12 @@ public class DifficultyManager : Singleton<DifficultyManager>
     // Elite wave decay: reduce bonus over time between elite waves
     private float _accumulatedDecayTimer;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        _cfg = GameBalanceConfig.Instance;
+    }
+
     private void Update()
     {
         if (GameManager.Instance == null || !GameManager.Instance.IsPlaying) return;
@@ -91,8 +96,7 @@ public class DifficultyManager : Singleton<DifficultyManager>
         }
 
         // Elite wave bonus decay: each minute without an elite wave, reduce the count
-        var cfg = GameBalanceConfig.Instance;
-        int decayRate = cfg != null ? cfg.eliteWaveDecayPerWave : 1;
+        int decayRate = _cfg != null ? _cfg.eliteWaveDecayPerWave : 1;
         if (decayRate > 0 && EliteWaveCount > 0)
         {
             _accumulatedDecayTimer += Time.deltaTime;

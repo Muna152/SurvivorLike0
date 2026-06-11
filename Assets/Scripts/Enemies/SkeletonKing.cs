@@ -19,6 +19,7 @@ public class SkeletonKing : BossEnemy
     private int _attackPattern; // Rotates between attack types
     private bool _shockwavePoolRegistered;
     private string _shockwavePoolKey;
+    private DifficultyManager _difficultyManager; // Cached to avoid repeated Singleton lock
 
     public override void Initialize(EnemyData data)
     {
@@ -31,6 +32,7 @@ public class SkeletonKing : BossEnemy
 
         base.Initialize(data);
         _attackPattern = 0;
+        _difficultyManager = DifficultyManager.HasInstance ? DifficultyManager.Instance : null;
         RegisterShockwavePool();
     }
 
@@ -147,7 +149,7 @@ public class SkeletonKing : BossEnemy
 
         if (sw != null)
         {
-            float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+            float dmgScale = _difficultyManager != null ? _difficultyManager.DamageMultiplier : 1f;
             sw.Initialize(_shockwaveDamage * dmgScale, _shockwaveSpeed, _shockwaveMaxRadius);
         }
     }

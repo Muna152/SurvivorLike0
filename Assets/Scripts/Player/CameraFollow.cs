@@ -13,6 +13,7 @@ public class CameraFollow : MonoBehaviour
     private Camera _cam;
     private float _halfCamHeight;
     private float _halfCamWidth;
+    private Vector3 _targetPos; // Reusable to avoid allocation in LateUpdate
 
     private void Start()
     {
@@ -31,7 +32,9 @@ public class CameraFollow : MonoBehaviour
     {
         if (_target == null) return;
 
-        Vector3 targetPos = new Vector3(_target.position.x, _target.position.y, _zOffset);
+        _targetPos.x = _target.position.x;
+        _targetPos.y = _target.position.y;
+        _targetPos.z = _zOffset;
 
         // Clamp camera within map boundaries
         if (_cam != null && _cam.orthographic)
@@ -41,10 +44,10 @@ public class CameraFollow : MonoBehaviour
             float minY = -_mapHalfSize + _halfCamHeight;
             float maxY = _mapHalfSize - _halfCamHeight;
 
-            targetPos.x = Mathf.Clamp(targetPos.x, minX, maxX);
-            targetPos.y = Mathf.Clamp(targetPos.y, minY, maxY);
+            _targetPos.x = Mathf.Clamp(_targetPos.x, minX, maxX);
+            _targetPos.y = Mathf.Clamp(_targetPos.y, minY, maxY);
         }
 
-        transform.position = Vector3.Lerp(transform.position, targetPos, _lerpFactor);
+        transform.position = Vector3.Lerp(transform.position, _targetPos, _lerpFactor);
     }
 }

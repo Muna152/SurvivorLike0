@@ -19,6 +19,7 @@ public class DamageNumber : MonoBehaviour
     private int _currentAmount;
     private int _lastTextAmount; // Cache to avoid redundant ToString allocations
     private string _poolKey;
+    private Vector3 _showOffset; // Reusable to avoid allocation in Show/Accumulate
 
     private void Awake()
     {
@@ -35,7 +36,10 @@ public class DamageNumber : MonoBehaviour
     /// </summary>
     public void Show(Vector3 position, int amount, Color color)
     {
-        transform.position = position + new Vector3(Random.Range(-0.3f, 0.3f), 0.5f, 0f);
+        _showOffset.x = Random.Range(-0.3f, 0.3f);
+        _showOffset.y = 0.5f;
+        _showOffset.z = 0f;
+        transform.position = position + _showOffset;
         _currentAmount = amount;
         if (_lastTextAmount != amount)
         {
@@ -62,7 +66,8 @@ public class DamageNumber : MonoBehaviour
         }
         // Pop scale back up and extend life slightly
         float t = Mathf.Clamp01(_timer / _duration);
-        transform.localScale = Vector3.one * Mathf.Lerp(_startScale, _startScale * 0.9f, t);
+        float scaleMid = _startScale * 0.9f;
+        transform.localScale = Vector3.one * Mathf.Lerp(_startScale, scaleMid, t);
         _timer = Mathf.Max(0f, _timer - 0.15f);
         // Keep alpha full (undo any fade)
         Color c = _tm.color;

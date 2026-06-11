@@ -20,6 +20,10 @@ public class VFXManager : Singleton<VFXManager>
     private readonly Dictionary<int, DamageAccum> _damageAccum = new Dictionary<int, DamageAccum>();
     private readonly List<int> _cleanupKeys = new List<int>();
 
+    // Cleanup frame-skip: avoid iterating the dictionary every frame when it has entries
+    private int _cleanupFrameSkip;
+    private const int CleanupFrameInterval = 5;
+
     // ── Prefab references (loaded in Awake from Resources) ────
     private GameObject _hitEffectPrefab;
     private GameObject _enemyDeathPrefab;
@@ -273,6 +277,12 @@ public class VFXManager : Singleton<VFXManager>
     {
         // Clean up stale accumulator entries (DamageNumber finished animating)
         if (_damageAccum.Count == 0) return;
+
+        // Frame-skip: only check every N frames to reduce overhead
+        _cleanupFrameSkip++;
+        if (_cleanupFrameSkip < CleanupFrameInterval) return;
+        _cleanupFrameSkip = 0;
+
         _cleanupKeys.Clear();
         foreach (var kvp in _damageAccum)
         {

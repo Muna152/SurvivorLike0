@@ -14,11 +14,23 @@ public class PlayerHitbox : MonoBehaviour
     private SpriteRenderer _sr;
     private float _invincibleTimer;
     private readonly Dictionary<int, float> _enemyDamageTimers = new Dictionary<int, float>();
+    private DifficultyManager _difficultyManager; // Cached to avoid repeated Singleton lock in hot path
+
+    // Cached WaitForSeconds to avoid allocation in FlashCoroutine
+    private WaitForSeconds _flashWait;
+
+    // Stale-entry cleanup to prevent indefinite dictionary growth
+    private float _cleanupTimer;
+    private const float CleanupInterval = 5f;    // seconds between cleanups
+    private const float EntryMaxAge = 10f;       // entries older than this are removed
+    private readonly List<int> _staleKeyBuffer = new List<int>(16);
 
     private void Awake()
     {
         _stats = GetComponent<PlayerStats>();
         _sr = GetComponent<SpriteRenderer>();
+        _difficultyManager = DifficultyManager.HasInstance ? DifficultyManager.Instance : null;
+        _flashWait = new WaitForSeconds(0.05f);
     }
 
     private void OnTriggerStay2D(Collider2D other)
@@ -34,7 +46,7 @@ public class PlayerHitbox : MonoBehaviour
             return;
 
         _enemyDamageTimers[id] = now;
-        float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+        float dmgScale = _difficultyManager != null ? _difficultyManager.DamageMultiplier : 1f;
         _stats.TakeDamage(Mathf.CeilToInt(enemy.Data.damage * dmgScale));
         _invincibleTimer = _invincibleDuration;
 
@@ -47,6 +59,31 @@ public class PlayerHitbox : MonoBehaviour
         {
             _invincibleTimer -= Time.deltaTime;
         }
+
+        // Periodic cleanup of stale enemy damage timers
+        _cleanupTimer += Time.deltaTime;
+        if (_cleanupTimer >= CleanupInterval)
+        {
+            _cleanupTimer = 0f;
+            CleanupStaleEntries();
+        }
+    }
+
+    private void CleanupStaleEntries()
+    {
+        if (_enemyDamageTimers.Count == 0) return;
+
+        float threshold = Time.time - EntryMaxAge;
+        _staleKeyBuffer.Clear();
+
+        foreach (var kvp in _enemyDamageTimers)
+        {
+            if (kvp.Value < threshold)
+                _staleKeyBuffer.Add(kvp.Key);
+        }
+
+        for (int i = 0; i < _staleKeyBuffer.Count; i++)
+            _enemyDamageTimers.Remove(_staleKeyBuffer[i]);
     }
 
     private System.Collections.IEnumerator FlashCoroutine()
@@ -55,9 +92,9 @@ public class PlayerHitbox : MonoBehaviour
         while (elapsed < _invincibleDuration)
         {
             _sr.enabled = false;
-            yield return new WaitForSeconds(0.05f);
+            yield return _flashWait;
             _sr.enabled = true;
-            yield return new WaitForSeconds(0.05f);
+            yield return _flashWait;
             elapsed += 0.1f;
         }
     }

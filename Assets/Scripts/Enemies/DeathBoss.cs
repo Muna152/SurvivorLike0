@@ -20,6 +20,7 @@ public class DeathBoss : BossEnemy
     private int _attackPattern;
     private bool _projectilePoolRegistered;
     private string _projectilePoolKey;
+    private DifficultyManager _difficultyManager; // Cached to avoid repeated Singleton lock
 
     public override void Initialize(EnemyData data)
     {
@@ -31,6 +32,7 @@ public class DeathBoss : BossEnemy
 
         base.Initialize(data);
         _attackPattern = 0;
+        _difficultyManager = DifficultyManager.HasInstance ? DifficultyManager.Instance : null;
         RegisterProjectilePool();
     }
 
@@ -133,7 +135,7 @@ public class DeathBoss : BossEnemy
         var player = GetPlayerController();
         if (player == null) return;
 
-        float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+        float dmgScale = _difficultyManager != null ? _difficultyManager.DamageMultiplier : 1f;
         float damage = _projectileDamage * dmgScale;
         int count = _currentPhase >= 2 ? _trackingCount + 3 : (_currentPhase >= 1 ? _trackingCount + 1 : _trackingCount);
 
@@ -161,7 +163,7 @@ public class DeathBoss : BossEnemy
     {
         if (_projectilePrefab == null) return;
 
-        float dmgScale = DifficultyManager.HasInstance ? DifficultyManager.Instance.DamageMultiplier : 1f;
+        float dmgScale = _difficultyManager != null ? _difficultyManager.DamageMultiplier : 1f;
         float damage = _projectileDamage * dmgScale;
 
         int count = 8;

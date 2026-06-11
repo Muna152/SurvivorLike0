@@ -235,6 +235,13 @@
 - [x] Sprite合批设置
 - [x] 内存分配审计（消除GC Spikes）
 - [x] Profiler性能分析与优化
+- [x] 字典泄漏防护（AudioManager._lastSFXTime / PlayerHitbox._enemyDamageTimers 定期清理）
+- [x] Singleton引用缓存（DifficultyManager/GameBalanceConfig/Boss引用在Initialize中缓存）
+- [x] 对称分离算法（EnemyManager.SeparationPass基于单元格迭代+对称配对，每对只计算一次）
+- [x] VFXManager清理帧跳（_damageAccum每5帧清理一次）
+- [x] Update零分配（CameraFollow/DamageNumber/AudioPool复用预分配字段）
+- [x] WaitForSeconds缓存（PlayerHitbox/BossExtensions缓存实例）
+- [x] AreaWeapon组件缓存（SpriteRenderer引用缓存）
 - [x] 目标：500敌人在60FPS稳定运行
 
 ### 4.5 Bug修复与打磨
@@ -257,4 +264,4 @@
 
 ---
 
-*文档版本: v1.6 | 最后更新: 2026-06-08*
+*文档版本: v1.7 | 最后更新: 2026-06-11*

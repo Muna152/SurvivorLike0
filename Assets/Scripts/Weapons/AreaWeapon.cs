@@ -21,6 +21,9 @@ public abstract class AreaWeapon : WeaponBase
     private bool _areaPoolRegistered;
     private string _areaPoolKey;
 
+    // Cached component reference to avoid repeated GetComponent calls
+    private SpriteRenderer _areaSpriteRenderer;
+
     /// <summary>Tick interval — lazily loaded from GameBalanceConfig if not overridden.</summary>
     protected float TickInterval
     {
@@ -205,12 +208,16 @@ public abstract class AreaWeapon : WeaponBase
     protected void ScaleAreaVisual()
     {
         if (_currentArea == null) return;
-        var sr = _currentArea.GetComponent<SpriteRenderer>();
-        if (sr == null || sr.sprite == null) return;
 
-        float fillRatio = GetSpriteFillRatio(sr.sprite);
+        // Cache the SpriteRenderer reference to avoid repeated GetComponent calls
+        if (_areaSpriteRenderer == null || _areaSpriteRenderer.gameObject != _currentArea)
+            _areaSpriteRenderer = _currentArea.GetComponent<SpriteRenderer>();
+
+        if (_areaSpriteRenderer == null || _areaSpriteRenderer.sprite == null) return;
+
+        float fillRatio = GetSpriteFillRatio(_areaSpriteRenderer.sprite);
         float diameter = _areaRadius * 2f;
-        float spriteVisualSize = sr.sprite.bounds.size.x * fillRatio;
+        float spriteVisualSize = _areaSpriteRenderer.sprite.bounds.size.x * fillRatio;
         float scale = diameter / spriteVisualSize;
         _currentArea.transform.localScale = new Vector3(scale, scale, 1f);
     }
@@ -372,6 +379,7 @@ public abstract class AreaWeapon : WeaponBase
                 Destroy(_currentArea);
             }
             _currentArea = null;
+            _areaSpriteRenderer = null;
         }
     }
 

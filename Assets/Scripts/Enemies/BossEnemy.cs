@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -23,6 +24,7 @@ public abstract class BossEnemy : EnemyBase
 
     protected float _attackTimer;
     protected bool _phaseTransitioning;
+    private GameBalanceConfig _cfg; // Cached to avoid repeated singleton lookups
 
     // ── Public Accessors ────────────────────────────────────────
     public int CurrentPhase => _currentPhase;
@@ -36,13 +38,14 @@ public abstract class BossEnemy : EnemyBase
     public override void Initialize(EnemyData data)
     {
         base.Initialize(data);
+        _cfg = GameBalanceConfig.Instance;
         _maxHP = _currentHP;
         _currentPhase = 0;
         _attackTimer = _attackInterval;
         _phaseTransitioning = false;
 
         // Boss scale — larger than regular enemies
-        float bossScale = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.bossScaleMultiplier : 2f;
+        float bossScale = _cfg != null ? _cfg.bossScaleMultiplier : 2f;
         transform.localScale = Vector3.one * bossScale;
 
         // Recompute separation radius with the new scale
@@ -154,7 +157,7 @@ public abstract class BossEnemy : EnemyBase
         }
 
         // Brief invulnerability during transition
-        float transDuration = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.bossPhaseTransitionDuration : 0.5f;
+        float transDuration = _cfg != null ? _cfg.bossPhaseTransitionDuration : 0.5f;
         this.InvokeDelayed(transDuration, () =>
         {
             _phaseTransitioning = false;
@@ -167,7 +170,7 @@ public abstract class BossEnemy : EnemyBase
         });
 
         // Increase aggression in later phases
-        float phaseMultiplier = GameBalanceConfig.Instance != null ? GameBalanceConfig.Instance.bossAttackIntervalPhaseMultiplier : 0.8f;
+        float phaseMultiplier = _cfg != null ? _cfg.bossAttackIntervalPhaseMultiplier : 0.8f;
         _attackInterval = Mathf.Max(1f, _attackInterval * phaseMultiplier);
     }
 
@@ -196,9 +199,12 @@ public abstract class BossEnemy : EnemyBase
 
 /// <summary>
 /// Simple delayed callback helper to avoid coroutines.
+/// Caches common WaitForSeconds instances to reduce GC.
 /// </summary>
 public static class BossExtensions
 {
+    private static readonly Dictionary<float, WaitForSeconds> _waitCache = new Dictionary<float, WaitForSeconds>(4);
+
     public static void InvokeDelayed(this MonoBehaviour mb, float delay, System.Action action)
     {
         mb.StartCoroutine(DelayedAction(delay, action));
@@ -206,7 +212,12 @@ public static class BossExtensions
 
     private static System.Collections.IEnumerator DelayedAction(float delay, System.Action action)
     {
-        yield return new WaitForSeconds(delay);
+        if (!_waitCache.TryGetValue(delay, out var wait))
+        {
+            wait = new WaitForSeconds(delay);
+            _waitCache[delay] = wait;
+        }
+        yield return wait;
         action?.Invoke();
     }
 }

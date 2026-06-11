@@ -110,9 +110,9 @@ public class DropBase : MonoBehaviour
             Vector2 dir = dist > 0.001f ? offsetToPlayer / dist : Vector2.up;
             transform.position += (Vector3)(dir * speed * dt);
 
-            // Re-check distance after move
-            float newDistSq = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).sqrMagnitude;
-            if (newDistSq <= collectRadiusSq)
+            // Re-check distance after move (recompute only if player moved significantly)
+            Vector2 newOffset = playerPos - (Vector2)transform.position;
+            if (newOffset.sqrMagnitude <= collectRadiusSq)
             {
                 Collect();
                 return;

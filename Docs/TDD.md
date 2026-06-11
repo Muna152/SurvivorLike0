@@ -893,13 +893,20 @@ Assets/
 | 优化项 | 具体措施 | 预期收益 |
 |--------|---------|----------|
 | **对象池** | 所有运行时创建的GameObject全部池化 | 消除Instantiate/Destroy开销 |
-| **空间分区** | GridPartition替代Physics查询 | 查询O(1) vs O(N) |
-| **禁用物理** | 敌人间不互相碰撞，仅与玩家检测 | 减少Physics计算 |
-| **LOD更新** | 远处敌人5帧更新一次位置 | 减少50%+的Update调用 |
+| **空间分区** | SpatialGrid 替代 Physics 查询，O(1) 查询 vs O(N) | 查询O(1) vs O(N) |
+| **集中化敌人Tick** | EnemyManager 统一驱动 IEnemyTick，消除 per-MonoBehaviour Update 开销 | 减少引擎调用开销 |
+| **LOD更新** | 远处敌人(>25单位) 5帧更新一次位置 | 减少50%+的Update调用 |
 | **合批渲染** | 相同SpriteRenderer材质的Sprite合批 | 减少DrawCall |
 | **避免GC** | 缓存List/Array，避免LINQ，避免闭包 | 消除GC Spikes |
 | **限制生成** | 超出玩家视野25单位外的敌人体眠 | 减少活跃对象数 |
 | **特效优化** | 粒子数量限制，对象池管理 | 避免特效卡顿 |
+| **字典泄漏防护** | AudioManager._lastSFXTime / PlayerHitbox._enemyDamageTimers 定期清理过期条目 | 防止长时间游戏OOM |
+| **Singleton缓存** | DifficultyManager/GameBalanceConfig 引用在 Awake/Initialize 中缓存，热路径避免 lock(_lock) | 消除热路径 Singleton 查找开销 |
+| **对称分离算法** | SeparationPass 基于单元格迭代 + 对称配对处理，每对敌人只计算一次 | 约50%距离检查减少 + 消除N次QueryInRadius |
+| **VFX清理帧跳** | VFXManager._damageAccum 清理改为每5帧执行 | 减少80%无效遍历 |
+| **Update零分配** | CameraFollow/DamageNumber/AudioPool 等复用预分配字段替代 new Vector3/new List | 消除热路径GC分配 |
+| **WaitForSeconds缓存** | PlayerHitbox/BossExtensions 缓存 WaitForSeconds 实例 | 消除协程中重复GC分配 |
+| **AreaWeapon组件缓存** | SpriteRenderer 引用缓存，避免每次 Attack 周期 GetComponent | 消除重复GetComponent开销 |
 
 ### 5.3 碰撞检测优化
 
@@ -1283,4 +1290,4 @@ public class SaveManager
 
 ---
 
-*文档版本: v1.5 | 最后更新: 2026-06-08*
+*文档版本: v1.6 | 最后更新: 2026-06-11*
