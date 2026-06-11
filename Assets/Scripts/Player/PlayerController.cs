@@ -58,7 +58,7 @@ public class PlayerController : MonoBehaviour
         {
             IsAutoPilot = !IsAutoPilot;
             GameEvents.InvokeAutoPilotToggled(IsAutoPilot);
-            Debug.Log($"[AutoPilot] {(IsAutoPilot ? "ENABLED" : "DISABLED")}");
+            DebugLogger.Log($"[AutoPilot] {(IsAutoPilot ? "ENABLED" : "DISABLED")}");
         }
     }
 

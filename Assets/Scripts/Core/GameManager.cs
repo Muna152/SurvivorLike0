@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 /// <summary>
 /// Manages the single-run game lifecycle: Menu → Playing → Paused/GameOver/Victory.
@@ -20,6 +21,9 @@ public class GameManager : Singleton<GameManager>
 
     /// <summary>Current game state (read-only for external consumers).</summary>
     public GameState CurrentState => _currentState;
+
+    /// <summary>Event fired when the game state changes.</summary>
+    public event Action<GameState> OnGameStateChanged;
 
     /// <summary>Elapsed play time in the current run (seconds, unscaled).</summary>
     public float ElapsedTime { get; private set; }
@@ -62,7 +66,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (_pauseDepth <= 0)
         {
-            Debug.LogWarning("[GameManager] PopPause called with no matching PushPause.");
+            DebugLogger.LogWarning("[GameManager] PopPause called with no matching PushPause.");
             return;
         }
         _pauseDepth--;
@@ -95,6 +99,7 @@ public class GameManager : Singleton<GameManager>
         ElapsedTime = 0f;
         _currentState = GameState.Playing;
         Time.timeScale = 1f;
+        OnGameStateChanged?.Invoke(_currentState);
 
         // Reset difficulty for new run
         if (DifficultyManager.HasInstance)
@@ -116,10 +121,10 @@ public class GameManager : Singleton<GameManager>
             if (stats != null) stats.InitializeFromCharacterData();
 
             var weaponMgr = FindObjectOfType<PlayerWeaponManager>();
-            if (weaponMgr != null) weaponMgr.EquipStartingWeapon();
+            if (weaponMgr != null)             weaponMgr.EquipStartingWeapon();
         }
 
-        Debug.Log($"[GameManager] Game started with character: {(SelectedCharacter != null ? SelectedCharacter.characterName : "none")}");
+        DebugLogger.Log($"[GameManager] Game started with character: {(SelectedCharacter != null ? SelectedCharacter.characterName : "none")}");
 
         // Ensure HUD elements are visible for gameplay
         // (MainMenuUI.Show() hides them; this re-enables regardless of start flow)
@@ -143,7 +148,8 @@ public class GameManager : Singleton<GameManager>
         _currentState = GameState.Paused;
         PushPause();
         GameEvents.InvokeGamePaused();
-        Debug.Log("[GameManager] Game paused.");
+        OnGameStateChanged?.Invoke(_currentState);
+        DebugLogger.Log("[GameManager] Game paused.");
     }
 
     /// <summary>Resume from pause.</summary>
@@ -154,7 +160,8 @@ public class GameManager : Singleton<GameManager>
         _currentState = GameState.Playing;
         PopPause();
         GameEvents.InvokeGameResumed();
-        Debug.Log("[GameManager] Game resumed.");
+        OnGameStateChanged?.Invoke(_currentState);
+        DebugLogger.Log("[GameManager] Game resumed.");
     }
 
     /// <summary>End the game (player death or victory).</summary>
@@ -165,14 +172,15 @@ public class GameManager : Singleton<GameManager>
         _currentState = victory ? GameState.Victory : GameState.GameOver;
         _pauseDepth = 0;
         Time.timeScale = 0f;
+        OnGameStateChanged?.Invoke(_currentState);
 
         if (victory)
         {
-            Debug.Log($"[GameManager] Victory! Time: {ElapsedTime:F1}s");
+            DebugLogger.Log($"[GameManager] Victory! Time: {ElapsedTime:F1}s");
         }
         else
         {
-            Debug.Log($"[GameManager] Game Over. Survived: {ElapsedTime:F1}s");
+            DebugLogger.Log($"[GameManager] Game Over. Survived: {ElapsedTime:F1}s");
         }
     }
 
@@ -184,6 +192,7 @@ public class GameManager : Singleton<GameManager>
         ResetTimeScale();
         ElapsedTime = 0f;
         SelectedCharacter = null;
+        OnGameStateChanged?.Invoke(_currentState);
 
         // Clean up all game session state to prevent memory leaks
         CleanupSessionState();
@@ -191,7 +200,7 @@ public class GameManager : Singleton<GameManager>
         if (AudioManager.HasInstance)
             AudioManager.Instance.PlayMenuBGM();
 
-        Debug.Log("[GameManager] Returned to menu.");
+        DebugLogger.Log("[GameManager] Returned to menu.");
     }
 
     /// <summary>

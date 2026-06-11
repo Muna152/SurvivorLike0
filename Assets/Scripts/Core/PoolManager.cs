@@ -22,7 +22,7 @@ public class PoolManager : Singleton<PoolManager>
     {
         if (string.IsNullOrEmpty(key))
         {
-            Debug.LogError("[PoolManager] Cannot register pool with null or empty key.");
+            DebugLogger.LogError("[PoolManager] Cannot register pool with null or empty key.");
             return;
         }
 
@@ -56,14 +56,14 @@ public class PoolManager : Singleton<PoolManager>
     {
         if (!_pools.TryGetValue(key, out var poolObj))
         {
-            Debug.LogError($"[PoolManager] No pool registered with key '{key}'. Did you forget to call Register?");
+            DebugLogger.LogError($"[PoolManager] No pool registered with key '{key}'. Did you forget to call Register?");
             return null;
         }
 
         var pool = poolObj as ObjectPool<T>;
         if (pool == null)
         {
-            Debug.LogError($"[PoolManager] Pool '{key}' exists but is not of type ObjectPool<{typeof(T).Name}>.");
+            DebugLogger.LogError($"[PoolManager] Pool '{key}' exists but is not of type ObjectPool<{typeof(T).Name}>.");
             return null;
         }
 
@@ -80,7 +80,7 @@ public class PoolManager : Singleton<PoolManager>
         if (!_pools.TryGetValue(key, out var poolObj))
         {
             // Pool not found – just destroy the object
-            Debug.LogWarning($"[PoolManager] No pool for key '{key}'. Destroying object instead.");
+            DebugLogger.LogWarning($"[PoolManager] No pool for key '{key}'. Destroying object instead.");
             Destroy(obj.gameObject);
             return;
         }
@@ -88,7 +88,7 @@ public class PoolManager : Singleton<PoolManager>
         var pool = poolObj as ObjectPool<T>;
         if (pool == null)
         {
-            Debug.LogError($"[PoolManager] Pool '{key}' type mismatch. Cannot return {typeof(T).Name}.");
+            DebugLogger.LogError($"[PoolManager] Pool '{key}' type mismatch. Cannot return {typeof(T).Name}.");
             Destroy(obj.gameObject);
             return;
         }
