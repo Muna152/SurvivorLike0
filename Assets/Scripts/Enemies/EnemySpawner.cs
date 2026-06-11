@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] private float _baseSpawnInterval = 1.5f;
+    [SerializeField] private float _baseSpawnInterval = 0.8f;  // Changed from 1.5f
     [SerializeField] private float _bossSpawnDistance = 18f;
 
     private float _spawnTimer;
