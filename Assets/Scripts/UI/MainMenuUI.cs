@@ -84,6 +84,10 @@ public class MainMenuUI : MonoBehaviour
 
         RefreshSaveSlots();
         RefreshStartButton();
+
+        // Notify AutoUIManager that main menu is shown
+        if (AutoUIManager.HasInstance)
+            AutoUIManager.Instance.TriggerNavigationCheck();
     }
 
     public void Hide()
@@ -98,7 +102,7 @@ public class MainMenuUI : MonoBehaviour
 
     // ── Button Handlers ─────────────────────────────────────────
 
-    private void OnStartGame()
+    public void OnStartGame()
     {
         if (!SaveSlotManager.HasActiveSlot) return;
 

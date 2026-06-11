@@ -137,6 +137,10 @@ public class ResultScreen : MonoBehaviour
             StatsTracker.UpdateBestTime(gm.ElapsedTime);
             StatsTracker.AddTotalGoldEarned(stats.Gold);
         }
+
+        // Notify AutoUIManager that result screen is shown
+        if (AutoUIManager.HasInstance)
+            AutoUIManager.Instance.NavigateResultScreen();
     }
 
     private void Hide()
@@ -153,7 +157,7 @@ public class ResultScreen : MonoBehaviour
         }
     }
 
-    private void Retry()
+    public void Retry()
     {
         Time.timeScale = 1f;
         _persisted = false;

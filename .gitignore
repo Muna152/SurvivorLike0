@@ -45,5 +45,16 @@ Assets/HealthCheck_*.html.meta
 # NuGet
 packages/
 
+# Build artifacts
+obj/
+
+# Accidental duplicate scene folder
+Assets/Assets/
+Assets/Assets.meta
+
+# Empty template scripts
+**/NewBehaviourScript.cs
+**/NewBehaviourScript.cs.meta
+
 # Auto-generated .meta for docs (optional — keep if you want meta tracking)
 # Docs/*.meta

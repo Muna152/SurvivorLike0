@@ -70,6 +70,10 @@ public class CharacterSelectUI : MonoBehaviour
         }
         Time.timeScale = 0f;
         RefreshCards();
+
+        // Notify AutoUIManager that character select is shown
+        if (AutoUIManager.HasInstance)
+            AutoUIManager.Instance.NavigateCharacterSelect();
     }
 
     public void Hide()
@@ -92,7 +96,7 @@ public class CharacterSelectUI : MonoBehaviour
         RefreshDetailPanel();
     }
 
-    private void OnStartGame()
+    public void OnStartGame()
     {
         var character = Characters[_selectedIndex];
         if (character == null) return;
