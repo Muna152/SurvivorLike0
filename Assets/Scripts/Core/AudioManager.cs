@@ -2,117 +2,182 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Manages all audio playback: BGM with crossfade, SFX with pooled sources.
-/// Subscribes to GameEvents for automatic audio triggering.
+/// 全局音频管理器，统一管理BGM、SFX、环境音和UI音效。
+/// 单例模式，支持音量控制、循环控制、淡入淡出、节流。
 /// </summary>
-[RequireComponent(typeof(AudioListener))]
-public class AudioManager : Singleton<AudioManager>
+[DefaultExecutionOrder(-500)]
+public sealed class AudioManager : MonoBehaviour
 {
-    // ── BGM Clips ─────────────────────────────────────────────
-    [Header("BGM Clips")]
-    public AudioClip menuTheme;
-    public AudioClip battleTheme;
-    public AudioClip bossTheme;
+    public static AudioManager Instance { get; private set; }
 
-    // ── SFX Clips ─────────────────────────────────────────────
-    [Header("Weapon SFX")]
-    public AudioClip weaponSword;
-    public AudioClip weaponKnife;
-    public AudioClip weaponShield;
-    public AudioClip weaponEnergy;
-    public AudioClip weaponHoly;
-    public AudioClip weaponWater;
+    // 节流控制
+    public float sfxThrottle = 0.1f;
 
-    [Header("Enemy & Environment SFX")]
-    public AudioClip enemyHit;
-    public AudioClip enemyDie;
-    public AudioClip playerHit;
-    public AudioClip expPickup;
-    public AudioClip levelUp;
-    public AudioClip evolve;
-    public AudioClip chestOpen;
+    // 音量设置
+    public float masterVolume = 1f;
+    public float bgmVolume = 1f;
+    public float sfxVolume = 1f;
+    public float ambientVolume = 1f;
+    public float uiVolume = 1f;
 
-    // ── Settings ──────────────────────────────────────────────
-    [Header("Settings")]
-    [Range(0f, 1f)] public float bgmVolume = 0.5f;
-    [Range(0f, 1f)] public float sfxVolume = 0.7f;
-    public float bgmFadeDuration = 1f;
+    private Dictionary<int, float> _lastSFXTime = new Dictionary<int, float>();
+    private WaitForSeconds _throttleWait;
+
+    // BGM源（单例支持循环与过渡）
+    private AudioSource _bgmSource;
+
+    // 简单SFX池（固定大小）
+    private AudioSource[] _sfxSources;
+    private int _sfxIndex = 0;
     public int sfxSourceCount = 12;
-    [Range(0f, 0.2f)] public float sfxThrottle = 0.05f;
 
-    // ── BGM Internal ──────────────────────────────────────────
-    private AudioSource _bgmA;
-    private AudioSource _bgmB;
-    private bool _bgmUsingA = true;
-    private AudioClip _targetBGM;
-    private float _fadeProgress;
-    private bool _fading;
+    // UI和Ambient单例源
+    private AudioSource _uiSource;
+    private AudioSource _ambientSource;
 
-    // ── SFX Pool ──────────────────────────────────────────────
-    private AudioSource[] _sfxPool;
-    private int _sfxIndex;
-    private readonly Dictionary<int, float> _lastSFXTime = new Dictionary<int, float>();
+    // 音频池引用
+    private AudioPool _audioPool;
 
-    // ── Public API ────────────────────────────────────────────
-
-    /// <summary>Play BGM clip with optional crossfade duration.</summary>
-    public void PlayBGM(AudioClip clip, float fadeTime = -1f)
+    // 日志辅助（可选：可替换为更完善的日志系统）
+    public static class DebugLogger
     {
-        if (clip == _targetBGM && !_fading) return;
+        public static void Log(string msg) => Debug.Log(msg);
+        public static void LogWarning(string msg) => Debug.LogWarning(msg);
+        public static void LogError(string msg) => Debug.LogError(msg);
+    }
 
-        // Complete any in-progress fade first
-        if (_fading) CompleteFade();
-
-        _targetBGM = clip;
-        float duration = fadeTime < 0f ? bgmFadeDuration : fadeTime;
-
-        var incoming = _bgmUsingA ? _bgmB : _bgmA;
-        var outgoing = _bgmUsingA ? _bgmA : _bgmB;
-
-        incoming.clip = clip;
-        incoming.volume = 0f;
-        incoming.Play();
-
-        if (duration <= 0f || outgoing.clip == null)
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
         {
-            outgoing.Stop();
-            outgoing.clip = null;
-            incoming.volume = bgmVolume;
-            _bgmUsingA = !_bgmUsingA;
-            _fading = false;
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        _throttleWait = new WaitForSeconds(sfxThrottle);
+
+        SetupAudioSources();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    private void SetupAudioSources()
+    {
+        // BGM源
+        _bgmSource = gameObject.AddComponent<AudioSource>();
+        _bgmSource.loop = true;
+        _bgmSource.playOnAwake = false;
+
+        // SFX池
+        _sfxSources = new AudioSource[sfxSourceCount];
+        for (int i = 0; i < sfxSourceCount; i++)
+        {
+            var src = gameObject.AddComponent<AudioSource>();
+            src.playOnAwake = false;
+            _sfxSources[i] = src;
+        }
+
+        // UI和Ambient单例源
+        _uiSource = gameObject.AddComponent<AudioSource>();
+        _uiSource.playOnAwake = false;
+
+        _ambientSource = gameObject.AddComponent<AudioSource>();
+        _ambientSource.loop = true;
+        _ambientSource.playOnAwake = false;
+
+        // 获取音频池组件
+        _audioPool = GetComponent<AudioPool>();
+    }
+
+    #region BGM控制
+
+    public void PlayBGM(AudioClip clip, bool fadeIn = false, float fadeDuration = 1f, bool loop = true)
+    {
+        if (clip == null)
+        {
+            DebugLogger.LogWarning("[AudioManager] PlayBGM called with null clip.");
+            return;
+        }
+
+        if (fadeIn)
+        {
+            StartCoroutine(FadeInBGM(clip, fadeDuration, loop));
         }
         else
         {
-            _fadeProgress = 0f;
-            _fading = true;
+            _bgmSource.clip = clip;
+            _bgmSource.loop = loop;
+            _bgmSource.volume = masterVolume * bgmVolume;
+            _bgmSource.Play();
         }
     }
 
-    /// <summary>Stop BGM with optional fade-out.</summary>
-    public void StopBGM(float fadeTime = -1f)
+    public void StopBGM(bool fadeOut = false, float fadeDuration = 1f)
     {
-        _targetBGM = null;
-        float duration = fadeTime < 0f ? bgmFadeDuration : fadeTime;
-
-        if (duration <= 0f)
+        if (fadeOut)
         {
-            CurrentBGM.Stop();
-            CurrentBGM.clip = null;
-            _fading = false;
+            StartCoroutine(FadeOutBGM(fadeDuration));
         }
         else
         {
-            _fadeProgress = 0f;
-            _fading = true;
+            _bgmSource.Stop();
         }
     }
 
-    /// <summary>Play a one-shot SFX with per-clip throttling.</summary>
+    public void SetBGMVolume(float volume, bool immediate = false, float fadeDuration = 0f)
+    {
+        bgmVolume = Mathf.Clamp01(volume);
+        if (immediate)
+        {
+            _bgmSource.volume = masterVolume * bgmVolume;
+        }
+        else if (fadeDuration > 0f)
+        {
+            StartCoroutine(FadeBGMVolume(bgmVolume, fadeDuration));
+        }
+    }
+
+    #endregion
+
+    #region SFX控制
+
     public void PlaySFX(AudioClip clip, float volumeScale = 1f)
     {
         if (clip == null) return;
 
-        // Throttle by clip instance ID
+        // 节流逻辑
+        int id = clip.GetInstanceID();
+        if (sfxThrottle > 0f && _lastSFXTime.TryGetValue(id, out float last))
+        {
+            if (Time.unscaledTime - last < sfxThrottle) return;
+        }
+        _lastSFXTime[id] = Time.unscaledTime;
+
+        // 使用音频池播放
+        if (_audioPool != null)
+        {
+            string key = clip.name;
+            _audioPool.Play(key, transform.position);
+        }
+        else
+        {
+            // 回退到原有SFX池
+            AudioSource src = GetSFXSource();
+            src.PlayOneShot(clip, sfxVolume * volumeScale);
+        }
+    }
+
+    public void PlaySFX(AudioClip clip, Vector3 position, float volumeScale = 1f, bool spatialBlend = false)
+    {
+        if (clip == null) return;
+
+        // 节流逻辑
         int id = clip.GetInstanceID();
         if (sfxThrottle > 0f && _lastSFXTime.TryGetValue(id, out float last))
         {
@@ -121,165 +186,206 @@ public class AudioManager : Singleton<AudioManager>
         _lastSFXTime[id] = Time.unscaledTime;
 
         AudioSource src = GetSFXSource();
+        src.transform.position = position;
+        src.spatialBlend = spatialBlend ? 1.0f : 0.0f;
         src.PlayOneShot(clip, sfxVolume * volumeScale);
-    }
-
-    // Convenience methods
-    public void PlayMenuBGM() => PlayBGM(menuTheme);
-    public void PlayBattleBGM() => PlayBGM(battleTheme);
-    public void PlayBossBGM() => PlayBGM(bossTheme);
-    public void PlayChestOpenSFX() => PlaySFX(chestOpen);
-
-    // ── Lifecycle ─────────────────────────────────────────────
-
-    protected override void Awake()
-    {
-        base.Awake();
-        InitBGM();
-        InitSFX();
-    }
-
-    private void Start()
-    {
-        // Play initial BGM based on current game state
-        if (GameManager.HasInstance && GameManager.Instance.CurrentState == GameManager.GameState.Menu)
-            PlayMenuBGM();
-    }
-
-    private void OnEnable()
-    {
-        GameEvents.OnBossSpawned += HandleBossSpawned;
-        GameEvents.OnBossDied += HandleBossDied;
-        GameEvents.OnPlayerDamaged += HandlePlayerDamaged;
-        GameEvents.OnPlayerLevelUp += HandlePlayerLevelUp;
-        GameEvents.OnWeaponEvolved += HandleWeaponEvolved;
-        GameEvents.OnEnemyDied += HandleEnemyDied;
-        GameEvents.OnEnemyHit += HandleEnemyHit;
-        GameEvents.OnDropCollected += HandleDropCollected;
-    }
-
-    private void OnDisable()
-    {
-        GameEvents.OnBossSpawned -= HandleBossSpawned;
-        GameEvents.OnBossDied -= HandleBossDied;
-        GameEvents.OnPlayerDamaged -= HandlePlayerDamaged;
-        GameEvents.OnPlayerLevelUp -= HandlePlayerLevelUp;
-        GameEvents.OnWeaponEvolved -= HandleWeaponEvolved;
-        GameEvents.OnEnemyDied -= HandleEnemyDied;
-        GameEvents.OnEnemyHit -= HandleEnemyHit;
-        GameEvents.OnDropCollected -= HandleDropCollected;
-    }
-
-    private void Update()
-    {
-        if (!_fading) return;
-
-        var incoming = _bgmUsingA ? _bgmB : _bgmA;
-        var outgoing = _bgmUsingA ? _bgmA : _bgmB;
-
-        _fadeProgress += Time.unscaledDeltaTime / bgmFadeDuration;
-        float t = Mathf.Clamp01(_fadeProgress);
-
-        if (_targetBGM != null)
-        {
-            incoming.volume = Mathf.Lerp(0f, bgmVolume, t);
-            outgoing.volume = Mathf.Lerp(bgmVolume, 0f, t);
-        }
-        else
-        {
-            outgoing.volume = Mathf.Lerp(bgmVolume, 0f, t);
-        }
-
-        if (t >= 1f)
-        {
-            _fading = false;
-            outgoing.Stop();
-            outgoing.clip = null;
-
-            if (_targetBGM != null)
-            {
-                _bgmUsingA = !_bgmUsingA;
-                incoming.volume = bgmVolume;
-            }
-        }
-    }
-
-    // ── BGM Implementation ────────────────────────────────────
-
-    private AudioSource CurrentBGM => _bgmUsingA ? _bgmA : _bgmB;
-
-    private void InitBGM()
-    {
-        _bgmA = gameObject.AddComponent<AudioSource>();
-        _bgmB = gameObject.AddComponent<AudioSource>();
-
-        foreach (var src in new[] { _bgmA, _bgmB })
-        {
-            src.loop = true;
-            src.playOnAwake = false;
-            src.priority = 0;
-            src.volume = 0f;
-        }
-    }
-
-    private void CompleteFade()
-    {
-        var incoming = _bgmUsingA ? _bgmB : _bgmA;
-        var outgoing = _bgmUsingA ? _bgmA : _bgmB;
-
-        outgoing.Stop();
-        outgoing.clip = null;
-
-        if (_targetBGM != null)
-        {
-            _bgmUsingA = !_bgmUsingA;
-            incoming.volume = bgmVolume;
-        }
-
-        _fading = false;
-    }
-
-    // ── SFX Implementation ────────────────────────────────────
-
-    private void InitSFX()
-    {
-        _sfxPool = new AudioSource[sfxSourceCount];
-        for (int i = 0; i < sfxSourceCount; i++)
-        {
-            var src = gameObject.AddComponent<AudioSource>();
-            src.playOnAwake = false;
-            src.loop = false;
-            _sfxPool[i] = src;
-        }
     }
 
     private AudioSource GetSFXSource()
     {
-        // Find idle source
-        for (int i = 0; i < _sfxPool.Length; i++)
+        int startIndex = _sfxIndex;
+        do
         {
-            int idx = (_sfxIndex + i) % _sfxPool.Length;
-            if (!_sfxPool[idx].isPlaying)
-            {
-                _sfxIndex = (idx + 1) % _sfxPool.Length;
-                return _sfxPool[idx];
-            }
-        }
-        // All busy — steal oldest (round-robin position)
-        var stolen = _sfxPool[_sfxIndex];
-        stolen.Stop();
-        _sfxIndex = (_sfxIndex + 1) % _sfxPool.Length;
-        return stolen;
+            _sfxIndex = (_sfxIndex + 1) % sfxSourceCount;
+        } while (_sfxSources[_sfxIndex].isPlaying && _sfxIndex != startIndex);
+
+        return _sfxSources[_sfxIndex];
     }
 
-    // ── Event Handlers ────────────────────────────────────────
+    #endregion
 
-    private void HandleBossSpawned(BossEnemy _) => PlayBossBGM();
-    private void HandleBossDied(BossEnemy _) => PlayBattleBGM();
-    private void HandlePlayerDamaged(int _) => PlaySFX(playerHit);
-    private void HandlePlayerLevelUp(int _) => PlaySFX(levelUp);
-    private void HandleWeaponEvolved(WeaponBase _) => PlaySFX(evolve);
-    private void HandleEnemyDied(EnemyBase _) => PlaySFX(enemyDie);
-    private void HandleEnemyHit(EnemyBase _) => PlaySFX(enemyHit);
-    private void HandleDropCollected(DropBase _) => PlaySFX(expPickup);
+    #region UI音效控制
+
+    public void PlayUI(AudioClip clip, float volumeScale = 1f)
+    {
+        if (clip == null) return;
+
+        _uiSource.PlayOneShot(clip, uiVolume * volumeScale);
+    }
+
+    public void SetUIVolume(float volume)
+    {
+        uiVolume = Mathf.Clamp01(volume);
+    }
+
+    #endregion
+
+    #region 环境音效控制
+
+    public void PlayAmbient(AudioClip clip, bool fadeIn = false, float fadeDuration = 1f)
+    {
+        if (clip == null)
+        {
+            DebugLogger.LogWarning("[AudioManager] PlayAmbient called with null clip.");
+            return;
+        }
+
+        if (fadeIn)
+        {
+            StartCoroutine(FadeInAmbient(clip, fadeDuration));
+        }
+        else
+        {
+            _ambientSource.clip = clip;
+            _ambientSource.volume = masterVolume * ambientVolume;
+            _ambientSource.Play();
+        }
+    }
+
+    public void StopAmbient(bool fadeOut = false, float fadeDuration = 1f)
+    {
+        if (fadeOut)
+        {
+            StartCoroutine(FadeOutAmbient(fadeDuration));
+        }
+        else
+        {
+            _ambientSource.Stop();
+        }
+    }
+
+    public void SetAmbientVolume(float volume, bool immediate = false, float fadeDuration = 0f)
+    {
+        ambientVolume = Mathf.Clamp01(volume);
+        if (immediate)
+        {
+            _ambientSource.volume = masterVolume * ambientVolume;
+        }
+        else if (fadeDuration > 0f)
+        {
+            StartCoroutine(FadeAmbientVolume(ambientVolume, fadeDuration));
+        }
+    }
+
+    #endregion
+
+    #region 主音量控制
+
+    public void SetMasterVolume(float volume)
+    {
+        masterVolume = Mathf.Clamp01(volume);
+        _bgmSource.volume = masterVolume * bgmVolume;
+        _ambientSource.volume = masterVolume * ambientVolume;
+    }
+
+    #endregion
+
+    #region 淡入淡出协程
+
+    private System.Collections.IEnumerator FadeInBGM(AudioClip clip, float duration, bool loop = true)
+    {
+        _bgmSource.clip = clip;
+        _bgmSource.loop = loop;
+        _bgmSource.volume = 0f;
+        _bgmSource.Play();
+
+        float elapsed = 0f;
+        float startVolume = 0f;
+        float targetVolume = masterVolume * bgmVolume;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _bgmSource.volume = Mathf.Lerp(startVolume, targetVolume, elapsed / duration);
+            yield return null;
+        }
+
+        _bgmSource.volume = targetVolume;
+    }
+
+    private System.Collections.IEnumerator FadeOutBGM(float duration)
+    {
+        float elapsed = 0f;
+        float startVolume = _bgmSource.volume;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _bgmSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / duration);
+            yield return null;
+        }
+
+        _bgmSource.Stop();
+        _bgmSource.volume = 0f;
+    }
+
+    private System.Collections.IEnumerator FadeBGMVolume(float targetVolume, float duration)
+    {
+        float elapsed = 0f;
+        float startVolume = _bgmSource.volume;
+        float endVolume = masterVolume * targetVolume;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _bgmSource.volume = Mathf.Lerp(startVolume, endVolume, elapsed / duration);
+            yield return null;
+        }
+
+        _bgmSource.volume = endVolume;
+    }
+
+    private System.Collections.IEnumerator FadeInAmbient(AudioClip clip, float duration)
+    {
+        _ambientSource.clip = clip;
+        _ambientSource.volume = 0f;
+        _ambientSource.Play();
+
+        float elapsed = 0f;
+        float startVolume = 0f;
+        float targetVolume = masterVolume * ambientVolume;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _ambientSource.volume = Mathf.Lerp(startVolume, targetVolume, elapsed / duration);
+            yield return null;
+        }
+
+        _ambientSource.volume = targetVolume;
+    }
+
+    private System.Collections.IEnumerator FadeOutAmbient(float duration)
+    {
+        float elapsed = 0f;
+        float startVolume = _ambientSource.volume;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _ambientSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / duration);
+            yield return null;
+        }
+
+        _ambientSource.Stop();
+        _ambientSource.volume = 0f;
+    }
+
+    private System.Collections.IEnumerator FadeAmbientVolume(float targetVolume, float duration)
+    {
+        float elapsed = 0f;
+        float startVolume = _ambientSource.volume;
+        float endVolume = masterVolume * targetVolume;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _ambientSource.volume = Mathf.Lerp(startVolume, endVolume, elapsed / duration);
+            yield return null;
+        }
+
+        _ambientSource.volume = endVolume;
+    }
+
+    #endregion
 }
