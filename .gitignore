@@ -26,6 +26,7 @@ Desktop.ini
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.pidb
@@ -50,6 +51,12 @@ obj/
 
 # Profiler logs
 profiler_log.raw
+
+# Codegraph (local dev tool)
+.codegraph/
+
+# Test results
+TestResults_*.txt
 
 # Accidental duplicate scene folder
 Assets/Assets/
