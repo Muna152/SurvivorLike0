@@ -73,6 +73,14 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
     private const int LOD_FAR_INTERVAL = 5;     // Far enemies update every N FixedFrames
     private int _lastLODCheckFrame = -1;         // Frame of last distance check
 
+    // Distance-based speed boost for enemies far from player
+    private const float SPEED_BOOST_START_DISTANCE = 30f; // Start boosting speed at this distance
+    private const float SPEED_BOOST_MAX_DISTANCE = 40f;   // Max boost at this distance
+    private const float SPEED_BOOST_MAX_MULTIPLIER = 2.5f; // Max speed multiplier
+
+    // Despawn enemies that are too far from player (must be larger than SPEED_BOOST_MAX_DISTANCE)
+    private const float DESPAWN_DISTANCE = 50f; // Despawn enemies beyond this distance
+
     // SpatialGrid integration — stores current cell key for O(1) boundary checks.
     // Also used as "registered" flag: non-zero means the enemy is in the grid.
     public long LastCellKey { get; set; }
@@ -326,15 +334,37 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
 
         // LOD distance check — re-evaluate every 10 frames to avoid per-frame distance computation
         int frame = Time.frameCount;
+        float distSq = 0f;
         if (frame - _lastLODCheckFrame >= 10 || _lastLODCheckFrame < 0)
         {
-            float distSq = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).sqrMagnitude;
+            distSq = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).sqrMagnitude;
             _isFarLOD = distSq > LOD_FAR_DISTANCE * LOD_FAR_DISTANCE;
             _lastLODCheckFrame = frame;
+        }
+        else
+        {
+            // Use cached distance for speed boost calculation
+            distSq = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).sqrMagnitude;
+        }
+
+        // Despawn enemies that are too far from player to free up space for new spawns
+        float dist = Mathf.Sqrt(distSq);
+        if (dist > DESPAWN_DISTANCE)
+        {
+            Die(); // Return to pool
+            return;
         }
 
         Vector2 dir = ((Vector2)_cachedPlayer.transform.position - (Vector2)transform.position).normalized;
         bool isMoving = dir.sqrMagnitude > 0.01f;
+
+        // Calculate speed boost based on distance (linear interpolation)
+        float speedMultiplier = 1f;
+        if (dist > SPEED_BOOST_START_DISTANCE)
+        {
+            float t = Mathf.InverseLerp(SPEED_BOOST_START_DISTANCE, SPEED_BOOST_MAX_DISTANCE, dist);
+            speedMultiplier = Mathf.Lerp(1f, SPEED_BOOST_MAX_MULTIPLIER, t);
+        }
 
         if (_isFarLOD)
         {
@@ -345,16 +375,16 @@ public class EnemyBase : MonoBehaviour, IEnemyTick
                 return;
             }
 
-            // Execute movement with accumulated + current delta
+            // Execute movement with accumulated + current delta and speed boost
             float accumulatedDt = _lodAccumulatedDelta + dt;
-            float effectiveSpeedFar = _moveSpeed * _slowMultiplier;
+            float effectiveSpeedFar = _moveSpeed * _slowMultiplier * speedMultiplier;
             _lodAccumulatedDelta = 0f;
             _rb.MovePosition(_rb.position + dir * effectiveSpeedFar * accumulatedDt);
         }
         else
         {
-            // Near LOD: full update every frame
-            float effectiveSpeed = _moveSpeed * _slowMultiplier;
+            // Near LOD: full update every frame with speed boost
+            float effectiveSpeed = _moveSpeed * _slowMultiplier * speedMultiplier;
             _rb.MovePosition(_rb.position + dir * effectiveSpeed * dt);
         }
 

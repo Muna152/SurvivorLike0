@@ -197,7 +197,7 @@ public class PlayerStats : MonoBehaviour
     public int Level;
     public float CurrentHP;
     public float CurrentEXP;
-    public float RequiredEXP;  // => 5 + 5 * Level * Level (quadratic curve)
+    public float RequiredEXP;  // => 5 + 2 * Level * Level (quadratic curve)
 }
 ```
 
@@ -795,15 +795,6 @@ Assets/
 │   │   ├── ChestOpenUI.cs            # 宝箱开箱UI (暂停+动画+结果展示)
 │   │   └── BossHealthBar.cs          # BOSS血条UI
 │   │
-│   ├── UI/                            # UI系统
-│   │   ├── HUDController.cs          # 战斗HUD (含EXP文字显示)
-│   │   ├── MainMenuUI.cs             # 主菜单 + 存档管理面板
-│   │   ├── CharacterSelectUI.cs       # 角色选择界面
-│   │   ├── PauseMenuController.cs     # 暂停菜单
-│   │   ├── ResultScreen.cs           # 结算界面
-│   │   ├── UpgradeShopUI.cs          # 永久升级商店 (编程式UI, CanvasGroup驱动)
-│   │   └── BossHealthBar.cs          # BOSS血条UI
-│   │
 │   ├── VFX/                           # 特效系统
 │   │   ├── VFXManager.cs              # 特效管理器
 │   │   ├── VFXBase.cs                 # 特效动画基类
@@ -872,7 +863,7 @@ Assets/
 └── Fonts/
 ```
 
-> **注意**：ChestOpenUI（宝箱开箱系统）尚未实现，故 Upgrades/ 下无对应文件。Boss 子目录（Bosses/）的 SO 资产已移至 Resources/Data/Enemies/ 统一管理。
+> **注意**：ChestOpenUI（宝箱开箱系统）已实现于 `Scripts/UI/ChestOpenUI.cs`，集成在 DropManager 和 HUDController 中。Boss 子目录（Bosses/）的 SO 资产已移至 Resources/Data/Enemies/ 统一管理。
 
 ---
 
@@ -1290,4 +1281,4 @@ public class SaveManager
 
 ---
 
-*文档版本: v1.6 | 最后更新: 2026-06-11*
+*文档版本: v1.7 | 最后更新: 2026-06-12*
