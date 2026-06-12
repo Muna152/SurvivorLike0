@@ -48,6 +48,9 @@ packages/
 # Build artifacts
 obj/
 
+# Profiler logs
+profiler_log.raw
+
 # Accidental duplicate scene folder
 Assets/Assets/
 Assets/Assets.meta
